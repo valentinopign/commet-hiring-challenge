@@ -7,7 +7,7 @@ import { formatMoney, formatNumber } from "@/lib/format";
 
 type CreditPackCardProps = { row: CreditPackRow; currency: string };
 
-const BODY = "bg-surface-sunken px-3.5 py-2.5";
+const BODY = "bg-surface-card px-3.5 py-2.5";
 const SECTION = `${BODY} border-t border-line`;
 const TERM = "text-caption text-ink-muted";
 

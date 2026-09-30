@@ -12,12 +12,15 @@
   --color-*: initial;
   --radius-*: initial;
 
-  /* Surfaces: canvas (page, top bar, sidebar), the sheet that holds the content, and the two layers of a widget.
-     The sheet is the deeper tone in both themes, so the content reads as set into the frame around it. */
+  /*
+   * Surfaces, from deepest to highest in dark: the sheet that holds the content, the body of a card,
+   * then the header layer of a card (also hover and active fills). Each step is lighter, so elevation
+   * reads without relying on borders. canvas is the frame around the sheet (page, top bar, sidebar).
+   */
   --color-canvas: #111113;
   --color-surface: #0a0a0b;
-  --color-surface-raised: #19191c;
-  --color-surface-sunken: #0d0d0f;
+  --color-surface-raised: #1b1b1f;
+  --color-surface-card: #131316;
   --color-line: #26262b;
   --color-line-strong: #3a3a41;
   --color-ink: #ededef;
@@ -83,7 +86,7 @@
     --color-canvas: #ffffff;
     --color-surface: #f4f4f5;
     --color-surface-raised: #f7f7f8;
-    --color-surface-sunken: #ffffff;
+    --color-surface-card: #ffffff;
     --color-line: #e4e4e7;
     --color-line-strong: #cfcfd6;
     --color-ink: #18181b;

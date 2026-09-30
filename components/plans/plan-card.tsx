@@ -19,7 +19,7 @@ type PlanCardProps = {
   currency: string;
 };
 
-const BODY = "bg-surface-sunken px-4 py-3";
+const BODY = "bg-surface-card px-4 py-3";
 const SECTION = `${BODY} border-t border-line`;
 const TERM = "text-caption text-ink-muted";
 

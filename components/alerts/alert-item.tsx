@@ -84,7 +84,7 @@ export function AlertItem({ severity, copy, planCode, planName, compact = false 
           )
         }
       />
-      <div className="bg-surface-sunken px-3.5 py-2.5">
+      <div className="bg-surface-card px-3.5 py-2.5">
         <p className="font-medium">{copy.title}</p>
         <p className="text-ink-muted">{copy.detail}</p>
       </div>

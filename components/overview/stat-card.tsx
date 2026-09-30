@@ -16,7 +16,7 @@ export function StatCard({ icon, label, value, detail }: StatCardProps) {
         {icon}
         {label}
       </dt>
-      <dd className="bg-surface-sunken px-3.5 pt-2.5 pb-3">
+      <dd className="bg-surface-card px-3.5 pt-2.5 pb-3">
         <span className="block text-stat font-medium tabular-nums">{value}</span>
         <span className="block text-caption text-ink-muted">{detail}</span>
       </dd>
