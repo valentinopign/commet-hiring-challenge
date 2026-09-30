@@ -47,6 +47,7 @@ describe("insertDraftIntoLadder", () => {
       },
       exhaustionPolicy: { type: "block" },
       features: getRelease("growth", 3).features,
+      creditPackCodes: [],
     });
     const entries = insertDraftIntoLadder(ladder, draft);
     expect(entries.map((entry) => (entry.isDraft ? entry.draft.code : entry.plan.code))).toEqual([

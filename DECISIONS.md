@@ -213,7 +213,11 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 ### When credits run out step
 
 - **Each option explains, inside the option, what the end customer lives through**, and names the plans that use it today (from the data). The choice starts empty when building from scratch.
-- **Overage is compared with three references**: the plan's own included credits, the neighbours' overage, and the price range of credit packs. A new plan is on no pack, and the text says so in both options.
+- **Overage is compared with the plan's own included credits and with the neighbours' overage.** Credit packs are compared one by one in their own section (below).
+- **Credit packs are chosen in the same step**, because they change what running out means: with "Stop the service" and no pack, upgrading is the customer's only way to keep going, and the step says so as soon as that combination is chosen. Each pack shows its credits, price, price per 1,000, expiry, the plans it is sold on today and, with an overage price set, how it compares with this plan's overage.
+- **Packs are suggested from the neighbours**: the packs both sell; if one of them sells none (Free, by design), the other's; if neither does, none. A pure intersection would leave a plan between Free and Starter without a suggestion, which is exactly where offering packs makes sense. The suggestion follows the plan's place on the ladder until the person ticks or unticks a pack; from then on the selection is theirs, and "Use the suggestion" restores it. Starting from a plan does not copy its packs, because the place on the ladder decides which packs fit.
+- **Choosing packs is not managing them.** No pack is created or edited: packs list the plans they are sold on (`planCodes`), and publishing would add the new plan's code to the selected ones. Like the publish itself, this is simulated. The review lists the chosen packs and says so.
+- **`checkDraftPlan` uses the selection**: "no credit packs" is raised only for a blocking plan with no pack selected.
 
 ### Features step
 

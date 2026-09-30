@@ -102,6 +102,11 @@ export type DraftPlan = {
   pricing: PlanPricing;
   exhaustionPolicy: ExhaustionPolicy;
   features: ReleaseFeature[];
+  /**
+   * Credit packs the plan would be sold with. Packs list their plans (`planCodes`), so publishing
+   * would add this plan's code to each of them.
+   */
+  creditPackCodes: string[];
 };
 
 export type DraftSummary = {

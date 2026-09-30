@@ -41,6 +41,11 @@ export type DraftFlowState = {
   editedSinceBase: boolean;
   /** Restored when the person switches from "block" back to overage. */
   lastOveragePrice: number | null;
+  /**
+   * Until the person ticks or unticks a pack, the selection follows the suggestion, which moves
+   * with the plan's place on the ladder; `draft.creditPackCodes` only counts once this is true.
+   */
+  packsChosenByHand: boolean;
 };
 
 export type DraftFlowAction =
@@ -56,7 +61,9 @@ export type DraftFlowAction =
   | { type: "choose_exhaustion"; policy: ExhaustionPolicy["type"] }
   | { type: "set_overage_price"; price: number | null }
   | { type: "set_feature"; code: string; feature: ReleaseFeature | null }
-  | { type: "set_feature_input_invalid"; code: string; part: FeatureInputPart; invalid: boolean };
+  | { type: "set_feature_input_invalid"; code: string; part: FeatureInputPart; invalid: boolean }
+  | { type: "set_credit_packs"; codes: string[] }
+  | { type: "use_suggested_packs" };
 
 const SCRATCH_PENDING: PendingField[] = ["monthly_price", "monthly_credits", "exhaustion_policy"];
 
@@ -108,6 +115,16 @@ export function getPlacedMonthlyPrice(state: DraftFlowState): number | null {
   return findPrice(pricing, "monthly")?.price ?? null;
 }
 
+/** The packs the plan would be sold with: the person's choice, or the suggestion until they make one. */
+export function resolveCreditPackCodes(state: DraftFlowState, suggestedCodes: string[]): string[] {
+  return state.packsChosenByHand ? state.draft.creditPackCodes : suggestedCodes;
+}
+
+/** The draft as the checks, the ladder and the review see it, with its packs resolved. */
+export function getResolvedDraft(state: DraftFlowState, suggestedCodes: string[]): DraftPlan {
+  return { ...state.draft, creditPackCodes: resolveCreditPackCodes(state, suggestedCodes) };
+}
+
 export function createInitialState(base: DraftBase | null): DraftFlowState {
   const empty: DraftFlowState = {
     draft: {
@@ -118,11 +135,13 @@ export function createInitialState(base: DraftBase | null): DraftFlowState {
       pricing: scratchPricing(),
       exhaustionPolicy: { type: "block" },
       features: [],
+      creditPackCodes: [],
     },
     codeEditedByHand: false,
     pending: SCRATCH_PENDING,
     editedSinceBase: false,
     lastOveragePrice: null,
+    packsChosenByHand: false,
   };
   return draftFlowReducer(empty, { type: "apply_base", base });
 }
@@ -160,10 +179,18 @@ export function draftFlowReducer(state: DraftFlowState, action: DraftFlowAction)
       if (!base) {
         return {
           ...state,
-          draft: { ...draft, basePlanCode: null, pricing: scratchPricing(), exhaustionPolicy: { type: "block" }, features: [] },
+          draft: {
+            ...draft,
+            basePlanCode: null,
+            pricing: scratchPricing(),
+            exhaustionPolicy: { type: "block" },
+            features: [],
+            creditPackCodes: [],
+          },
           pending: SCRATCH_PENDING,
           editedSinceBase: false,
           lastOveragePrice: null,
+          packsChosenByHand: false,
         };
       }
       return {
@@ -174,9 +201,12 @@ export function draftFlowReducer(state: DraftFlowState, action: DraftFlowAction)
           pricing: structuredClone(base.pricing),
           exhaustionPolicy: { ...base.exhaustionPolicy },
           features: structuredClone(base.features),
+          // The base's own packs are not copied: which packs fit depends on where the new plan sits.
+          creditPackCodes: [],
         },
         pending: [],
         editedSinceBase: false,
+        packsChosenByHand: false,
         lastOveragePrice: base.exhaustionPolicy.type === "bill_overage" ? base.exhaustionPolicy.pricePer1000Credits : null,
       };
     }
@@ -266,6 +296,12 @@ export function draftFlowReducer(state: DraftFlowState, action: DraftFlowAction)
       );
       return edited({ draft: { ...draft, features }, pending });
     }
+
+    case "set_credit_packs":
+      return edited({ draft: { ...draft, creditPackCodes: action.codes }, packsChosenByHand: true });
+
+    case "use_suggested_packs":
+      return edited({ draft: { ...draft, creditPackCodes: [] }, packsChosenByHand: false });
 
     case "set_feature_input_invalid":
       return {

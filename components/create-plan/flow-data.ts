@@ -2,10 +2,11 @@ import type { Dispatch } from "react";
 import type { Catalog } from "@/lib/catalog";
 import type { DraftFlowAction, DraftFlowState } from "@/lib/create-plan/draft-reducer";
 import type { ExistingPlan, StepIssue } from "@/lib/create-plan/steps";
-import type { YearlyReference } from "@/lib/derive/draft-flow";
+import type { PackSuggestion, YearlyReference } from "@/lib/derive/draft-flow";
 import type {
   CreditPackSummary,
   DraftBase,
+  DraftPlan,
   DraftSummary,
   DraftWarning,
   NeighbourPlans,
@@ -26,10 +27,13 @@ export type CreatePlanData = {
 
 /** What changes with every edit, derived from the draft on each render. */
 export type DraftDerived = {
+  /** The draft with its credit packs resolved (the person's choice, or the suggestion). */
+  draft: DraftPlan;
   summary: DraftSummary;
   /** `null` until the draft has a monthly price to place it with. */
   position: NeighbourPlans | null;
   warnings: DraftWarning[];
+  packSuggestion: PackSuggestion;
 };
 
 export type StepProps = {

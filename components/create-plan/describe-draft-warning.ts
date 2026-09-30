@@ -74,7 +74,7 @@ export function describeDraftWarning(
     case "blocked_without_credit_packs":
       return {
         title: "No credit packs for this plan",
-        detail: "No pack lists this plan yet, so when credits run out, upgrading is the only way to keep going.",
+        detail: "No credit pack is selected, so when credits run out, upgrading is the only way to keep going.",
       };
     case "feature_worse_than_cheaper_plan": {
       const neighbour = planName(warning.planCode);

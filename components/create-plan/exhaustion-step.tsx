@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AmountInput } from "@/components/create-plan/amount-input";
+import { CreditPackSelector } from "@/components/create-plan/credit-pack-selector";
 import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
 import { FieldError } from "@/components/create-plan/field-error";
 import { issueMessage, type StepProps } from "@/components/create-plan/flow-data";
@@ -9,7 +10,6 @@ import { FormField } from "@/components/create-plan/form-field";
 import { WidgetHeader } from "@/components/ui/widget-header";
 import type { ExhaustionPolicy } from "@/lib/catalog";
 import { warningStep } from "@/lib/create-plan/steps";
-import { getPackPriceRange } from "@/lib/derive/draft-flow";
 import type { PlanSummary } from "@/lib/derive/types";
 import { formatMoney, formatSavings, getCurrencySymbol } from "@/lib/format";
 
@@ -83,14 +83,15 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
   const overageError = issueMessage(issues, "overage-price", showAllIssues);
 
   const includedPerThousand = derived.summary.monthly?.pricePerThousandCredits ?? null;
-  const packRange = getPackPriceRange(packs);
   const position = derived.position;
+  // Each pack is compared with the overage only once there is a real overage price to compare with.
+  const comparablePolicy = policyChosen && policy.type === "bill_overage" && !overagePending && policy.pricePer1000Credits > 0
+    ? policy
+    : null;
 
-  // The pack note already sits in the "Stop the service" option; repeating it as a warning adds nothing.
+  // Includes "no credit packs" for a blocking plan with none ticked: upgrading is then the only way out.
   const stepWarnings = policyChosen && !overagePending
-    ? derived.warnings.filter(
-        (warning) => warningStep(warning) === "credits-run-out" && warning.type !== "blocked_without_credit_packs",
-      )
+    ? derived.warnings.filter((warning) => warningStep(warning) === "credits-run-out")
     : [];
 
   return (
@@ -115,9 +116,6 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
             <span className="block">
               Every action that spends credits stops until their credits renew or they upgrade. They never get a
               surprise charge, but work can stop halfway through.
-            </span>
-            <span className="block">
-              This plan is not on any credit pack yet, so upgrading would be the only way to keep going.
             </span>
           </PolicyOption>
           <PolicyOption
@@ -171,18 +169,23 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
               )}
               {neighbourLine(position?.below ?? null, "costs less", currency)}
               {neighbourLine(position?.above ?? null, "costs more", currency)}
-              {packRange && (
-                <li>
-                  <span className="font-medium">Credit packs</span> cost{" "}
-                  {packRange.min === packRange.max
-                    ? formatMoney(packRange.min, currency)
-                    : `${formatMoney(packRange.min, currency)} to ${formatMoney(packRange.max, currency)}`}{" "}
-                  per 1,000 on the plans they list. None would be sold on this plan until a pack lists it.
-                </li>
-              )}
             </ul>
           </section>
         </>
+      )}
+
+      {policyChosen && (
+        <CreditPackSelector
+          packs={packs}
+          selectedCodes={derived.draft.creditPackCodes}
+          suggestion={derived.packSuggestion}
+          chosenByHand={state.packsChosenByHand}
+          position={position}
+          exhaustionPolicy={comparablePolicy}
+          ladder={ladder}
+          currency={currency}
+          dispatch={dispatch}
+        />
       )}
 
       <DraftWarningList

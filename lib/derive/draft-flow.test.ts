@@ -8,10 +8,10 @@ import {
   getDraftLadder,
   getDraftPosition,
   getFeatureComparisons,
-  getPackPriceRange,
   getYearlyReference,
   groupWarningsBySeverity,
   resolveBasePlanCode,
+  suggestCreditPacks,
   suggestYearly,
 } from "@/lib/derive/draft-flow";
 import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
@@ -139,6 +139,7 @@ describe("groupWarningsBySeverity", () => {
         pricing: { type: "standard", prices: [{ id: "draft_monthly", billingInterval: "monthly", price: 9900, includedCredits: 0, isDefault: true }] },
         exhaustionPolicy: { type: "block" },
         features: [],
+        creditPackCodes: [],
       },
       catalog,
     );
@@ -158,13 +159,35 @@ describe("suggestYearly", () => {
   });
 });
 
-describe("getPackPriceRange", () => {
-  it("spans the cheapest and dearest pack per 1,000 credits", () => {
-    expect(getPackPriceRange(summarizeCreditPacks(catalog))).toEqual({ min: 780, max: 880 });
+describe("suggestCreditPacks", () => {
+  const ladder = getPlanLadder(catalog);
+  const packs = summarizeCreditPacks(catalog);
+
+  it("suggests the packs both neighbours sell", () => {
+    expect(suggestCreditPacks(packs, getDraftPosition(ladder, 19900))).toEqual({
+      codes: ["pack_10k", "pack_50k"],
+      basis: "both",
+    });
   });
 
-  it("is null without packs", () => {
-    expect(getPackPriceRange([])).toBeNull();
+  it("uses the other neighbour's packs when one sells none (Free and Starter)", () => {
+    const position = getDraftPosition(ladder, 1500);
+    expect(position?.below?.code).toBe("free");
+    expect(position?.above?.code).toBe("starter");
+    expect(suggestCreditPacks(packs, position)).toEqual({ codes: ["pack_10k"], basis: "above" });
+  });
+
+  it("uses the only neighbour of a plan above the priciest one", () => {
+    expect(suggestCreditPacks(packs, getDraftPosition(ladder, 500000))).toEqual({
+      codes: ["pack_250k"],
+      basis: "below",
+    });
+  });
+
+  it("suggests nothing without neighbours that sell packs", () => {
+    expect(suggestCreditPacks(packs, { below: null, above: null })).toEqual({ codes: [], basis: "none" });
+    expect(suggestCreditPacks(packs, null)).toEqual({ codes: [], basis: "none" });
+    expect(suggestCreditPacks([], getDraftPosition(ladder, 19900))).toEqual({ codes: [], basis: "none" });
   });
 });
 
@@ -203,6 +226,7 @@ describe("getDraftLadder", () => {
     pricing: growth.pricing,
     exhaustionPolicy: growth.exhaustionPolicy,
     features: growth.features,
+    creditPackCodes: [],
   });
   const codes = (entries: ReturnType<typeof getDraftLadder>["entries"]) =>
     entries.map((entry) => (entry.isDraft ? "draft" : entry.plan.code));

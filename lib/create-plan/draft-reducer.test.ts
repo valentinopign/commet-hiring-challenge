@@ -4,6 +4,7 @@ import {
   createInitialState,
   draftFlowReducer,
   getPlacedMonthlyPrice,
+  getResolvedDraft,
   type DraftFlowAction,
   type DraftFlowState,
 } from "@/lib/create-plan/draft-reducer";
@@ -188,5 +189,33 @@ describe("reset", () => {
   it("starts a new draft", () => {
     const state = run(createInitialState(growth), { type: "set_name", name: "Pro" }, { type: "reset", base: null });
     expect(state).toEqual(createInitialState(null));
+  });
+});
+
+describe("credit packs", () => {
+  const suggested = ["pack_10k", "pack_50k"];
+
+  it("follows the suggestion until the person chooses", () => {
+    const state = createInitialState(growth);
+    expect(getResolvedDraft(state, suggested).creditPackCodes).toEqual(suggested);
+    expect(getResolvedDraft(state, ["pack_250k"]).creditPackCodes).toEqual(["pack_250k"]);
+  });
+
+  it("keeps the person's choice, even an empty one", () => {
+    const state = run(createInitialState(growth), { type: "set_credit_packs", codes: [] });
+    expect(getResolvedDraft(state, suggested).creditPackCodes).toEqual([]);
+  });
+
+  it("can go back to the suggestion", () => {
+    const state = run(
+      createInitialState(growth),
+      { type: "set_credit_packs", codes: ["pack_250k"] },
+      { type: "use_suggested_packs" },
+    );
+    expect(getResolvedDraft(state, suggested).creditPackCodes).toEqual(suggested);
+  });
+
+  it("does not copy the base plan's packs", () => {
+    expect(createInitialState(growth).draft.creditPackCodes).toEqual([]);
   });
 });

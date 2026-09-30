@@ -140,11 +140,33 @@ export function suggestYearly(
   };
 }
 
-/** Cheapest and dearest price per 1,000 credits across the packs, for a reference line. */
-export function getPackPriceRange(packs: CreditPackSummary[]): { min: number; max: number } | null {
-  const prices = packs.flatMap((pack) => (pack.pricePerThousandCredits === null ? [] : [pack.pricePerThousandCredits]));
-  if (prices.length === 0) return null;
-  return { min: Math.min(...prices), max: Math.max(...prices) };
+/** Which neighbours the pack suggestion comes from, so the step can explain it. */
+export type PackSuggestionBasis = "both" | "below" | "above" | "none";
+
+export type PackSuggestion = { codes: string[]; basis: PackSuggestionBasis };
+
+function packCodesOf(packs: CreditPackSummary[], plan: PlanSummary | null): string[] {
+  if (!plan) return [];
+  return packs.filter((pack) => pack.planCodes.includes(plan.code)).map((pack) => pack.code);
+}
+
+/**
+ * The packs a new plan would reasonably be sold with, taken from the plans around it:
+ * - both neighbours sell packs: the ones they share, which clearly belong in that price range;
+ * - only one does (Free sells none by design): that one's packs, so a plan right above Free still
+ *   gets a suggestion;
+ * - neither does, or there are no neighbours: no suggestion.
+ */
+export function suggestCreditPacks(packs: CreditPackSummary[], position: NeighbourPlans | null): PackSuggestion {
+  const below = packCodesOf(packs, position?.below ?? null);
+  const above = packCodesOf(packs, position?.above ?? null);
+
+  if (below.length > 0 && above.length > 0) {
+    return { codes: below.filter((code) => above.includes(code)), basis: "both" };
+  }
+  if (below.length > 0) return { codes: below, basis: "below" };
+  if (above.length > 0) return { codes: above, basis: "above" };
+  return { codes: [], basis: "none" };
 }
 
 export type NeighbourFeature = {

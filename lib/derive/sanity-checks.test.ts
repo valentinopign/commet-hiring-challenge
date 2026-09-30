@@ -35,6 +35,7 @@ function makeDraft(overrides: Partial<DraftPlan> = {}): DraftPlan {
     pricing: standardPricing(19900, 26000),
     exhaustionPolicy: overage,
     features: getRelease("growth", 3).features,
+    creditPackCodes: ["pack_10k", "pack_50k"],
     ...overrides,
   };
 }
@@ -149,14 +150,24 @@ describe("checkDraftPlan", () => {
     expect(
       warningTypes(makeDraft({ pricing: { type: "free", includedCredits: 200 } })),
     ).toContain("free_plan_bills_overage");
-    expect(warningTypes(makeDraft({ exhaustionPolicy: { type: "block" } }))).toContain(
+    expect(warningTypes(makeDraft({ exhaustionPolicy: { type: "block" }, creditPackCodes: [] }))).toContain(
       "blocked_without_credit_packs",
     );
   });
 
+  it("does not flag a blocking plan that is sold with credit packs", () => {
+    expect(warningTypes(makeDraft({ exhaustionPolicy: { type: "block" } }))).not.toContain(
+      "blocked_without_credit_packs",
+    );
+  });
+
+  it("does not flag a plan that bills overage without packs", () => {
+    expect(warningTypes(makeDraft({ creditPackCodes: [] }))).not.toContain("blocked_without_credit_packs");
+  });
+
   it("orders blocking warnings before advice", () => {
     const warnings = checkDraftPlan(
-      makeDraft({ code: "growth", exhaustionPolicy: { type: "block" } }),
+      makeDraft({ code: "growth", exhaustionPolicy: { type: "block" }, creditPackCodes: [] }),
       catalog,
     );
     expect(warnings.map((warning) => warning.severity)).toEqual(["blocking", "info"]);

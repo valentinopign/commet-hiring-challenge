@@ -71,8 +71,8 @@ function checkCreditsAndPolicy(draft: DraftPlan, summary: DraftSummary): DraftWa
         includedPricePerThousand,
       });
     }
-  } else {
-    // Credit packs list the plans they apply to, and a new plan is in none of them yet.
+  } else if (draft.creditPackCodes.length === 0) {
+    // Blocked with no pack to buy: upgrading is the customer's only way to keep going.
     warnings.push({ type: "blocked_without_credit_packs", severity: "info" });
   }
 

@@ -10,7 +10,7 @@ import { isFeatureAvailable } from "@/lib/derive/compare-features";
 import { groupWarningsBySeverity } from "@/lib/derive/draft-flow";
 import { groupFeaturesByType } from "@/lib/derive/plan-detail";
 import type { PeriodPricing } from "@/lib/derive/types";
-import { formatCredits, formatFeatureValue, formatMoney } from "@/lib/format";
+import { formatCredits, formatFeatureValue, formatMoney, formatNumber } from "@/lib/format";
 
 type ReviewStepProps = StepProps & { onGoToStep: (step: StepId) => void };
 
@@ -45,7 +45,8 @@ const WARNING_GROUPS = [
 export function ReviewStep({ state, data, derived, onGoToStep }: ReviewStepProps) {
   const { draft } = state;
   const { summary, warnings } = derived;
-  const { currency, planNames, bases } = data;
+  const { currency, planNames, bases, packs } = data;
+  const selectedPacks = packs.filter((pack) => derived.draft.creditPackCodes.includes(pack.code));
   const base = bases.find((candidate) => candidate.code === draft.basePlanCode);
   const features = groupFeaturesByType(summary.features);
   const groups = groupWarningsBySeverity(warnings);
@@ -103,11 +104,27 @@ export function ReviewStep({ state, data, derived, onGoToStep }: ReviewStepProps
       </ReviewSection>
 
       <ReviewSection id="review-policy" title="When credits run out" onEdit={() => onGoToStep("credits-run-out")}>
-        <p>
-          {policy.type === "block"
-            ? "Stop the service until credits renew or the customer upgrades."
-            : `Bill the extra at ${formatMoney(policy.pricePer1000Credits, currency)} per 1,000 credits.`}
-        </p>
+        <dl>
+          <Row term="Policy">
+            {policy.type === "block"
+              ? "Stop the service until credits renew or the customer upgrades."
+              : `Bill the extra at ${formatMoney(policy.pricePer1000Credits, currency)} per 1,000 credits.`}
+          </Row>
+          <Row term="Credit packs">
+            {selectedPacks.length > 0 ? (
+              <>
+                {selectedPacks
+                  .map((pack) => `${formatNumber(pack.credits)} credits (${formatMoney(pack.price, currency)})`)
+                  .join(", ")}
+                <span className="block text-caption text-ink-muted">Publishing adds this plan to these packs.</span>
+              </>
+            ) : policy.type === "block" ? (
+              "None. When credits run out, upgrading is the only way to keep going."
+            ) : (
+              "None."
+            )}
+          </Row>
+        </dl>
       </ReviewSection>
 
       <ReviewSection id="review-features" title="Features" onEdit={() => onGoToStep("features")}>

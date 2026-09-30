@@ -15,7 +15,7 @@ import { StepFooter } from "@/components/create-plan/step-footer";
 import { StepList } from "@/components/create-plan/step-list";
 import { useDraftLadder } from "@/components/create-plan/use-draft-ladder";
 import type { Catalog } from "@/lib/catalog";
-import { createInitialState, draftFlowReducer, getPlacedMonthlyPrice } from "@/lib/create-plan/draft-reducer";
+import { createInitialState, draftFlowReducer, getPlacedMonthlyPrice, getResolvedDraft } from "@/lib/create-plan/draft-reducer";
 import {
   CREATE_PLAN_STEPS,
   firstIncompleteStep,
@@ -25,7 +25,13 @@ import {
   type StepId,
 } from "@/lib/create-plan/steps";
 import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
-import { getDraftBases, getDraftPosition, getYearlyReference, groupWarningsBySeverity } from "@/lib/derive/draft-flow";
+import {
+  getDraftBases,
+  getDraftPosition,
+  getYearlyReference,
+  groupWarningsBySeverity,
+  suggestCreditPacks,
+} from "@/lib/derive/draft-flow";
 import { getPlanLadder, getPlanNames, summarizeDraft } from "@/lib/derive/plans";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 
@@ -86,10 +92,15 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
 
   // Everything below is recomputed on each edit: the checks are what the steps react to live.
   const placedPrice = getPlacedMonthlyPrice(state);
+  const position = getDraftPosition(ladder, placedPrice);
+  const packSuggestion = suggestCreditPacks(data.packs, position);
+  const draft = getResolvedDraft(state, packSuggestion.codes);
   const derived: DraftDerived = {
-    summary: summarizeDraft(catalog, state.draft),
-    position: getDraftPosition(ladder, placedPrice),
-    warnings: checkDraftPlan(state.draft, catalog),
+    draft,
+    summary: summarizeDraft(catalog, draft),
+    position,
+    warnings: checkDraftPlan(draft, catalog),
+    packSuggestion,
   };
   const stepProps: StepProps = { state, dispatch, data, derived, issues, showAllIssues };
   const ladderView = useDraftLadder(ladder, derived.summary, placedPrice);
