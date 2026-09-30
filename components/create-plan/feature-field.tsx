@@ -4,6 +4,7 @@ import type { Dispatch } from "react";
 import { AmountInput } from "@/components/create-plan/amount-input";
 import { FieldError } from "@/components/create-plan/field-error";
 import { FeatureNeighbours } from "@/components/create-plan/feature-neighbours";
+import { Reveal } from "@/components/create-plan/reveal";
 import type { CapacityLimit, CatalogFeature, ReleaseFeature } from "@/lib/catalog";
 import {
   featurePendingField,
@@ -99,7 +100,7 @@ export function FeatureField({ feature, configured, comparison, pending, issues,
           Included
         </label>
         {current && (
-          <div className="max-w-xs">
+          <Reveal className="max-w-xs">
             <label htmlFor={fieldId("credits")} className="text-caption text-ink-muted">Cost of each {feature.unit}</label>
             <div className="mt-1">
               <AmountInput
@@ -116,7 +117,7 @@ export function FeatureField({ feature, configured, comparison, pending, issues,
                 }}
               />
             </div>
-          </div>
+          </Reveal>
         )}
       </div>
     );
@@ -158,7 +159,7 @@ export function FeatureField({ feature, configured, comparison, pending, issues,
         </div>
 
         {limit?.type === "limited" && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <Reveal className="grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor={fieldId("amount")} className="text-caption text-ink-muted">Included</label>
               <div className="mt-1">
@@ -206,7 +207,7 @@ export function FeatureField({ feature, configured, comparison, pending, issues,
                 </label>
               </div>
               {limit.overage.type === "billed" && (
-                <div className="mt-2">
+                <Reveal className="pt-2">
                   <label htmlFor={fieldId("unit_price")} className="sr-only">Price per extra {feature.unit}</label>
                   <AmountInput
                     {...inputProps("unit_price")}
@@ -222,10 +223,10 @@ export function FeatureField({ feature, configured, comparison, pending, issues,
                       }
                     }}
                   />
-                </div>
+                </Reveal>
               )}
             </fieldset>
-          </div>
+          </Reveal>
         )}
       </div>
     );

@@ -238,3 +238,15 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 - **"Publish plan" is disabled only by blocking checks**, and the reason is written next to it. With the position step validated, a blocking check can only appear if the catalog changed under the draft, but the review does not assume it.
 - **"Who this reaches"** states that a new plan has no customers yet, and how later changes would reach them (price, credits and policy: everyone at renewal; features: a new version for new customers). A future "new version of an existing plan" mode would fill the same section with the real customer counts.
 - **The publish is simulated and says so**: the confirmation shows the final ladder, states that nothing was saved, and offers "Create another plan" (a fresh draft, no reload) or "Back to overview".
+
+### Motion in the create flow
+
+- **Motion only where it explains what happened.** The ladder stays the one long animation (320 ms); everything else is 150–200 ms (250 ms for the new plan joining the final ladder), uses the single `--ease-emphasized` curve, animates transform and opacity (height only for revealed fields), and needs no library.
+- **Step change:** the new step fades in and slides 8px from the side it comes from (forward from the right, back from the left), 200 ms. The old step leaves at once, so the requested step is never delayed. Focus still moves to the step's title and the page never scrolls sideways.
+- **Fields revealed by a choice** (overage price, yearly billing, a feature's cost or limit, billed capacity price, credit packs, the "replace your changes?" confirmation) grow in with height and opacity, 200 ms, like the sidebar disclosure, so the choice reads as their cause. Overflow is hidden only while they grow, so focus rings are never clipped. Content already there when a step opens does not animate, and hiding is instant: it answers the person's own click.
+- **Errors after "Continue"** fade in and drop 2px (150 ms); nothing shakes. Focus on the first invalid field remains the main feedback.
+- **Live checks and feature marks** only fade in (150 ms): they change while the person types, so any movement would compete with the ladder.
+- **Publish** is the one moment of accomplishment, told in three beats: the "published" mark, the message, then the new plan taking its place on the ladder as its dashed draft border turns solid. The other plans stay still.
+- **Reduced motion keeps the fades and drops every slide, scale and height change.**
+- **Not animated on purpose:** live numbers (prices, price per 1,000, the neighbour table), review cards and the step list markers. They are read, not watched.
+- **Entrances for small elements use CSS `@starting-style`** with transitions, so a quick toggle retargets instead of restarting; browsers without it show them at once. Revealed fields, steps and the publish beats use the Web Animations API, which can measure heights and sequence beats.

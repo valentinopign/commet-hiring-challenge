@@ -31,7 +31,7 @@ export function DraftWarningList({ warnings, planNames, currency, label, onGoToS
         const style = SEVERITY_STYLES[warning.severity];
         const copy = describeDraftWarning(warning, planNames, currency);
         return (
-          <li key={`${warning.type}-${index}`} className={`flex gap-2.5 rounded-control border px-3 py-2 ${style.box}`}>
+          <li key={`${warning.type}-${index}`} className={`enter-fade flex gap-2.5 rounded-control border px-3 py-2 ${style.box}`}>
             <span className={`mt-0.5 ${style.text}`}>{style.icon}</span>
             <div className="min-w-0">
               <p className="font-medium">

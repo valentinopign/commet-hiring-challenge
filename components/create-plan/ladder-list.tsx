@@ -13,6 +13,8 @@ type LadderListProps = {
   isPlaced: boolean;
   /** The badge on the new plan: "Draft" while editing, "New" once published. */
   draftLabel: string;
+  /** Once published, a solid ring (drawn over the dashed draft border) marks the plan as real. */
+  isPublished?: boolean;
   /** Hide the draft's price while it is still being typed, instead of showing the $0 placeholder. */
   draftPricePending: boolean;
   currency: string;
@@ -27,7 +29,7 @@ function describeCredits(monthly: PeriodPricing | null, currency: string): strin
 }
 
 /** Cheapest first, with the draft where its price puts it. Moves are animated by `useFlipReorder`. */
-export function LadderList({ entries, isPlaced, draftLabel, draftPricePending, currency, label }: LadderListProps) {
+export function LadderList({ entries, isPlaced, draftLabel, isPublished = false, draftPricePending, currency, label }: LadderListProps) {
   const listRef = useRef<HTMLOListElement>(null);
   const keys = entries.map((entry) => (entry.isDraft ? DRAFT_KEY : entry.plan.code));
   useFlipReorder(listRef, keys.join(","), DRAFT_KEY);
@@ -43,12 +45,24 @@ export function LadderList({ entries, isPlaced, draftLabel, draftPricePending, c
               key={key}
               data-flip-key={key}
               aria-current="true"
+              data-new-plan={isPublished || undefined}
               className="relative z-10 rounded-control border border-dashed border-line-strong bg-surface-raised px-3 py-2"
             >
+              {isPublished && (
+                <span
+                  aria-hidden="true"
+                  data-published-ring
+                  className="pointer-events-none absolute -inset-px rounded-control border border-live"
+                />
+              )}
               <div className="flex items-baseline justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-1.5">
                   <span className="truncate font-medium">{draft.name || "This plan"}</span>
-                  <span className="shrink-0 rounded-mark border border-line-strong px-1.5 text-xs text-ink-muted">{draftLabel}</span>
+                  <span
+                    className={`shrink-0 rounded-mark border px-1.5 text-xs ${isPublished ? "border-live text-live" : "border-line-strong text-ink-muted"}`}
+                  >
+                    {draftLabel}
+                  </span>
                   <VisibilityBadge isPublic={draft.isPublic} />
                 </span>
                 <span className="shrink-0 font-medium tabular-nums">

@@ -7,6 +7,7 @@ import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
 import { FieldError } from "@/components/create-plan/field-error";
 import { issueMessage, type StepProps } from "@/components/create-plan/flow-data";
 import { FormField } from "@/components/create-plan/form-field";
+import { Reveal } from "@/components/create-plan/reveal";
 import { WidgetHeader } from "@/components/ui/widget-header";
 import type { ExhaustionPolicy } from "@/lib/catalog";
 import { warningStep } from "@/lib/create-plan/steps";
@@ -135,7 +136,7 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
       </fieldset>
 
       {policyChosen && policy.type === "bill_overage" && (
-        <>
+        <Reveal className="space-y-6">
           <div className="max-w-sm">
             <FormField id="overage-price" label="Price of 1,000 extra credits" error={overageError}>
               {(control) => (
@@ -171,21 +172,23 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
               {neighbourLine(position?.above ?? null, "costs more", currency)}
             </ul>
           </section>
-        </>
+        </Reveal>
       )}
 
       {policyChosen && (
-        <CreditPackSelector
-          packs={packs}
-          selectedCodes={derived.draft.creditPackCodes}
-          suggestion={derived.packSuggestion}
-          chosenByHand={state.packsChosenByHand}
-          position={position}
-          exhaustionPolicy={comparablePolicy}
-          ladder={ladder}
-          currency={currency}
-          dispatch={dispatch}
-        />
+        <Reveal>
+          <CreditPackSelector
+            packs={packs}
+            selectedCodes={derived.draft.creditPackCodes}
+            suggestion={derived.packSuggestion}
+            chosenByHand={state.packsChosenByHand}
+            position={position}
+            exhaustionPolicy={comparablePolicy}
+            ladder={ladder}
+            currency={currency}
+            dispatch={dispatch}
+          />
+        </Reveal>
       )}
 
       <DraftWarningList

@@ -2,6 +2,7 @@
 
 import { useState, type Dispatch } from "react";
 import { FormField } from "@/components/create-plan/form-field";
+import { Reveal } from "@/components/create-plan/reveal";
 import { WarningIcon } from "@/components/icons/warning-icon";
 import { choiceCardClass, inputClass, outlineControlClass, primaryControlClass } from "@/components/ui/control-styles";
 import type { DraftFlowAction, DraftFlowState } from "@/lib/create-plan/draft-reducer";
@@ -181,25 +182,27 @@ export function PositionStep({ state, dispatch, bases, currency, issues, showAll
           </p>
 
           {replacement !== undefined && (
-            <div role="alert" className="mt-3 rounded-card border border-warning/35 bg-warning-soft p-3">
-              <p className="flex items-start gap-2 font-medium">
-                <WarningIcon className="mt-0.5 size-4 shrink-0 text-warning" />
-                Replace your changes?
-              </p>
-              <p className="mt-1 text-ink-muted">
-                {replacementName
-                  ? `Starting from ${replacementName} replaces the price, credits, policy and features you edited with ${replacementName}'s.`
-                  : "Starting from scratch clears the price, credits, policy and features you edited."}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => applyBase(replacement)} className={primaryControlClass}>
-                  {replacementName ? `Use ${replacementName}'s` : "Clear them"}
-                </button>
-                <button type="button" onClick={() => setReplacement(undefined)} className={outlineControlClass}>
-                  Keep my changes
-                </button>
+            <Reveal className="pt-3">
+              <div role="alert" className="rounded-card border border-warning/35 bg-warning-soft p-3">
+                <p className="flex items-start gap-2 font-medium">
+                  <WarningIcon className="mt-0.5 size-4 shrink-0 text-warning" />
+                  Replace your changes?
+                </p>
+                <p className="mt-1 text-ink-muted">
+                  {replacementName
+                    ? `Starting from ${replacementName} replaces the price, credits, policy and features you edited with ${replacementName}'s.`
+                    : "Starting from scratch clears the price, credits, policy and features you edited."}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => applyBase(replacement)} className={primaryControlClass}>
+                    {replacementName ? `Use ${replacementName}'s` : "Clear them"}
+                  </button>
+                  <button type="button" onClick={() => setReplacement(undefined)} className={outlineControlClass}>
+                    Keep my changes
+                  </button>
+                </div>
               </div>
-            </div>
+            </Reveal>
           )}
         </fieldset>
       )}

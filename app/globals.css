@@ -177,3 +177,37 @@
     }
   }
 }
+
+/*
+ * Entrances for small things that appear while the person edits (an error, a live check).
+ * `@starting-style` gives the first frame, and a transition (not a keyframe animation) carries it
+ * in, so a rapid toggle retargets instead of restarting. Browsers without `@starting-style` show
+ * them at once.
+ */
+@utility enter-fade {
+  transition: opacity 150ms var(--ease-emphasized);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+/* Errors drop 2px into place as they fade in: noticeable after "Continue" without shaking anything. */
+@utility enter-rise {
+  transition:
+    opacity 150ms var(--ease-emphasized),
+    translate 150ms var(--ease-emphasized);
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 -2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 150ms var(--ease-emphasized);
+
+    @starting-style {
+      translate: none;
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { AmountInput } from "@/components/create-plan/amount-input";
 import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
 import { issueMessage, type StepProps } from "@/components/create-plan/flow-data";
 import { FormField } from "@/components/create-plan/form-field";
+import { Reveal } from "@/components/create-plan/reveal";
 import { NeighbourComparisonTable } from "@/components/create-plan/neighbour-comparison-table";
 import { choiceCardClass, outlineControlClass } from "@/components/ui/control-styles";
 import type { BillingInterval } from "@/lib/catalog";
@@ -137,7 +138,7 @@ export function PricingStep({ state, dispatch, data, derived, issues, showAllIss
           </label>
 
           {yearly && (
-            <>
+            <Reveal>
               <p className="mt-2 max-w-prose text-caption text-ink-muted">
                 Yearly billing has its own price and its own credits; neither is calculated from the monthly ones.
               </p>
@@ -200,7 +201,7 @@ export function PricingStep({ state, dispatch, data, derived, issues, showAllIss
                   )}
                 </div>
               )}
-            </>
+            </Reveal>
           )}
         </section>
       )}

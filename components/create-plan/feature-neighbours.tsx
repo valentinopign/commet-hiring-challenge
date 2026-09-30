@@ -30,13 +30,13 @@ export function FeatureNeighbours({ feature, comparison, currency }: FeatureNeig
         {above && <>{above.planName} (costs more): {value(above)}</>}
       </p>
       {below?.draftImpact === "worse" && (
-        <p className="flex items-center gap-1.5 font-medium text-impact-worse">
+        <p className="enter-fade flex items-center gap-1.5 font-medium text-impact-worse">
           <ArrowDownIcon className="size-3.5 shrink-0" />
           Worse than {below.planName}, which costs less
         </p>
       )}
       {above?.draftImpact === "better" && (
-        <p className="flex items-center gap-1.5 font-medium text-info">
+        <p className="enter-fade flex items-center gap-1.5 font-medium text-info">
           <InfoIcon className="size-3.5 shrink-0" />
           Better than {above.planName}, which costs more
         </p>

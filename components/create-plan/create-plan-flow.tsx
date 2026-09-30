@@ -13,6 +13,7 @@ import { PublishConfirmation } from "@/components/create-plan/publish-confirmati
 import { ReviewStep } from "@/components/create-plan/review-step";
 import { StepFooter } from "@/components/create-plan/step-footer";
 import { StepList } from "@/components/create-plan/step-list";
+import { StepTransition, type StepDirection } from "@/components/create-plan/step-transition";
 import { useDraftLadder } from "@/components/create-plan/use-draft-ladder";
 import type { Catalog } from "@/lib/catalog";
 import { createInitialState, draftFlowReducer, getPlacedMonthlyPrice, getResolvedDraft } from "@/lib/create-plan/draft-reducer";
@@ -84,6 +85,15 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
   const step = resolveStep(requestedStep, state, existingPlans);
   const furthest = firstIncompleteStep(state, existingPlans);
   const index = stepIndex(step);
+
+  // Which way the last step change went, so the new step enters from that side. Adjusting state
+  // while rendering: the step comes from the URL, so there is no event handler to set it in.
+  const [shownStep, setShownStep] = useState(step);
+  const [direction, setDirection] = useState<StepDirection | null>(null);
+  if (step !== shownStep) {
+    setDirection(index > stepIndex(shownStep) ? "forward" : "back");
+    setShownStep(step);
+  }
 
   // Errors stay hidden until the person tries to continue; after that they update as they type.
   const [attemptedStep, setAttemptedStep] = useState<StepId | null>(null);
@@ -177,33 +187,35 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
           <DraftLadderPanel view={ladderView} draftPricePending={draftPricePending} currency={currency} variant="collapsible" />
 
           <form noValidate onSubmit={handleSubmit} aria-labelledby="step-heading" className="max-w-3xl">
-            <p className="text-caption text-ink-muted">
-              Step {index + 1} of {CREATE_PLAN_STEPS.length}
-            </p>
-            <h2
-              id="step-heading"
-              ref={headingRef}
-              tabIndex={-1}
-              className="mb-4 text-xl font-semibold tracking-tight focus:outline-none"
-            >
-              {CREATE_PLAN_STEPS[index].title}
-            </h2>
+            <StepTransition key={step} direction={direction}>
+              <p className="text-caption text-ink-muted">
+                Step {index + 1} of {CREATE_PLAN_STEPS.length}
+              </p>
+              <h2
+                id="step-heading"
+                ref={headingRef}
+                tabIndex={-1}
+                className="mb-4 text-xl font-semibold tracking-tight focus:outline-none"
+              >
+                {CREATE_PLAN_STEPS[index].title}
+              </h2>
 
-            {step === "position" && (
-              <PositionStep
-                state={state}
-                dispatch={dispatch}
-                bases={bases}
-                currency={currency}
-                issues={issues}
-                showAllIssues={showAllIssues}
-                onBaseChange={(code) => writeSearchParam("from", code, "replace")}
-              />
-            )}
-            {step === "price" && <PricingStep {...stepProps} />}
-            {step === "credits-run-out" && <ExhaustionStep {...stepProps} />}
-            {step === "features" && <FeaturesStep {...stepProps} />}
-            {isReview && <ReviewStep {...stepProps} onGoToStep={goTo} />}
+              {step === "position" && (
+                <PositionStep
+                  state={state}
+                  dispatch={dispatch}
+                  bases={bases}
+                  currency={currency}
+                  issues={issues}
+                  showAllIssues={showAllIssues}
+                  onBaseChange={(code) => writeSearchParam("from", code, "replace")}
+                />
+              )}
+              {step === "price" && <PricingStep {...stepProps} />}
+              {step === "credits-run-out" && <ExhaustionStep {...stepProps} />}
+              {step === "features" && <FeaturesStep {...stepProps} />}
+              {isReview && <ReviewStep {...stepProps} onGoToStep={goTo} />}
+            </StepTransition>
 
             <StepFooter
               onBack={previous ? () => goTo(previous.id) : null}
