@@ -1,1 +1,78 @@
 @import "tailwindcss";
+
+@theme {
+  /* Drop Tailwind's default palette so every colour in a component is one of these tokens. */
+  --color-*: initial;
+
+  /* Neutrals: hierarchy comes from borders and text weight, not shadows. */
+  --color-canvas: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-ink: #16181d;
+  --color-ink-muted: #5b6170;
+  --color-line: #e3e6eb;
+  --color-line-strong: #c9ced6;
+
+  /* The only accent. It means "what a new customer gets today": the current version, and focus. */
+  --color-live: #0f766e;
+  --color-live-soft: #e6f4f2;
+
+  /* Retired versions are always paired with a stripe pattern and a text label, never colour alone. */
+  --color-retired: #8a909c;
+  --color-retired-soft: #dfe2e7;
+
+  --color-warning: #9a5b00;
+  --color-warning-soft: #fdf3e1;
+  --color-critical: #b42318;
+  --color-critical-soft: #feeceb;
+  --color-info: #2f5da8;
+  --color-info-soft: #eaf1fb;
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* 13px sits between Tailwind's 12px and 14px: secondary text in dense tables. */
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+
+  /* Radius encodes size of the thing: small marks vs containers. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  /* Wide enough for five plan cards side by side next to the sidebar. */
+  --container-page: 88rem;
+  --spacing-sidebar: 15rem;
+
+  /* The only shadow, for what floats above the page (the alerts popover). Everything else uses borders. */
+  --shadow-popover: 0 8px 24px rgb(22 24 29 / 0.12), 0 1px 2px rgb(22 24 29 / 0.08);
+}
+
+/* Retired segments and swatches: the stripe carries the meaning for people who can't tell the grey apart. */
+@utility bg-retired-stripes {
+  background-color: var(--color-retired-soft);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--color-retired) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-live);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0s !important;
+      animation-duration: 0s !important;
+    }
+  }
+}

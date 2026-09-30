@@ -86,3 +86,8 @@ export function getCatalogAlerts(catalog: Catalog): CatalogAlert[] {
     (first, second) => SEVERITY_ORDER[first.severity] - SEVERITY_ORDER[second.severity],
   );
 }
+
+/** Warnings and data problems. Informational notes are for reference and never counted as pending. */
+export function needsAttention(alert: CatalogAlert): boolean {
+  return alert.severity !== "info";
+}

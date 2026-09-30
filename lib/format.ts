@@ -4,13 +4,39 @@ import type { FeatureValue, ResolvedFeature } from "@/lib/derive/types";
 // Fixed locale and UTC so server-rendered and client-rendered text are identical.
 const LOCALE = "en-US";
 
+type MoneyOptions = {
+  /** `hide` (default) turns $29.00 into $29; `show` keeps the cents, e.g. to align a column. */
+  zeroCents?: "hide" | "show";
+};
+
 /** The only place cents become currency. Fractional cents are rounded to the nearest cent. */
-export function formatMoney(amountInCents: number, currency: string): string {
-  return new Intl.NumberFormat(LOCALE, { style: "currency", currency }).format(amountInCents / 100);
+export function formatMoney(
+  amountInCents: number,
+  currency: string,
+  { zeroCents = "hide" }: MoneyOptions = {},
+): string {
+  const isWholeAmount = Math.round(amountInCents) % 100 === 0;
+  const fractionDigits = zeroCents === "hide" && isWholeAmount ? 0 : 2;
+  return new Intl.NumberFormat(LOCALE, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(amountInCents / 100);
 }
 
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat(LOCALE).format(value);
+}
+
+/** Short form for tight spaces: 9000 → "9k", 27500 → "27.5k", 3600000 → "3.6M". */
+export function formatCompactNumber(value: number): string {
+  const absolute = Math.abs(value);
+  const sign = value < 0 ? "−" : "";
+  const oneDecimal = (amount: number) => new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 }).format(amount);
+  if (absolute >= 1_000_000) return `${sign}${oneDecimal(absolute / 1_000_000)}M`;
+  if (absolute >= 1_000) return `${sign}${oneDecimal(absolute / 1_000)}k`;
+  return `${sign}${formatNumber(absolute)}`;
 }
 
 export function formatCredits(credits: number): string {
@@ -80,4 +106,16 @@ function formatValue(value: FeatureValue, unit: string, currency: string): strin
     case "capacity":
       return formatCapacityLimit(value.limit, unit, currency);
   }
+}
+
+/**
+ * A saving ratio as words. With a reference: "27% less than overage"; without one: "27% less".
+ * Anything that rounds to 0% reads as the same price.
+ */
+export function formatSavings(savingsRatio: number, reference?: string): string {
+  const against = reference ? ` than ${reference}` : "";
+  if (Math.round(savingsRatio * 100) === 0) return reference ? `same price as ${reference}` : "same price";
+  return savingsRatio > 0
+    ? `${formatPercent(savingsRatio)} less${against}`
+    : `${formatPercent(-savingsRatio)} more${against}`;
 }

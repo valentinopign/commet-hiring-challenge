@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { catalog } from "@/data/catalog";
-import { getCatalogAlerts } from "@/lib/derive/alerts";
+import { getCatalogAlerts, needsAttention } from "@/lib/derive/alerts";
 import { cloneCatalog, getPlan } from "@/lib/derive/test-helpers";
 
 describe("getCatalogAlerts", () => {
@@ -82,5 +82,11 @@ describe("getCatalogAlerts", () => {
         status: "published",
       },
     ]);
+  });
+});
+
+describe("needsAttention", () => {
+  it("counts warnings but not informational notes", () => {
+    expect(getCatalogAlerts(catalog).filter(needsAttention).map((alert) => alert.planCode)).toEqual(["growth"]);
   });
 });

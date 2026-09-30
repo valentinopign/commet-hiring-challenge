@@ -104,3 +104,8 @@ export function compareByMonthlyPrice(
 export function getCreditPacksForPlan(catalog: Catalog, planCode: string): CreditPack[] {
   return catalog.creditPacks.filter((pack) => pack.planCodes.includes(planCode));
 }
+
+/** Code → display name, for places that only hold a plan code (alerts, credit packs). */
+export function getPlanNames(catalog: Catalog): Map<string, string> {
+  return new Map(catalog.plans.map((plan) => [plan.code, plan.name]));
+}

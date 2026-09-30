@@ -228,3 +228,51 @@ export type DraftWarning =
       neighbourValue: FeatureValue;
       draftValue: FeatureValue;
     };
+
+export type LadderStep = {
+  fromPlanCode: string;
+  fromPlanName: string;
+  priceDifference: number;
+  creditsDifference: number;
+};
+
+export type CreditPackSummary = {
+  code: string;
+  name: string;
+  credits: number;
+  price: number;
+  pricePerThousandCredits: number | null;
+  expiresAfterDays: number;
+  planCodes: string[];
+};
+
+export type PackComparison = {
+  cheapestPack: CreditPackSummary;
+  /**
+   * How much cheaper the pack is than the plan's overage, as a ratio (0.27 = 27% cheaper).
+   * Negative when the pack costs more. `null` when the plan does not bill overage.
+   */
+  savingsVersusOverage: number | null;
+};
+
+export type LadderRow = {
+  plan: PlanSummary;
+  /** Difference with the next cheaper plan; `null` for the first plan or without monthly prices. */
+  step: LadderStep | null;
+  /** `null` when no credit pack is available to the plan. */
+  packComparison: PackComparison | null;
+};
+
+export type PackPlanComparison = {
+  planCode: string;
+  planName: string;
+  isAvailable: boolean;
+  exhaustionPolicy: ExhaustionPolicy;
+  /** Only set when the pack is available and the plan bills overage. */
+  savingsVersusOverage: number | null;
+};
+
+export type CreditPackRow = {
+  pack: CreditPackSummary;
+  plans: PackPlanComparison[];
+};
