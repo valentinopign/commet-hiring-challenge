@@ -1,16 +1,19 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { outlineControlClass, primaryControlClass, touchTargetClass } from "@/components/ui/control-styles";
 
 type StepFooterProps = {
   onBack: (() => void) | null;
-  /** `null` on the last step, whose own action (publish) replaces "Continue". */
-  continueLabel: string | null;
+  primaryLabel: string;
+  /** Only the publish button is ever disabled, and `note` then says why next to it. */
+  primaryDisabled?: boolean;
+  note?: ReactNode;
 };
 
-/** "Continue" submits the step's form, so Enter in any field moves on too. */
-export function StepFooter({ onBack, continueLabel }: StepFooterProps) {
+/** The primary button submits the step's form, so Enter in any field moves on too. */
+export function StepFooter({ onBack, primaryLabel, primaryDisabled = false, note }: StepFooterProps) {
   return (
-    <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-5">
+    <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
       {onBack ? (
         <button type="button" onClick={onBack} className={`${outlineControlClass} ${touchTargetClass} relative`}>
           Back
@@ -20,11 +23,17 @@ export function StepFooter({ onBack, continueLabel }: StepFooterProps) {
           Cancel
         </Link>
       )}
-      {continueLabel && (
-        <button type="submit" className={primaryControlClass}>
-          {continueLabel}
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
+        {note && <p id="step-footer-note" className="text-caption text-ink-muted">{note}</p>}
+        <button
+          type="submit"
+          disabled={primaryDisabled}
+          aria-describedby={note ? "step-footer-note" : undefined}
+          className={`${primaryControlClass} disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {primaryLabel}
         </button>
-      )}
+      </div>
     </div>
   );
 }

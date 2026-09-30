@@ -220,3 +220,17 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 - **Every catalog feature is listed, grouped as in the plan page.** Credits: included or not, and the credits per unit. Capacity: not included, limited (amount, then blocked or billed per unit) or unlimited. Access: included or not. Switching a feature on starts from the nearest neighbour's value.
 - **Neighbour values sit under each field, and the flags use `compareFeatureValues`**, the same rule as the review: worse than the cheaper plan is marked as worse; better than the pricier plan is only informative, because it can be intended (a promotion).
 - **A typed value that is not a number yet blocks "Continue"** on that step, like any other missing value.
+
+### Plan ladder panel
+
+- **Visible through the whole flow**: beside the form on wide screens (sticky), and as a collapsible summary above it on phones ("Plan ladder · Between Growth and Scale"). The draft is dashed and badged "Draft"; its numbers update as the person types.
+- **The place waits for the price to settle (350 ms)**, so typing "299" does not move the draft three times; clearing the price takes it off the ladder at once. A paid draft without a price is listed last, "not placed yet", never at $0.
+- **The move is a FLIP animation with the Web Animations API, no library.** After React reorders the list, each row that changed place is drawn where it was and slides to its new place (320 ms, `--ease-emphasized`). Positions come from `offsetTop`, which ignores transforms, so a move that starts during another begins from where the row is on screen. With reduced motion nothing slides: the draft fades in at its new place.
+- **The new position is announced once** through a polite live region shared by both layouts.
+
+### Review and publish
+
+- **Checks first, grouped by severity** ("Must fix before publishing", "Worth a second look", "Good to know"), each with a link back to the step where it is fixed. Then the summary, one card per step with its own "Edit".
+- **"Publish plan" is disabled only by blocking checks**, and the reason is written next to it. With the position step validated, a blocking check can only appear if the catalog changed under the draft, but the review does not assume it.
+- **"Who this reaches"** states that a new plan has no customers yet, and how later changes would reach them (price, credits and policy: everyone at renewal; features: a new version for new customers). A future "new version of an existing plan" mode would fill the same section with the real customer counts.
+- **The publish is simulated and says so**: the confirmation shows the final ladder, states that nothing was saved, and offers "Create another plan" (a fresh draft, no reload) or "Back to overview".

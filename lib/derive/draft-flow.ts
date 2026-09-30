@@ -1,13 +1,15 @@
 import type { BillingInterval, Catalog, Plan, PlanPrice, PlanPricing } from "@/lib/catalog";
 import { compareFeatureValues } from "@/lib/derive/compare-features";
-import { findNeighbourPlans } from "@/lib/derive/neighbours";
+import { findNeighbourPlans, insertDraftIntoLadder } from "@/lib/derive/neighbours";
 import { getPeriodPricing, getPlanLadder } from "@/lib/derive/plans";
 import { getCurrentRelease } from "@/lib/derive/releases";
 import type {
   CreditPackSummary,
   DraftBase,
+  DraftSummary,
   FeatureImpact,
   FeatureValue,
+  LadderEntry,
   ResolvedFeature,
   DraftWarning,
   DraftWarningsBySeverity,
@@ -179,4 +181,30 @@ export function getFeatureComparisons(
       },
     ]),
   );
+}
+
+export type DraftLadder = {
+  entries: LadderEntry[];
+  /** `false` while the draft has no monthly price: it is listed last, without a place of its own. */
+  isPlaced: boolean;
+};
+
+/**
+ * The ladder with the draft where its monthly price puts it. The price is passed separately so a
+ * caller can place the draft by a settled price (the panel waits for typing to stop) while the
+ * draft's own values stay live.
+ */
+export function getDraftLadder(
+  ladder: PlanSummary[],
+  draft: DraftSummary,
+  placedMonthlyPrice: number | null,
+): DraftLadder {
+  if (placedMonthlyPrice === null || !draft.monthly) {
+    return { entries: [...ladder.map((plan): LadderEntry => ({ isDraft: false, plan })), { isDraft: true, draft }], isPlaced: false };
+  }
+  const placedDraft = { ...draft, monthly: { ...draft.monthly, price: placedMonthlyPrice } };
+  const entries = insertDraftIntoLadder(ladder, placedDraft).map((entry): LadderEntry =>
+    entry.isDraft ? { isDraft: true, draft } : entry,
+  );
+  return { entries, isPlaced: true };
 }

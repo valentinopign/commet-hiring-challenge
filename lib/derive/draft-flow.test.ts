@@ -5,6 +5,7 @@ import {
   codeFromName,
   draftBaseFromPlan,
   getDraftBases,
+  getDraftLadder,
   getDraftPosition,
   getFeatureComparisons,
   getPackPriceRange,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/derive/draft-flow";
 import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
 import { resolveReleaseFeatures } from "@/lib/derive/releases";
-import { getPlanLadder } from "@/lib/derive/plans";
+import { getPlanLadder, summarizeDraft } from "@/lib/derive/plans";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 import { cloneCatalog, getPlan, getRelease } from "@/lib/derive/test-helpers";
 
@@ -188,5 +189,39 @@ describe("getFeatureComparisons", () => {
     const draft = resolveReleaseFeatures(catalog.features, []);
     expect(getFeatureComparisons(draft, null).sso).toEqual({ below: null, above: null });
     expect(getFeatureComparisons(draft, { below: null, above: null }).sso).toEqual({ below: null, above: null });
+  });
+});
+
+describe("getDraftLadder", () => {
+  const ladder = getPlanLadder(catalog);
+  const growth = draftBaseFromPlan(getPlan("growth"));
+  const draft = summarizeDraft(catalog, {
+    name: "Pro",
+    code: "pro",
+    isPublic: true,
+    basePlanCode: "growth",
+    pricing: growth.pricing,
+    exhaustionPolicy: growth.exhaustionPolicy,
+    features: growth.features,
+  });
+  const codes = (entries: ReturnType<typeof getDraftLadder>["entries"]) =>
+    entries.map((entry) => (entry.isDraft ? "draft" : entry.plan.code));
+
+  it("places the draft by the given price and keeps its live values", () => {
+    const result = getDraftLadder(ladder, draft, 19900);
+    expect(result.isPlaced).toBe(true);
+    expect(codes(result.entries)).toEqual(["free", "starter", "growth", "draft", "scale", "enterprise"]);
+    const placed = result.entries.find((entry) => entry.isDraft);
+    expect(placed?.isDraft && placed.draft.monthly?.price).toBe(9900);
+  });
+
+  it("lists an unpriced draft last, without a place", () => {
+    const result = getDraftLadder(ladder, draft, null);
+    expect(result.isPlaced).toBe(false);
+    expect(codes(result.entries).at(-1)).toBe("draft");
+  });
+
+  it("is only the draft on an empty ladder", () => {
+    expect(codes(getDraftLadder([], draft, 4900).entries)).toEqual(["draft"]);
   });
 });

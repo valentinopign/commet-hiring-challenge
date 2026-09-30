@@ -183,3 +183,10 @@ describe("getPlacedMonthlyPrice", () => {
     expect(getPlacedMonthlyPrice(createInitialState(free))).toBe(0);
   });
 });
+
+describe("reset", () => {
+  it("starts a new draft", () => {
+    const state = run(createInitialState(growth), { type: "set_name", name: "Pro" }, { type: "reset", base: null });
+    expect(state).toEqual(createInitialState(null));
+  });
+});

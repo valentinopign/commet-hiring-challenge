@@ -3,14 +3,17 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
+import { DraftLadderPanel } from "@/components/create-plan/draft-ladder-panel";
 import { ExhaustionStep } from "@/components/create-plan/exhaustion-step";
 import { FeaturesStep } from "@/components/create-plan/features-step";
 import type { CreatePlanData, DraftDerived, StepProps } from "@/components/create-plan/flow-data";
 import { PositionStep } from "@/components/create-plan/position-step";
 import { PricingStep } from "@/components/create-plan/pricing-step";
+import { PublishConfirmation } from "@/components/create-plan/publish-confirmation";
+import { ReviewStep } from "@/components/create-plan/review-step";
 import { StepFooter } from "@/components/create-plan/step-footer";
 import { StepList } from "@/components/create-plan/step-list";
-import { StepPlaceholder } from "@/components/create-plan/step-placeholder";
+import { useDraftLadder } from "@/components/create-plan/use-draft-ladder";
 import type { Catalog } from "@/lib/catalog";
 import { createInitialState, draftFlowReducer, getPlacedMonthlyPrice } from "@/lib/create-plan/draft-reducer";
 import {
@@ -22,7 +25,7 @@ import {
   type StepId,
 } from "@/lib/create-plan/steps";
 import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
-import { getDraftBases, getDraftPosition, getYearlyReference } from "@/lib/derive/draft-flow";
+import { getDraftBases, getDraftPosition, getYearlyReference, groupWarningsBySeverity } from "@/lib/derive/draft-flow";
 import { getPlanLadder, getPlanNames, summarizeDraft } from "@/lib/derive/plans";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 
@@ -82,12 +85,16 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
   const showAllIssues = attemptedStep === step;
 
   // Everything below is recomputed on each edit: the checks are what the steps react to live.
+  const placedPrice = getPlacedMonthlyPrice(state);
   const derived: DraftDerived = {
     summary: summarizeDraft(catalog, state.draft),
-    position: getDraftPosition(ladder, getPlacedMonthlyPrice(state)),
+    position: getDraftPosition(ladder, placedPrice),
     warnings: checkDraftPlan(state.draft, catalog),
   };
   const stepProps: StepProps = { state, dispatch, data, derived, issues, showAllIssues };
+  const ladderView = useDraftLadder(ladder, derived.summary, placedPrice);
+  const blockingCount = groupWarningsBySeverity(derived.warnings).blocking.length;
+  const [isPublished, setIsPublished] = useState(false);
 
   // A clamped step (a hand-edited URL, a reload) rewrites the URL so it matches what is shown.
   useEffect(() => {
@@ -110,6 +117,10 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (step === "review") {
+      if (blockingCount === 0) setIsPublished(true);
+      return;
+    }
     const [firstIssue] = issues;
     if (firstIssue) {
       // Render the errors first so the field is already described by its error when it gets focus.
@@ -121,47 +132,85 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
     if (next) goTo(next.id);
   }
 
+  function createAnother() {
+    dispatch({ type: "reset", base: null });
+    setIsPublished(false);
+    writeSearchParam("from", null, "replace");
+    goTo("position");
+  }
+
   const previous = CREATE_PLAN_STEPS[index - 1];
-  const isLastStep = index === CREATE_PLAN_STEPS.length - 1;
+  const isReview = step === "review";
+  const draftPricePending = placedPrice === null;
+
+  if (isPublished) {
+    return (
+      <PublishConfirmation
+        planName={state.draft.name}
+        entries={ladderView.entries}
+        positionText={ladderView.positionText}
+        currency={currency}
+        onCreateAnother={createAnother}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
       <StepList current={step} furthest={furthest} onSelect={goTo} />
+      {/* One announcement for both layouts of the ladder, only when the place changes. */}
+      <p aria-live="polite" className="sr-only">{ladderView.positionText}</p>
 
-      <form noValidate onSubmit={handleSubmit} aria-labelledby="step-heading" className="max-w-3xl">
-        <p className="text-caption text-ink-muted">
-          Step {index + 1} of {CREATE_PLAN_STEPS.length}
-        </p>
-        <h2
-          id="step-heading"
-          ref={headingRef}
-          tabIndex={-1}
-          className="mb-4 text-xl font-semibold tracking-tight focus:outline-none"
-        >
-          {CREATE_PLAN_STEPS[index].title}
-        </h2>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-5">
+          <DraftLadderPanel view={ladderView} draftPricePending={draftPricePending} currency={currency} variant="collapsible" />
 
-        {step === "position" && (
-          <PositionStep
-            state={state}
-            dispatch={dispatch}
-            bases={bases}
-            currency={currency}
-            issues={issues}
-            showAllIssues={showAllIssues}
-            onBaseChange={(code) => writeSearchParam("from", code, "replace")}
-          />
-        )}
-        {step === "price" && <PricingStep {...stepProps} />}
-        {step === "credits-run-out" && <ExhaustionStep {...stepProps} />}
-        {step === "features" && <FeaturesStep {...stepProps} />}
-        {step === "review" && <StepPlaceholder />}
+          <form noValidate onSubmit={handleSubmit} aria-labelledby="step-heading" className="max-w-3xl">
+            <p className="text-caption text-ink-muted">
+              Step {index + 1} of {CREATE_PLAN_STEPS.length}
+            </p>
+            <h2
+              id="step-heading"
+              ref={headingRef}
+              tabIndex={-1}
+              className="mb-4 text-xl font-semibold tracking-tight focus:outline-none"
+            >
+              {CREATE_PLAN_STEPS[index].title}
+            </h2>
 
-        <StepFooter
-          onBack={previous ? () => goTo(previous.id) : null}
-          continueLabel={isLastStep ? null : "Continue"}
-        />
-      </form>
+            {step === "position" && (
+              <PositionStep
+                state={state}
+                dispatch={dispatch}
+                bases={bases}
+                currency={currency}
+                issues={issues}
+                showAllIssues={showAllIssues}
+                onBaseChange={(code) => writeSearchParam("from", code, "replace")}
+              />
+            )}
+            {step === "price" && <PricingStep {...stepProps} />}
+            {step === "credits-run-out" && <ExhaustionStep {...stepProps} />}
+            {step === "features" && <FeaturesStep {...stepProps} />}
+            {isReview && <ReviewStep {...stepProps} onGoToStep={goTo} />}
+
+            <StepFooter
+              onBack={previous ? () => goTo(previous.id) : null}
+              primaryLabel={isReview ? "Publish plan" : "Continue"}
+              primaryDisabled={isReview && blockingCount > 0}
+              note={
+                isReview
+                  ? blockingCount > 0
+                    ? "Fix what is marked Must fix to publish."
+                    : "Simulated: nothing is saved."
+                  : undefined
+              }
+            />
+          </form>
+        </div>
+
+        <DraftLadderPanel view={ladderView} draftPricePending={draftPricePending} currency={currency} variant="sidebar" />
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { describeDraftWarning } from "@/components/create-plan/describe-draft-wa
 import { CriticalIcon } from "@/components/icons/critical-icon";
 import { InfoIcon } from "@/components/icons/info-icon";
 import { WarningIcon } from "@/components/icons/warning-icon";
+import { CREATE_PLAN_STEPS, warningStep, type StepId } from "@/lib/create-plan/steps";
 import type { DraftWarning, DraftWarningSeverity } from "@/lib/derive/types";
 
 /** The label is visible text, so the severity never depends on the tint. */
@@ -17,10 +18,12 @@ type DraftWarningListProps = {
   planNames: Map<string, string>;
   currency: string;
   label: string;
+  /** In the review: a way back to the step where each warning is fixed. */
+  onGoToStep?: (step: StepId) => void;
 };
 
 /** Checks shown inside a step, as the values change. Nothing renders when there are none. */
-export function DraftWarningList({ warnings, planNames, currency, label }: DraftWarningListProps) {
+export function DraftWarningList({ warnings, planNames, currency, label, onGoToStep }: DraftWarningListProps) {
   if (warnings.length === 0) return null;
   return (
     <ul aria-label={label} className="space-y-2">
@@ -36,6 +39,15 @@ export function DraftWarningList({ warnings, planNames, currency, label }: Draft
                 {copy.title}
               </p>
               <p className="text-caption text-ink-muted">{copy.detail}</p>
+              {onGoToStep && (
+                <button
+                  type="button"
+                  onClick={() => onGoToStep(warningStep(warning))}
+                  className="mt-1 text-caption font-medium text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink"
+                >
+                  Change in {CREATE_PLAN_STEPS.find((step) => step.id === warningStep(warning))?.title}
+                </button>
+              )}
             </div>
           </li>
         );

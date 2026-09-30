@@ -44,6 +44,7 @@ export type DraftFlowState = {
 };
 
 export type DraftFlowAction =
+  | { type: "reset"; base: DraftBase | null }
   | { type: "set_name"; name: string }
   | { type: "set_code"; code: string }
   | { type: "set_visibility"; isPublic: boolean }
@@ -133,6 +134,10 @@ export function draftFlowReducer(state: DraftFlowState, action: DraftFlowAction)
   const edited = (next: Partial<DraftFlowState>): DraftFlowState => ({ ...state, ...next, editedSinceBase: true });
 
   switch (action.type) {
+    // After a (simulated) publish: a new draft, as if the page had just opened.
+    case "reset":
+      return createInitialState(action.base);
+
     case "set_name":
       return {
         ...state,
