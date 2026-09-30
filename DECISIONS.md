@@ -154,3 +154,34 @@ Applied:
 - **Plan links read "Free plan", "Starter plan"** through a visually hidden word, so they make sense in a screen reader's list of links.
 
 Pending for the final polish pass: concentric radii in the alerts popover, `scale(0.96)` press feedback on buttons, optical padding on "Create plan", and a cross-fade for the theme toggle icon.
+
+## Plan detail (`/plans/[code]`)
+
+### Layout and content
+
+- **Order:** name and description, then the plan's own alerts, then pricing, versions and features. Alerts come first because they are the only part that asks for action; on Growth the retired-majority warning also explains grandfathering (existing customers stay on their version until migrated, new customers join the current one).
+- **Pricing is four stat cards** (customers, monthly, yearly, when credits run out) under a note that names the real audience: "apply to all 398 customers, on every version. A change reaches them at their next renewal. Only features are versioned." Monthly and yearly are both shown as the data states them; neither is derived from the other. Free has no yearly period, so its card shows "—" with "No yearly price".
+- **Versions: timeline and changes side by side.** The timeline runs newest first (what new customers get is what the team asks about most), with status as a word plus a marker (accent for current, stripes for retired), publication and replacement dates, and customers with their share. The changes widget has one block per consecutive pair, newest first; each change states its kind (Added, Removed, Changed), the before → after values and its impact on customers. A plan with one version says there is nothing to compare yet.
+- **Features: one real `<table>` per type** (credits, capacity, access). "Not included" has the same weight as "Included", with an icon, and spans every value column. Unlimited capacity shows "—" under "Past the limit".
+- **Viewing an older version** adds a line with its status and customers, and every feature that differs shows the current version's value under its name ("v3 today: 5 credits / generation"). That difference is information, not a warning, so it is muted text rather than warning colour.
+
+### Rules chosen
+
+- **Version selection is a `?version=N` link**, so the page stays a Server Component and a version can be shared by URL. The route becomes dynamic (rendered per request) as a result. Any value that is not a version of the plan (missing, "v2", "2.5", "99") falls back to the current version instead of an error; an unknown plan code is a 404.
+- **Impact colours are their own tokens**, `impact-better` and `impact-worse`, because `live` means "current" and `critical` means a data problem. The green is yellow-green (hue ~100°), about 70° away from the teal of `live` (~170°), so "better" never reads as "current". Contrast: better 9.6 dark / 5.4 light, worse 7.2 / 6.0. Each is always paired with an arrow and a label.
+- **"Neutral" impact is labelled "Trade-off"**: it only comes out of a capacity change where the included amount and the overage move in opposite directions.
+- **The alert on its own plan page has no "View plan" link**, which would point to the page itself.
+- **Pack and exhaustion wording moved to one module** (`describe-pack-option.ts`) shared by the overview card and the plan page, so both say it the same way.
+
+### Page title in the top bar
+
+- **Every page title moved to the top bar**, after the organisation, as a breadcrumb (`Nimbus / Growth`). The sheet starts straight with the page's description. Section titles (Pricing, Versions, Features, Plans) stay in the sheet: they orient within a page, not between pages.
+- **The title comes from the route** through a pure function (`lib/page-titles.ts`, tested), with plan names from the catalog. An unknown plan or route shows no title.
+- **Typewriter on navigation only.** A small client component types the new title (35 ms per character, a caret while typing). The first load shows it whole so server and client markup match; with reduced motion it appears at once.
+- **Each page keeps its `<h1>`, visually hidden.** The top-bar title is `aria-hidden`: heading navigation and the skip link still find the `<h1>`, and a screen reader never reads a half-typed word.
+- **No page subtitles.** The Overview and Credit packs descriptions and the plan description under the title were removed: the top-bar title already names the page, and a sentence restating it only pushed the content down. A private plan keeps its "Private" badge at the top of the sheet. Section descriptions (such as the pricing scope note) stay, because they carry rules, not restate the title.
+- **On a phone the organisation name is visually hidden** (its gradient mark stays) so the page title has the room.
+
+### Verification
+
+- **Edge cases are covered by unit tests and the real data** (single version, not included, blocked and billed overage, unlimited capacity, invalid `?version`).

@@ -6,6 +6,8 @@ export type AlertCopy = {
   detail: string;
   /** A few words for places that already name the plan, such as its own card. */
   short: string;
+  /** How the situation came about, for the plan's own page where there is room to explain. */
+  context?: string;
 };
 
 /**
@@ -21,8 +23,11 @@ export function describeCatalogAlert(alert: CatalogAlert, planNames: Map<string,
         title: `${formatPercent(alert.retiredShare)} of ${planName} customers are on retired versions`,
         detail:
           `${formatNumber(alert.retiredSubscriptions)} of ${formatNumber(alert.totalSubscriptions)} pay today's price ` +
-          `with older features. Only new customers get v${alert.currentReleaseVersion}.`,
+          "with older features.",
         short: `${formatPercent(alert.retiredShare)} on retired versions`,
+        context:
+          "Existing customers stay on the version they subscribed to until they are migrated; " +
+          `new customers join v${alert.currentReleaseVersion}, the current one.`,
       };
     case "release_without_customers":
       return alert.status === "published"

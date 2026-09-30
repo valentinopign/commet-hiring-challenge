@@ -16,10 +16,7 @@ export default function OverviewPage() {
 
   return (
     <>
-      <PageHeading
-        title="Overview"
-        description={`${totals.planCount} plans. Each includes monthly credits that every action in the product spends.`}
-      />
+      <PageHeading title="Overview" />
       <div className="mt-4">
         <CatalogSummary totals={totals} />
       </div>

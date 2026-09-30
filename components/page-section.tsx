@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 type PageSectionProps = {
   id: string;
   title: string;
-  description?: string;
+  /** Plain text, or a richer note such as the plan page's pricing scope. */
+  description?: ReactNode;
   /** Controls on the right of the title, such as "Create plan". */
   actions?: ReactNode;
   children: ReactNode;
@@ -16,7 +17,7 @@ export function PageSection({ id, title, description, actions, children }: PageS
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
           <h2 id={headingId} className="text-xl font-semibold tracking-tight">{title}</h2>
-          {description && <p className="mt-0.5 text-caption text-ink-muted">{description}</p>}
+          {description && <div className="mt-0.5 text-caption text-ink-muted">{description}</div>}
         </div>
         {actions}
       </div>

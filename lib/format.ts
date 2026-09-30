@@ -70,6 +70,19 @@ export function formatCapacityLimit(limit: CapacityLimit, unit: string, currency
   return `${included}, then ${formatMoney(limit.overage.unitPrice, currency)} / ${unit}`;
 }
 
+/** The included part of a capacity limit, for a table column: "25 GB", "Unlimited". */
+export function formatCapacityIncluded(limit: CapacityLimit, unit: string): string {
+  if (limit.type === "unlimited") return "Unlimited";
+  return `${formatNumber(limit.includedAmount)} ${formatUnit(unit, limit.includedAmount)}`;
+}
+
+/** What happens past the included amount: "$15 / seat", "Blocked". `null` when there is no limit. */
+export function formatCapacityOverage(limit: CapacityLimit, unit: string, currency: string): string | null {
+  if (limit.type === "unlimited") return null;
+  if (limit.overage.type === "blocked") return "Blocked";
+  return `${formatMoney(limit.overage.unitPrice, currency)} / ${unit}`;
+}
+
 export function getFeatureUnit(feature: CatalogFeature): string | null {
   return feature.type === "boolean" ? null : feature.unit;
 }

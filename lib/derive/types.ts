@@ -276,3 +276,24 @@ export type CreditPackRow = {
   pack: CreditPackSummary;
   plans: PackPlanComparison[];
 };
+
+/** A feature as configured in the version being viewed, next to what new customers get today. */
+export type FeatureRow = ResolvedFeature & {
+  currentValue: FeatureValue;
+  /** `false` when viewing the current version itself. */
+  differsFromCurrent: boolean;
+};
+
+export type FeatureRowsByType = {
+  credit: FeatureRow[];
+  capacity: FeatureRow[];
+  boolean: FeatureRow[];
+};
+
+export type PlanDetail = {
+  plan: PlanSummary;
+  /** Oldest first, as `getVersionTimeline` returns it; the page decides the display order. */
+  timeline: TimelineEntry[];
+  alerts: CatalogAlert[];
+  packComparison: PackComparison | null;
+};

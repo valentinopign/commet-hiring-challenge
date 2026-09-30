@@ -41,6 +41,14 @@
   --color-critical-soft: rgb(244 122 114 / 0.12);
   --color-info: #7ea6f5;
   --color-info-soft: rgb(126 166 245 / 0.12);
+  /*
+   * Impact of a feature change on customers. The green sits ~70° of hue away from the teal of
+   * 'live' (yellow-green against blue-green), so "better" never reads as "current". Always paired
+   * with an arrow icon and a label.
+   */
+  --color-impact-better: #8fd46a;
+  --color-impact-worse: #f28b82;
+
   /* Text on a solid status colour (the alerts badge). */
   --color-on-status: #0a0a0b;
 
@@ -104,6 +112,8 @@
     --color-critical-soft: rgb(180 35 24 / 0.1);
     --color-info: #2f5da8;
     --color-info-soft: rgb(47 93 168 / 0.1);
+    --color-impact-better: #35711a;
+    --color-impact-worse: #b3261e;
     --color-on-status: #ffffff;
 
     --shadow-popover: 0 8px 24px rgb(22 24 29 / 0.12), 0 1px 2px rgb(22 24 29 / 0.08);

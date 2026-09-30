@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 type StatCardProps = {
   icon: ReactNode;
   label: string;
-  value: string;
+  value: ReactNode;
   /** Real context for the number, never a trend: there is no historical data. */
-  detail: string;
+  detail: ReactNode;
 };
 
 /** One term of the summary <dl>: the label is the card's header strip, the value its body. */

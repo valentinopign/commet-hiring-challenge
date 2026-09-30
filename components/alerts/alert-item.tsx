@@ -40,12 +40,14 @@ type AlertItemProps = {
   planName: string | undefined;
   /** A single tinted row without the explanation, for the alerts popover. */
   compact?: boolean;
+  /** Off on the plan's own page, where a link to the plan would point to itself. */
+  linkToPlan?: boolean;
 };
 
-export function AlertItem({ severity, copy, planCode, planName, compact = false }: AlertItemProps) {
+export function AlertItem({ severity, copy, planCode, planName, compact = false, linkToPlan = true }: AlertItemProps) {
   const style = SEVERITY_STYLES[severity];
   // An orphan subscription row can name a plan that does not exist: nothing to link to.
-  const planLink = planName ? `/plans/${planCode}` : null;
+  const planLink = planName && linkToPlan ? `/plans/${planCode}` : null;
 
   if (compact) {
     return (
@@ -87,6 +89,7 @@ export function AlertItem({ severity, copy, planCode, planName, compact = false 
       <div className="bg-surface-card px-3.5 py-2.5">
         <p className="font-medium">{copy.title}</p>
         <p className="text-ink-muted">{copy.detail}</p>
+        {copy.context && <p className="mt-1.5 text-caption text-ink-muted">{copy.context}</p>}
       </div>
     </li>
   );

@@ -9,10 +9,12 @@ type TopBarProps = {
   alerts: ReactNode;
   themeToggle: ReactNode;
   user: ReactNode;
+  /** The current page, after the organisation, like a breadcrumb. */
+  pageTitle: ReactNode;
 };
 
 /** Full width, on the page background and without a border: the sheet below is what stands out. */
-export function TopBar({ organizationName, menu, alerts, themeToggle, user }: TopBarProps) {
+export function TopBar({ organizationName, menu, alerts, themeToggle, user, pageTitle }: TopBarProps) {
   return (
     <header className="sticky top-0 z-10 flex h-topbar items-center gap-3 bg-canvas px-3 sm:px-4">
       {menu}
@@ -21,7 +23,10 @@ export function TopBar({ organizationName, menu, alerts, themeToggle, user }: To
         <CommetLogo />
         <span aria-hidden="true" className="h-5 w-px bg-line-strong" />
       </div>
-      <OrganizationMark organizationName={organizationName} />
+      <div className="flex min-w-0 items-center gap-2">
+        <OrganizationMark organizationName={organizationName} />
+        {pageTitle}
+      </div>
       {/* Wider gap on touch so the 44px hit areas of neighbouring controls do not overlap. */}
       <div className="ml-auto flex items-center gap-2 pointer-coarse:gap-3">
         {alerts}

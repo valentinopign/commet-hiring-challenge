@@ -9,10 +9,7 @@ export const metadata: Metadata = { title: `Credit packs · ${catalog.organizati
 export default function CreditPacksPage() {
   return (
     <>
-      <PageHeading
-        title="Credit packs"
-        description="Extra credits a customer buys without changing plan. Each pack is sold only on the plans listed on it, and unlike overage its credits expire."
-      />
+      <PageHeading title="Credit packs" />
       <div className="mt-4">
         <CreditPackCardGrid rows={getCreditPackRows(catalog)} currency={catalog.organization.currency} />
       </div>

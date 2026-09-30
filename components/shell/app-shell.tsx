@@ -26,7 +26,10 @@ export function AppShell({ sidebar, topBar, children }: AppShellProps) {
           id="main"
           className="mx-2 mb-2 min-h-[calc(100dvh-var(--spacing-topbar)-0.5rem)] min-w-0 rounded-sheet border border-line bg-surface lg:ml-0"
         >
-          <div className="mx-auto max-w-page px-4 pt-7 pb-8 sm:px-6 lg:px-8 lg:pt-9">{children}</div>
+          {/* Each page opens with a visually hidden <h1>; the first visible block after it sits flush with the top padding. */}
+          <div className="mx-auto max-w-page px-4 pt-7 pb-8 sm:px-6 lg:px-8 lg:pt-9 [&>h1:first-child+*]:mt-0">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { AlertsPopover } from "@/components/shell/alerts-popover";
 import { AppShell } from "@/components/shell/app-shell";
 import { Avatar } from "@/components/shell/avatar";
 import { MobileNavigation } from "@/components/shell/mobile-navigation";
+import { PageTitle } from "@/components/shell/page-title";
 import { SidebarContent } from "@/components/shell/sidebar-content";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { TopBar } from "@/components/shell/top-bar";
@@ -28,6 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const organizationName = catalog.organization.name;
+  const planNames = getPlanNames(catalog);
   const sidebar = <SidebarContent plans={getNavigationPlans(catalog)} />;
 
   return (
@@ -49,8 +51,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <TopBar
               organizationName={organizationName}
               menu={<MobileNavigation>{sidebar}</MobileNavigation>}
-              alerts={<AlertsPopover alerts={getCatalogAlerts(catalog)} planNames={getPlanNames(catalog)} />}
+              alerts={<AlertsPopover alerts={getCatalogAlerts(catalog)} planNames={planNames} />}
               themeToggle={<ThemeToggle />}
+              pageTitle={<PageTitle planNames={Object.fromEntries(planNames)} />}
               user={<Avatar name={currentUser.name} initials={currentUser.initials} />}
             />
           }

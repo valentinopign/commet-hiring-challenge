@@ -1,13 +1,6 @@
-type PageHeadingProps = {
-  title: string;
-  description: string;
-};
+type PageHeadingProps = { title: string };
 
-export function PageHeading({ title, description }: PageHeadingProps) {
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-0.5 max-w-prose text-ink-muted">{description}</p>
-    </div>
-  );
+/** The visible title lives in the top bar; the <h1> stays here for headings and the skip link. */
+export function PageHeading({ title }: PageHeadingProps) {
+  return <h1 className="sr-only">{title}</h1>;
 }
