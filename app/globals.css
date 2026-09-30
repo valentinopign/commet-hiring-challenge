@@ -116,15 +116,6 @@
     outline-offset: 2px;
     border-radius: var(--radius-mark);
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      transition-duration: 0s !important;
-      animation-duration: 0s !important;
-    }
-  }
 }
 
 /* Retired segments and swatches: the stripe carries the meaning for people who can't tell the greys apart. */
@@ -140,8 +131,10 @@
 /*
  * Animated <details>: the content grows from zero to its natural height and fades in.
  * Progressive enhancement: browsers without ::details-content or interpolate-size simply open
- * instantly. The global reduced-motion rule does not reach this pseudo-element, so it is
- * repeated here.
+ * instantly. A transition runs with the timing of the state it goes to, so the closed rule sets
+ * the closing time (150ms, a system response that should snap) and the open rule the opening
+ * time (200ms). With reduced motion the height changes at once and only the fade remains:
+ * reduced means gentler, not none.
  */
 @utility disclosure-animated {
   interpolate-size: allow-keywords;
@@ -151,19 +144,23 @@
     overflow: hidden;
     opacity: 0;
     transition:
-      block-size 220ms var(--ease-emphasized),
-      opacity 180ms var(--ease-emphasized),
-      content-visibility 220ms allow-discrete;
+      block-size 150ms var(--ease-emphasized),
+      opacity 150ms var(--ease-emphasized),
+      content-visibility 150ms allow-discrete;
   }
 
   &[open]::details-content {
     block-size: auto;
     opacity: 1;
+    transition-duration: 200ms;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    &::details-content {
-      transition: none;
+    &::details-content,
+    &[open]::details-content {
+      transition:
+        opacity 150ms var(--ease-emphasized),
+        content-visibility 150ms allow-discrete;
     }
   }
 }

@@ -28,7 +28,7 @@ export function SidebarNavigation({ plans }: SidebarNavigationProps) {
             <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-control px-2.5 py-1.5 text-ink-muted select-none hover:bg-surface-raised/60 hover:text-ink [&::-webkit-details-marker]:hidden">
               <LayersIcon />
               <span className="flex-1">Plans</span>
-              <ChevronRightIcon className="size-3.5 shrink-0 transition-transform duration-200 ease-emphasized group-open/plans:rotate-90" />
+              <ChevronRightIcon className="size-3.5 shrink-0 transition-transform duration-150 ease-emphasized group-open/plans:rotate-90 group-open/plans:duration-200 motion-reduce:transition-none" />
             </summary>
 
             {/*
