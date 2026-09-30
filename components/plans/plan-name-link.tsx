@@ -14,6 +14,8 @@ export function PlanNameLink({ code, name }: PlanNameLinkProps) {
       className="font-semibold text-ink after:absolute after:inset-0 after:rounded-card focus-visible:outline-none"
     >
       {name}
+      {/* "Free" alone is ambiguous in a screen reader's list of links. */}
+      <span className="sr-only"> plan</span>
     </Link>
   );
 }

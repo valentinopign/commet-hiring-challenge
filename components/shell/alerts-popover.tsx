@@ -11,6 +11,7 @@ type AlertsPopoverProps = {
 };
 
 const POPOVER_ID = "alerts-popover";
+const POPOVER_TITLE_ID = "alerts-popover-title";
 
 /**
  * Uses the native Popover API (`popover` + `popoverTarget`): the browser handles opening,
@@ -49,12 +50,13 @@ export function AlertsPopover({ alerts, planNames }: AlertsPopoverProps) {
       <div
         id={POPOVER_ID}
         popover="auto"
-        aria-label="Alerts"
+        role="dialog"
+        aria-labelledby={POPOVER_TITLE_ID}
         className="fixed inset-auto top-[calc(var(--spacing-topbar)-0.25rem)] right-3 m-0 w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden rounded-card border border-line-strong bg-surface p-0 text-ink shadow-popover"
       >
         <PopoverLinkCloser>
           <div className="border-b border-line bg-surface-raised px-4 py-2.5">
-            <h2 className="font-semibold">Alerts</h2>
+            <h2 id={POPOVER_TITLE_ID} className="font-semibold">Alerts</h2>
           </div>
           <div className="max-h-[70vh] overflow-y-auto p-3">
             <AlertList alerts={alerts} planNames={planNames} compact />

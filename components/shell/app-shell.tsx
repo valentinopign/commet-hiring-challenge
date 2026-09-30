@@ -16,12 +16,12 @@ export function AppShell({ sidebar, topBar, children }: AppShellProps) {
     <div className="min-h-dvh">
       {topBar}
       <div className="lg:grid lg:grid-cols-[var(--spacing-sidebar)_minmax(0,1fr)]">
-        <aside
-          aria-label="Sidebar"
+        {/* A plain container: the <nav> inside is the landmark, an <aside> around it would add a redundant "complementary" one. */}
+        <div
           className="sticky top-topbar hidden h-[calc(100dvh-var(--spacing-topbar))] overflow-y-auto lg:block"
         >
           {sidebar}
-        </aside>
+        </div>
         <main
           id="main"
           className="mx-2 mb-2 min-h-[calc(100dvh-var(--spacing-topbar)-0.5rem)] min-w-0 rounded-sheet border border-line bg-surface lg:ml-0"

@@ -22,7 +22,8 @@ export function TopBar({ organizationName, menu, alerts, themeToggle, user }: To
         <span aria-hidden="true" className="h-5 w-px bg-line-strong" />
       </div>
       <OrganizationMark organizationName={organizationName} />
-      <div className="ml-auto flex items-center gap-2">
+      {/* Wider gap on touch so the 44px hit areas of neighbouring controls do not overlap. */}
+      <div className="ml-auto flex items-center gap-2 pointer-coarse:gap-3">
         {alerts}
         {themeToggle}
         {user}

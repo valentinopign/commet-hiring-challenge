@@ -114,10 +114,10 @@
     color: var(--color-ink);
   }
 
+  /* The ring follows each control's own radius; forcing one here would reshape buttons on focus. */
   :focus-visible {
     outline: 2px solid var(--color-live);
     outline-offset: 2px;
-    border-radius: var(--radius-mark);
   }
 }
 

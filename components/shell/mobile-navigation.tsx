@@ -3,6 +3,7 @@
 import { useRef, type MouseEvent, type ReactNode } from "react";
 import { CloseIcon } from "@/components/icons/close-icon";
 import { MenuIcon } from "@/components/icons/menu-icon";
+import { touchTargetClass } from "@/components/ui/control-styles";
 
 type MobileNavigationProps = { children: ReactNode };
 
@@ -27,7 +28,7 @@ export function MobileNavigation({ children }: MobileNavigationProps) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="-ml-1 inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink lg:hidden"
+        className={`${touchTargetClass} relative -ml-1 inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink lg:hidden`}
       >
         <MenuIcon className="size-5" />
         <span className="sr-only">Open navigation</span>
@@ -43,7 +44,7 @@ export function MobileNavigation({ children }: MobileNavigationProps) {
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              className="inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink"
+              className={`${touchTargetClass} relative inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink`}
             >
               <CloseIcon className="size-5" />
               <span className="sr-only">Close navigation</span>

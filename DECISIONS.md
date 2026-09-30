@@ -140,3 +140,17 @@ Replaces the colour tokens, the shell layout, the sidebar and the overview's ale
 - **No element without a function:** no search, no Support or Settings, no "···" menus, no "Customize", no date selectors, no trends, no organisation switcher chevron.
 - **No sidebar collapse button.** Collapsed, the sidebar would show only icons, and plans have none of their own; initials would not tell them apart. The sheet already has enough width.
 - **No copyright line.** It serves no function, and it is unclear whose it would be (Commet's or Nimbus's).
+
+### UI polish and accessibility pass
+
+Applied:
+
+- **The focus ring no longer forces a radius.** The global `:focus-visible` rule set `border-radius: 4px`, which reshaped 8px buttons and the Plans toggle on keyboard focus. The outline now follows each control's own radius.
+- **Theme switches snap.** Elements with a colour transition used to fade while the rest changed instantly, so the switch smeared. The toggle turns every transition off, flips the theme, forces a reflow and restores transitions two frames later.
+- **Plan card customers group is valid HTML.** A `<dl>` mixed a `<div>` group with a loose `<dd>`; now one group holds the term and both descriptions (the count and the version split), so screen readers keep them together.
+- **44×44 touch targets.** Top-bar and mobile-menu icon buttons stay 32px to the eye but get a 44px hit area on coarse pointers through a pseudo-element; the top-bar gap widens to 12px there so neighbouring areas never overlap.
+- **Alerts popover is a labelled dialog** (`role="dialog"` + `aria-labelledby` on its heading): `aria-label` on a role-less `<div>` is ignored.
+- **No `<aside>` around the sidebar.** The `<nav>` inside is the landmark; the aside added a redundant "complementary" one.
+- **Plan links read "Free plan", "Starter plan"** through a visually hidden word, so they make sense in a screen reader's list of links.
+
+Pending for the final polish pass: concentric radii in the alerts popover, `scale(0.96)` press feedback on buttons, optical padding on "Create plan", and a cross-fade for the theme toggle icon.

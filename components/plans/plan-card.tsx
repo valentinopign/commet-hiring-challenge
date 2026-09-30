@@ -72,23 +72,24 @@ export function PlanCard({ row: { plan, step, packComparison }, alerts, currency
         </dd>
       </dl>
 
+      {/* One group, a term with two descriptions: the count and how it splits across versions. */}
       <dl className={SECTION}>
-        <div className="flex items-baseline justify-between gap-2">
+        <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-2">
           <dt className={TERM}>Customers</dt>
           <dd className="font-medium tabular-nums">{formatNumber(plan.totalSubscriptions)}</dd>
+          <dd className="col-span-2 mt-1.5">
+            <VersionSplitBar versions={plan.versionSplit} />
+            {alerts.map((alert) => (
+              <p key={alert.short} className="mt-1.5 flex items-center gap-1.5 text-caption text-warning">
+                <WarningIcon className="size-3.5 shrink-0" />
+                <span>
+                  <span className="sr-only">Warning: </span>
+                  {alert.short}
+                </span>
+              </p>
+            ))}
+          </dd>
         </div>
-        <dd className="mt-1.5">
-          <VersionSplitBar versions={plan.versionSplit} />
-          {alerts.map((alert) => (
-            <p key={alert.short} className="mt-1.5 flex items-center gap-1.5 text-caption text-warning">
-              <WarningIcon className="size-3.5 shrink-0" />
-              <span>
-                <span className="sr-only">Warning: </span>
-                {alert.short}
-              </span>
-            </p>
-          ))}
-        </dd>
       </dl>
     </li>
   );
