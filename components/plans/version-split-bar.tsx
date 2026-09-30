@@ -23,7 +23,7 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
   if (total === 0) {
     return (
       <div>
-        <div className="h-1.5 rounded-sm bg-line" aria-hidden="true" />
+        <div className="h-1.5 rounded-mark bg-line" aria-hidden="true" />
         <p className="mt-1 text-caption text-ink-muted">No customers</p>
       </div>
     );
@@ -32,7 +32,7 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
   if (versions.length === 1) {
     return (
       <div>
-        <div className={`h-1.5 rounded-sm ${swatchClass(versions[0])}`} aria-hidden="true" />
+        <div className={`h-1.5 rounded-mark ${swatchClass(versions[0])}`} aria-hidden="true" />
         <p className="mt-1 text-caption text-ink-muted">All on v{versions[0].version}, the only version</p>
       </div>
     );
@@ -51,7 +51,7 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
 
   return (
     <div>
-      <div className="flex h-1.5 gap-px overflow-hidden rounded-sm" aria-hidden="true">
+      <div className="flex h-1.5 gap-px overflow-hidden rounded-mark" aria-hidden="true">
         {versions
           .filter((version) => version.subscriptions > 0)
           .map((version) => (
@@ -65,7 +65,7 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
       <ul className="mt-1 text-caption text-ink-muted">
         {groups.map((group) => (
           <li key={group.key} className="flex items-center gap-1.5">
-            <span className={`size-2 shrink-0 rounded-sm ${group.swatch}`} aria-hidden="true" />
+            <span className={`size-2 shrink-0 rounded-mark ${group.swatch}`} aria-hidden="true" />
             <span className={group.key === "current" ? "text-ink" : undefined}>
               {group.label}: {describeShares(group.shares)}
             </span>

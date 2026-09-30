@@ -29,7 +29,7 @@ export function PlanCardGrid({ rows, alerts, planNames, currency }: PlanCardGrid
     <div className="-m-1 overflow-x-auto p-1">
       <ol
         style={columnCount}
-        className="grid grid-cols-1 gap-3 md:grid-cols-[repeat(var(--plan-count),minmax(11.5rem,1fr))]"
+        className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(var(--plan-count),minmax(13rem,1fr))]"
       >
         {rows.map((row) => (
           <PlanCard

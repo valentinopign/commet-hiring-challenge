@@ -4,18 +4,23 @@ type PageSectionProps = {
   id: string;
   title: string;
   description?: string;
+  /** Controls on the right of the title, such as "Create plan". */
+  actions?: ReactNode;
   children: ReactNode;
 };
 
-export function PageSection({ id, title, description, children }: PageSectionProps) {
+export function PageSection({ id, title, description, actions, children }: PageSectionProps) {
   const headingId = `${id}-heading`;
   return (
-    <section aria-labelledby={headingId} className="mt-6">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <h2 id={headingId} className="font-semibold">{title}</h2>
-        {description && <p className="text-caption text-ink-muted">{description}</p>}
+    <section aria-labelledby={headingId} className="mt-7">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h2 id={headingId} className="text-xl font-semibold tracking-tight">{title}</h2>
+          {description && <p className="mt-0.5 text-caption text-ink-muted">{description}</p>}
+        </div>
+        {actions}
       </div>
-      <div className="mt-2">{children}</div>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }

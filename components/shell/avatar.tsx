@@ -1,13 +1,18 @@
-type AvatarProps = { initials: string };
+type AvatarProps = { name: string; initials: string };
 
-/** Initials only: there is no user data, so no image. The name next to it is the accessible text. */
-export function Avatar({ initials }: AvatarProps) {
+/**
+ * The signed-in person. Initials only, since there is no user data, and not a button, since
+ * there is no account menu behind it. The name is exposed as the image's label and as a tooltip.
+ */
+export function Avatar({ name, initials }: AvatarProps) {
   return (
     <span
-      aria-hidden="true"
-      className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-line text-xs font-semibold text-ink"
+      role="img"
+      aria-label={`Signed in as ${name}`}
+      title={name}
+      className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised text-xs font-semibold text-ink"
     >
-      {initials}
+      <span aria-hidden="true">{initials}</span>
     </span>
   );
 }

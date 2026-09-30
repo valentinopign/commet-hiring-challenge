@@ -14,11 +14,11 @@ export function PlanMonthlyPrice({ monthly, step, currency }: PlanMonthlyPricePr
   return (
     <div>
       <p className="tabular-nums">
-        <span className="text-base font-semibold">{formatMoney(monthly.price, currency)}</span>
+        <span className="text-2xl font-semibold tracking-tight">{formatMoney(monthly.price, currency)}</span>
         <span className="text-ink-muted"> / mo</span>
       </p>
       {step && (
-        <p className="text-caption text-ink-muted tabular-nums">
+        <p className="mt-0.5 text-caption text-ink-muted tabular-nums">
           +{formatMoney(step.priceDifference, currency)} · {step.creditsDifference >= 0 ? "+" : ""}
           {formatCompactNumber(step.creditsDifference)} credits vs {step.fromPlanName}
         </p>

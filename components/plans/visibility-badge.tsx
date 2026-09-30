@@ -6,7 +6,7 @@ type VisibilityBadgeProps = { isPublic: boolean };
 export function VisibilityBadge({ isPublic }: VisibilityBadgeProps) {
   if (isPublic) return null;
   return (
-    <span className="inline-flex items-center gap-1 rounded-sm border border-line-strong px-1.5 py-px text-xs font-medium text-ink-muted">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-mark border border-line-strong px-1.5 py-px text-xs font-medium text-ink-muted">
       <LockIcon className="size-3 shrink-0" />
       Private
     </span>

@@ -19,8 +19,8 @@ export function SidebarNavLink({ href, icon, trailing, children }: SidebarNavLin
     <Link
       href={href}
       aria-current={isActive ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-sm px-2 py-1.5 ${
-        isActive ? "bg-line/70 font-medium text-ink" : "text-ink-muted hover:bg-canvas hover:text-ink"
+      className={`group/link flex items-center gap-2.5 rounded-control px-2.5 py-1.5 ${
+        isActive ? "bg-surface-raised font-medium text-ink" : "text-ink-muted hover:bg-surface-raised/60 hover:text-ink"
       }`}
     >
       {icon}

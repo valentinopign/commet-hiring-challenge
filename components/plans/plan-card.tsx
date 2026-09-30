@@ -1,10 +1,14 @@
 import type { AlertCopy } from "@/components/alerts/alert-copy";
+import { ArrowUpRightIcon } from "@/components/icons/arrow-up-right-icon";
 import { WarningIcon } from "@/components/icons/warning-icon";
 import { ExhaustionPolicyLabel } from "@/components/plans/exhaustion-policy-label";
 import { PlanMonthlyPrice } from "@/components/plans/plan-monthly-price";
 import { PlanNameLink } from "@/components/plans/plan-name-link";
 import { PricePerThousand } from "@/components/plans/price-per-thousand";
 import { VersionSplitBar } from "@/components/plans/version-split-bar";
+import { VisibilityBadge } from "@/components/plans/visibility-badge";
+import { NotApplicable } from "@/components/ui/not-applicable";
+import { WidgetHeader } from "@/components/ui/widget-header";
 import type { LadderRow } from "@/lib/derive/types";
 import { formatNumber } from "@/lib/format";
 
@@ -15,31 +19,41 @@ type PlanCardProps = {
   currency: string;
 };
 
-const SECTION = "border-t border-line px-3.5 py-2.5 first:border-t-0";
+const BODY = "bg-surface-sunken px-4 py-3";
+const SECTION = `${BODY} border-t border-line`;
 const TERM = "text-caption text-ink-muted";
 
 /**
- * One rung of the ladder. The card spans four rows of its parent grid through `subgrid`,
- * so each section lines up with the same section in the neighbouring cards.
+ * One rung of the ladder. The card spans six rows of its parent grid through `subgrid` (header,
+ * description, price and three sections), so each part lines up with the same part in the
+ * neighbouring cards. The price has its own row so every price starts at the same height,
+ * whether or not a plan has a step line under it.
  */
 export function PlanCard({ row: { plan, step, packComparison }, alerts, currency }: PlanCardProps) {
   return (
-    <li className="relative row-span-4 grid grid-rows-subgrid gap-0 rounded-md border border-line bg-surface transition-colors hover:border-line-strong has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live">
-      <div className={`${SECTION} flex flex-col`}>
-        <h3>
-          <PlanNameLink code={plan.code} name={plan.name} isPublic={plan.isPublic} />
-        </h3>
-        <p className="text-caption text-ink-muted">{plan.description}</p>
-        {/* Pushed to the bottom so prices line up even when descriptions wrap differently. */}
-        <div className="mt-auto pt-2">
-          <PlanMonthlyPrice monthly={plan.monthly} step={step} currency={currency} />
-        </div>
+    <li className="group relative row-span-6 grid grid-rows-subgrid gap-0 overflow-hidden rounded-card border border-line transition-colors hover:border-line-strong has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live">
+      <WidgetHeader
+        title={
+          <h3 className="flex min-w-0 items-center gap-2">
+            <PlanNameLink code={plan.code} name={plan.name} />
+            <VisibilityBadge isPublic={plan.isPublic} />
+          </h3>
+        }
+        trailing={<ArrowUpRightIcon className="size-4 shrink-0 text-ink-muted transition-colors group-hover:text-ink" />}
+      />
+
+      {/* The header draws its own bottom border, so description and price need no top border. */}
+      <p className={`${BODY} pb-0 text-caption text-ink-muted`}>{plan.description}</p>
+      <div className={`${BODY} pt-2.5`}>
+        <PlanMonthlyPrice monthly={plan.monthly} step={step} currency={currency} />
       </div>
 
       <dl className={`${SECTION} grid grid-cols-2 content-start gap-x-3`}>
         <div>
           <dt className={TERM}>Credits / mo</dt>
-          <dd className="tabular-nums">{plan.monthly ? formatNumber(plan.monthly.includedCredits) : "–"}</dd>
+          <dd className="tabular-nums">
+            {plan.monthly ? formatNumber(plan.monthly.includedCredits) : <NotApplicable />}
+          </dd>
         </div>
         <div>
           <dt className={TERM}>Per 1,000</dt>

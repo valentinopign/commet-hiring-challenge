@@ -1,4 +1,3 @@
-import { AlertList } from "@/components/alerts/alert-list";
 import { CatalogSummary } from "@/components/overview/catalog-summary";
 import { PageHeading } from "@/components/page-heading";
 import { PageSection } from "@/components/page-section";
@@ -20,20 +19,16 @@ export default function OverviewPage() {
       <PageHeading
         title="Overview"
         description={`${totals.planCount} plans. Each includes monthly credits that every action in the product spends.`}
-        action={<CreatePlanLink />}
       />
       <div className="mt-4">
         <CatalogSummary totals={totals} />
       </div>
 
-      <PageSection id="attention" title="Needs attention">
-        <AlertList alerts={alerts} planNames={planNames} />
-      </PageSection>
-
       <PageSection
         id="plans"
         title="Plans"
         description="Cheapest first, monthly billing. Price, credits and policy reach every customer on every version."
+        actions={<CreatePlanLink />}
       >
         <PlanCardGrid
           rows={getLadderRows(catalog)}

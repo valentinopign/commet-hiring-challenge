@@ -1,0 +1,13 @@
+<!--
+  The Commet mark from favicon-dark.svg, reshaped to be used as a CSS mask: the black tile is
+  dropped and the diagonal cut becomes transparent, so the page can paint the mark with its ink
+  token in either theme.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <mask id="cut">
+    <path d="M250 71L356.521 255.5H143.479L250 71Z" fill="white"/>
+    <path d="M250 440L356.521 255.5H143.479L250 440Z" fill="white"/>
+    <rect width="253.649" height="17.0192" transform="matrix(0.718749 0.695269 -0.64697 0.762515 143.458 243.867)" fill="black"/>
+  </mask>
+  <rect width="500" height="500" fill="black" mask="url(#cut)"/>
+</svg>

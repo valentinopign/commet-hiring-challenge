@@ -27,7 +27,7 @@ export function MobileNavigation({ children }: MobileNavigationProps) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="-ml-1.5 inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-ink lg:hidden"
+        className="-ml-1 inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink lg:hidden"
       >
         <MenuIcon className="size-5" />
         <span className="sr-only">Open navigation</span>
@@ -36,14 +36,14 @@ export function MobileNavigation({ children }: MobileNavigationProps) {
         ref={dialogRef}
         aria-label="Navigation"
         onClick={closeOnBackdropOrLink}
-        className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-72 max-w-[85vw] border-r border-line bg-surface text-ink backdrop:bg-ink/40"
+        className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-72 max-w-[85vw] border-r border-line bg-canvas text-ink backdrop:bg-canvas/70"
       >
         <div className="flex h-full flex-col">
           <div className="flex justify-end px-3 pt-3">
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-ink"
+              className="inline-flex size-8 items-center justify-center rounded-control text-ink-muted hover:bg-surface-raised hover:text-ink"
             >
               <CloseIcon className="size-5" />
               <span className="sr-only">Close navigation</span>

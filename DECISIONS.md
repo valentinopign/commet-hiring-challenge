@@ -74,7 +74,7 @@ Pointed out rather than silently worked around. None of them is "fixed" in code.
 - **A single accent, `live` (teal), means "what a new customer gets today"**: the current version in the split bar, and the focus ring. Links are ink and underlined, not accent-coloured. The token is called `live` rather than `current` because `text-current` is already a Tailwind utility (`currentColor`).
 - **Retired versions are striped grey**, not just grey, and every bar has a text legend: status is never carried by colour alone. The bar itself is `aria-hidden`; the legend is the accessible version.
 - **IBM Plex Sans**, loaded with `next/font/google` (part of Next, not a new dependency): tabular figures for columns of money, and a technical tone for a technical audience.
-- **No dark mode.** It is an internal tool used in short sessions; a second theme doubles the contrast checks for every token. Because every colour goes through a token, it can be added later by redefining the tokens only.
+- **No dark mode** (superseded by the visual redesign below). It is an internal tool used in short sessions; a second theme doubles the contrast checks for every token. Because every colour goes through a token, it can be added later by redefining the tokens only.
 - **Icons are inline SVG components**, always decorative and paired with text, instead of adding an icon library.
 
 ## Dashboard shell (step 2, revised)
@@ -100,3 +100,39 @@ Replaces parts of the overview above: the plan table became cards, the credit pa
 - **"—" for Free's price per 1,000 credits**, with "Not applicable" for screen readers: its credits have no price, and "$0" would read as a real, very good rate.
 - **Version legend grouped by status** ("current: v3 12%", "retired: v2 85%, v1 3%") so it stays at two lines however many versions a plan has.
 - **Sidebar:** organisation on top, user pinned to the bottom. "Plans" is a small muted group title, not a link, and the plan links under it have no icons so they read as items of that group.
+
+## Visual redesign (dark first)
+
+Replaces the colour tokens, the shell layout, the sidebar and the overview's alerts section described above.
+
+### Themes
+
+- **Dark is the default, light is the alternative.** Dark tokens live in `@theme`; light redefines the same semantic tokens under `:root[data-theme="light"]`. Components never change class with the theme, which also supersedes "No dark mode" above.
+- **No flash of the wrong theme.** An inline script in `<head>` reads the stored choice and sets `data-theme` before the first paint. `<html>` has `suppressHydrationWarning` because that attribute is written by the script, not React. Without a stored choice the page is dark, even if the system prefers light: dark is the primary theme the design is built and checked against, and light is a choice the person makes.
+- **The toggle never needs the theme on the server.** It renders both icons and both labels ("Switch to light/dark theme") and a `light:` custom variant shows the right one, so there is no hydration mismatch. It is the only new client component.
+- **Contrast checked for both themes** (WCAG, worst case over the four surfaces): muted text 6.8 dark / 6.0 light; the `live` accent 8.3 / 5.0; warning 9.4 / 4.9; critical 6.6 / 6.0; info 7.2 / 5.9; alert colour on its own tint ≥ 6.0 / ≥ 4.75; retired stripes against the card body 3.9 / 3.4 (non-text, 3:1 needed).
+- **Alerts in dark are a low-opacity tint** (12%, 10% in light) with a stronger border, never solid blocks, and always carry a visible label ("Warning", "Note", "Data problem").
+- **Radii are semantic** (`mark` 4px, `control` 8px, `card` 10px, `sheet` 12px) and Tailwind's default radii are removed, like its palette. Shadows: only the popover, and in dark it is nearly invisible, so its border carries the separation.
+
+### Shell
+
+- **The content lives in a sheet with its own tone**; top bar and sidebar share the page background and have no borders. The sheet takes the deeper tone of the pair in both themes (near-black in dark, light grey in light) and the frame around it the other, so the content reads as set into the frame. The first version had it the other way round; swapping only the two token values was enough.
+- **Top bar:** Commet logo, a divider, the Nimbus mark (a gradient circle, identity rather than meaning) and name, then the alerts bell, the theme toggle and the user avatar. On phones the Commet logo is hidden so the organisation name, bell, toggle and avatar fit.
+- **The Commet mark is a CSS mask painted with the ink token.** The supplied icon (`favicon-dark.svg`) is a white mark on a black tile, which would show as a black square in the light theme. `public/commet-mark.svg` keeps only the mark, with its diagonal cut made transparent, so one file renders light on dark and dark on light.
+- **The user appears only as an avatar in the top bar**, with its name as the accessible label and as a tooltip. It was removed from the sidebar: showing it twice added nothing, and neither copy opens a menu.
+- **"Plans" in the sidebar is a native `<details>` disclosure**. Plans are indented one step under it with a small dot instead of an icon; the current plan's dot grows and takes the ink colour next to the link's own highlight. Tree lines with elbows were tried first and dropped: they looked heavy for five items. It is a toggle, not a page, so it has a chevron instead of looking like the links around it. No client code; the browser announces expanded/collapsed. It starts open so the warning flag on a plan is visible.
+- **The disclosure animates in CSS only**: `::details-content` grows from zero to `auto` height (`interpolate-size`) and fades in over 220ms with a strong ease-out (`--ease-emphasized`), and the chevron rotates with the same curve. Browsers without these features open it instantly, and `prefers-reduced-motion` turns the transition off (the global rule does not reach that pseudo-element, so it is repeated).
+- **The alerts popover lost its "Open overview" link**, since the overview no longer lists alerts.
+
+### Overview
+
+- **"Needs attention" was removed from the overview.** Alerts live in the bell; the plan concerned still shows its warning line on its card and a flag in the sidebar. This supersedes "The Growth alert stays on the overview" above.
+- **Stat cards have two layers**: a header strip with icon and label, a body with the figure and a line of real context ("19% of customers", "4 public, 1 private"). No trends: there is no historical data.
+- **Plan cards are two-layer widgets** spanning six subgrid rows: header (name, Private badge, arrow to the detail page), description, price, credits, exhaustion policy and customers. The price has its own row so every price starts at the same height; before, Free's price sat lower because it has no step line under it. Prices are larger (24px) and cards have more padding, with a minimum width of 13rem.
+- **Empty values use one component** (`NotApplicable`): a visual "—" read as "Not applicable".
+
+### Left out on purpose
+
+- **No element without a function:** no search, no Support or Settings, no "···" menus, no "Customize", no date selectors, no trends, no organisation switcher chevron.
+- **No sidebar collapse button.** Collapsed, the sidebar would show only icons, and plans have none of their own; initials would not tell them apart. The sheet already has enough width.
+- **No copyright line.** It serves no function, and it is unclear whose it would be (Commet's or Nimbus's).
