@@ -1,30 +1,49 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
+import { ExhaustionStep } from "@/components/create-plan/exhaustion-step";
+import { FeaturesStep } from "@/components/create-plan/features-step";
+import type { CreatePlanData, DraftDerived, StepProps } from "@/components/create-plan/flow-data";
 import { PositionStep } from "@/components/create-plan/position-step";
+import { PricingStep } from "@/components/create-plan/pricing-step";
 import { StepFooter } from "@/components/create-plan/step-footer";
 import { StepList } from "@/components/create-plan/step-list";
 import { StepPlaceholder } from "@/components/create-plan/step-placeholder";
-import { createInitialState, draftFlowReducer } from "@/lib/create-plan/draft-reducer";
+import type { Catalog } from "@/lib/catalog";
+import { createInitialState, draftFlowReducer, getPlacedMonthlyPrice } from "@/lib/create-plan/draft-reducer";
 import {
   CREATE_PLAN_STEPS,
   firstIncompleteStep,
   resolveStep,
   stepIndex,
   validateStep,
-  type ExistingPlan,
   type StepId,
 } from "@/lib/create-plan/steps";
-import type { DraftBase } from "@/lib/derive/types";
+import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
+import { getDraftBases, getDraftPosition, getYearlyReference } from "@/lib/derive/draft-flow";
+import { getPlanLadder, getPlanNames, summarizeDraft } from "@/lib/derive/plans";
+import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 
 type CreatePlanFlowProps = {
-  bases: DraftBase[];
+  catalog: Catalog;
   initialBaseCode: string | null;
-  existingPlans: ExistingPlan[];
-  currency: string;
 };
+
+function deriveData(catalog: Catalog): CreatePlanData {
+  const ladder = getPlanLadder(catalog);
+  return {
+    catalog,
+    currency: catalog.organization.currency,
+    ladder,
+    bases: getDraftBases(catalog),
+    existingPlans: catalog.plans.map(({ code, name }) => ({ code, name })),
+    planNames: getPlanNames(catalog),
+    yearlyReference: getYearlyReference(ladder),
+    packs: summarizeCreditPacks(catalog),
+  };
+}
 
 /**
  * Writes one search param without a server round trip. Next keeps `useSearchParams` in sync with
@@ -44,7 +63,9 @@ function writeSearchParam(name: string, value: string | null, mode: "push" | "re
  * state lives here. The step comes from the URL and is clamped to the furthest step the draft
  * allows, which also covers a reload (the draft is not persisted, so it starts over).
  */
-export function CreatePlanFlow({ bases, initialBaseCode, existingPlans, currency }: CreatePlanFlowProps) {
+export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps) {
+  const data = useMemo(() => deriveData(catalog), [catalog]);
+  const { bases, existingPlans, currency, ladder } = data;
   const [state, dispatch] = useReducer(
     draftFlowReducer,
     bases.find((base) => base.code === initialBaseCode) ?? null,
@@ -59,6 +80,14 @@ export function CreatePlanFlow({ bases, initialBaseCode, existingPlans, currency
   const [attemptedStep, setAttemptedStep] = useState<StepId | null>(null);
   const issues = validateStep(step, state, existingPlans);
   const showAllIssues = attemptedStep === step;
+
+  // Everything below is recomputed on each edit: the checks are what the steps react to live.
+  const derived: DraftDerived = {
+    summary: summarizeDraft(catalog, state.draft),
+    position: getDraftPosition(ladder, getPlacedMonthlyPrice(state)),
+    warnings: checkDraftPlan(state.draft, catalog),
+  };
+  const stepProps: StepProps = { state, dispatch, data, derived, issues, showAllIssues };
 
   // A clamped step (a hand-edited URL, a reload) rewrites the URL so it matches what is shown.
   useEffect(() => {
@@ -112,7 +141,7 @@ export function CreatePlanFlow({ bases, initialBaseCode, existingPlans, currency
           {CREATE_PLAN_STEPS[index].title}
         </h2>
 
-        {step === "position" ? (
+        {step === "position" && (
           <PositionStep
             state={state}
             dispatch={dispatch}
@@ -122,9 +151,11 @@ export function CreatePlanFlow({ bases, initialBaseCode, existingPlans, currency
             showAllIssues={showAllIssues}
             onBaseChange={(code) => writeSearchParam("from", code, "replace")}
           />
-        ) : (
-          <StepPlaceholder />
         )}
+        {step === "price" && <PricingStep {...stepProps} />}
+        {step === "credits-run-out" && <ExhaustionStep {...stepProps} />}
+        {step === "features" && <FeaturesStep {...stepProps} />}
+        {step === "review" && <StepPlaceholder />}
 
         <StepFooter
           onBack={previous ? () => goTo(previous.id) : null}

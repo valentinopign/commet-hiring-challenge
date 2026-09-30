@@ -10,8 +10,8 @@ type StepListProps = {
 
 /**
  * Every step is listed so the whole path is visible from the start. Reachable steps are buttons;
- * the rest are plain text, since there is nothing to do with them yet. On a phone only the
- * current step keeps its title, next to the numbers.
+ * the rest are plain text, since there is nothing to do with them yet. On a phone only the numbers
+ * show: the step's title is right below, and a long one would wrap the list onto two lines.
  */
 export function StepList({ current, furthest, onSelect }: StepListProps) {
   const currentIndex = stepIndex(current);
@@ -39,7 +39,7 @@ export function StepList({ current, furthest, onSelect }: StepListProps) {
             </span>
           );
           const label = (
-            <span className={isCurrent ? "font-medium text-ink" : "sr-only sm:not-sr-only"}>
+            <span className={`sr-only sm:not-sr-only ${isCurrent ? "font-medium text-ink" : ""}`}>
               {step.title}
               {isDone && <span className="sr-only"> (done)</span>}
             </span>

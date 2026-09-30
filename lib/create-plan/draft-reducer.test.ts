@@ -3,6 +3,7 @@ import { catalog } from "@/data/catalog";
 import {
   createInitialState,
   draftFlowReducer,
+  getPlacedMonthlyPrice,
   type DraftFlowAction,
   type DraftFlowState,
 } from "@/lib/create-plan/draft-reducer";
@@ -152,5 +153,33 @@ describe("features", () => {
     });
     const matching = state.draft.features.filter((feature) => feature.code === "ai_generation");
     expect(matching).toEqual([{ code: "ai_generation", type: "credit", creditsPerUnit: 4 }]);
+  });
+});
+
+describe("feature inputs", () => {
+  it("text that is not a number yet is pending", () => {
+    const state = run(createInitialState(growth), { type: "set_feature_input_invalid", code: "seats", part: "amount", invalid: true });
+    expect(state.pending).toEqual(["feature:seats:amount"]);
+  });
+
+  it("dropping the input drops its pending text", () => {
+    const state = run(
+      createInitialState(growth),
+      { type: "set_feature_input_invalid", code: "seats", part: "unit_price", invalid: true },
+      {
+        type: "set_feature",
+        code: "seats",
+        feature: { code: "seats", type: "capacity", limit: { type: "limited", includedAmount: 5, overage: { type: "blocked" } } },
+      },
+    );
+    expect(state.pending).toEqual([]);
+  });
+});
+
+describe("getPlacedMonthlyPrice", () => {
+  it("is null until a paid plan has a price, and 0 for a free plan", () => {
+    expect(getPlacedMonthlyPrice(createInitialState(null))).toBeNull();
+    expect(getPlacedMonthlyPrice(createInitialState(growth))).toBe(9900);
+    expect(getPlacedMonthlyPrice(createInitialState(free))).toBe(0);
   });
 });

@@ -6,10 +6,15 @@ import {
   draftBaseFromPlan,
   getDraftBases,
   getDraftPosition,
+  getFeatureComparisons,
+  getPackPriceRange,
   getYearlyReference,
   groupWarningsBySeverity,
   resolveBasePlanCode,
+  suggestYearly,
 } from "@/lib/derive/draft-flow";
+import { summarizeCreditPacks } from "@/lib/derive/credit-packs";
+import { resolveReleaseFeatures } from "@/lib/derive/releases";
 import { getPlanLadder } from "@/lib/derive/plans";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 import { cloneCatalog, getPlan, getRelease } from "@/lib/derive/test-helpers";
@@ -140,5 +145,48 @@ describe("groupWarningsBySeverity", () => {
     expect(groups.blocking.map((warning) => warning.type)).toEqual(["code_taken"]);
     expect(groups.warning.map((warning) => warning.type)).toContain("same_price_as_existing_plan");
     expect(groups.info.map((warning) => warning.type)).toContain("blocked_without_credit_packs");
+  });
+});
+
+describe("suggestYearly", () => {
+  it("applies the shared ratio to the monthly values", () => {
+    expect(suggestYearly({ priceMultiplier: 10, creditsMultiplier: 12 }, 4900, 3500)).toEqual({
+      price: 49000,
+      includedCredits: 42000,
+    });
+  });
+});
+
+describe("getPackPriceRange", () => {
+  it("spans the cheapest and dearest pack per 1,000 credits", () => {
+    expect(getPackPriceRange(summarizeCreditPacks(catalog))).toEqual({ min: 780, max: 880 });
+  });
+
+  it("is null without packs", () => {
+    expect(getPackPriceRange([])).toBeNull();
+  });
+});
+
+describe("getFeatureComparisons", () => {
+  const ladder = getPlanLadder(catalog);
+  const position = getDraftPosition(ladder, 4900);
+
+  it("flags a feature that is worse than on the cheaper plan", () => {
+    // Starter includes storage; a draft between Starter and Growth without it is worse.
+    const draft = resolveReleaseFeatures(catalog.features, []);
+    const storage = getFeatureComparisons(draft, position).storage_gb;
+    expect(storage?.below).toMatchObject({ planCode: "starter", draftImpact: "worse" });
+  });
+
+  it("flags a feature that is better than on the pricier plan", () => {
+    const draft = resolveReleaseFeatures(catalog.features, [{ code: "ai_generation", type: "credit", creditsPerUnit: 1 }]);
+    const aiGeneration = getFeatureComparisons(draft, position).ai_generation;
+    expect(aiGeneration?.above).toMatchObject({ planCode: "growth", draftImpact: "better" });
+  });
+
+  it("has nothing to compare without neighbours or a position", () => {
+    const draft = resolveReleaseFeatures(catalog.features, []);
+    expect(getFeatureComparisons(draft, null).sso).toEqual({ below: null, above: null });
+    expect(getFeatureComparisons(draft, { below: null, above: null }).sso).toEqual({ below: null, above: null });
   });
 });

@@ -1,9 +1,14 @@
 import type { BillingInterval, Catalog, Plan, PlanPrice, PlanPricing } from "@/lib/catalog";
+import { compareFeatureValues } from "@/lib/derive/compare-features";
 import { findNeighbourPlans } from "@/lib/derive/neighbours";
 import { getPeriodPricing, getPlanLadder } from "@/lib/derive/plans";
 import { getCurrentRelease } from "@/lib/derive/releases";
 import type {
+  CreditPackSummary,
   DraftBase,
+  FeatureImpact,
+  FeatureValue,
+  ResolvedFeature,
   DraftWarning,
   DraftWarningsBySeverity,
   NeighbourPlans,
@@ -116,4 +121,62 @@ export function groupWarningsBySeverity(warnings: DraftWarning[]): DraftWarnings
     warning: warnings.filter((warning) => warning.severity === "warning"),
     info: warnings.filter((warning) => warning.severity === "info"),
   };
+}
+
+/**
+ * The yearly values the shared ratio suggests for a monthly price and credits. Only a suggestion
+ * the person applies by hand: yearly pricing is never derived on its own.
+ */
+export function suggestYearly(
+  reference: YearlyReference,
+  monthlyPrice: number,
+  monthlyCredits: number,
+): { price: number; includedCredits: number } {
+  return {
+    price: Math.round(monthlyPrice * reference.priceMultiplier),
+    includedCredits: Math.round(monthlyCredits * reference.creditsMultiplier),
+  };
+}
+
+/** Cheapest and dearest price per 1,000 credits across the packs, for a reference line. */
+export function getPackPriceRange(packs: CreditPackSummary[]): { min: number; max: number } | null {
+  const prices = packs.flatMap((pack) => (pack.pricePerThousandCredits === null ? [] : [pack.pricePerThousandCredits]));
+  if (prices.length === 0) return null;
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+export type NeighbourFeature = {
+  planCode: string;
+  planName: string;
+  value: FeatureValue;
+  /** How the draft's value compares with this plan's, from the customer's side. */
+  draftImpact: FeatureImpact;
+};
+
+export type FeatureComparison = { below: NeighbourFeature | null; above: NeighbourFeature | null };
+
+function neighbourFeature(plan: PlanSummary | null, code: string, draftValue: FeatureValue): NeighbourFeature | null {
+  const value = plan?.currentFeatures.find((entry) => entry.feature.code === code)?.value;
+  if (!plan || !value) return null;
+  return { planCode: plan.code, planName: plan.name, value, draftImpact: compareFeatureValues(value, draftValue) };
+}
+
+/**
+ * Each draft feature next to the same feature on the plans around it (their current version).
+ * A `worse` impact against the cheaper plan, or a `better` one against the pricier plan, is what
+ * the features step flags, with the same rule `checkDraftPlan` uses in the review.
+ */
+export function getFeatureComparisons(
+  draftFeatures: ResolvedFeature[],
+  position: NeighbourPlans | null,
+): Record<string, FeatureComparison> {
+  return Object.fromEntries(
+    draftFeatures.map(({ feature, value }) => [
+      feature.code,
+      {
+        below: neighbourFeature(position?.below ?? null, feature.code, value),
+        above: neighbourFeature(position?.above ?? null, feature.code, value),
+      },
+    ]),
+  );
 }

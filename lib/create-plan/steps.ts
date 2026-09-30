@@ -27,7 +27,8 @@ export type FieldId =
   | "yearly-price"
   | "yearly-credits"
   | "exhaustion-policy"
-  | "overage-price";
+  | "overage-price"
+  | `feature-${string}`;
 
 export type StepIssue = { field: FieldId; message: string };
 
@@ -71,19 +72,19 @@ function validatePrice({ draft, pending }: DraftFlowState): StepIssue[] {
 
   if (draft.pricing.type === "standard") {
     const monthlyPrice = priceOf(draft.pricing, "monthly");
-    if (isPending("monthly_price")) issues.push({ field: "monthly-price", message: "Set a monthly price." });
+    if (isPending("monthly_price")) issues.push({ field: "monthly-price", message: "Enter a monthly price, like 49." });
     else if (monthlyPrice === 0) issues.push({ field: "monthly-price", message: needsPositivePrice });
   }
   if (isPending("monthly_credits")) {
-    issues.push({ field: "monthly-credits", message: "Set the credits included each month." });
+    issues.push({ field: "monthly-credits", message: "Enter the credits included each month, like 12,500." });
   }
 
   const yearlyPrice = priceOf(draft.pricing, "yearly");
   if (yearlyPrice !== null) {
-    if (isPending("yearly_price")) issues.push({ field: "yearly-price", message: "Set a yearly price." });
+    if (isPending("yearly_price")) issues.push({ field: "yearly-price", message: "Enter a yearly price, like 490." });
     else if (yearlyPrice === 0) issues.push({ field: "yearly-price", message: needsPositivePrice });
     if (isPending("yearly_credits")) {
-      issues.push({ field: "yearly-credits", message: "Set the credits included each year." });
+      issues.push({ field: "yearly-credits", message: "Enter the credits included each year, like 150,000." });
     }
   }
   return issues;
@@ -95,7 +96,7 @@ function validateCreditsRunOut({ draft, pending }: DraftFlowState): StepIssue[] 
   }
   if (draft.exhaustionPolicy.type !== "bill_overage") return [];
   if (pending.includes("overage_price")) {
-    return [{ field: "overage-price", message: "Set the price of 1,000 extra credits." }];
+    return [{ field: "overage-price", message: "Enter the price of 1,000 extra credits, like 10." }];
   }
   if (draft.exhaustionPolicy.pricePer1000Credits === 0) {
     return [{
@@ -104,6 +105,16 @@ function validateCreditsRunOut({ draft, pending }: DraftFlowState): StepIssue[] 
     }];
   }
   return [];
+}
+
+/** No feature is required (a plan may include none), but a typed value must be a valid number. */
+function validateFeatures({ pending }: DraftFlowState): StepIssue[] {
+  return pending.flatMap((field) => {
+    const [kind, code, part] = field.split(":");
+    if (kind !== "feature" || !code || !part) return [];
+    const message = part === "unit_price" ? "Enter an amount, like 0.50." : "Enter a whole number.";
+    return [{ field: `feature-${code}-${part}` as const, message }];
+  });
 }
 
 /** What stops "Continue" on a step. Going back is never validated. */
@@ -115,8 +126,8 @@ export function validateStep(step: StepId, state: DraftFlowState, existingPlans:
       return validatePrice(state);
     case "credits-run-out":
       return validateCreditsRunOut(state);
-    // Features have no required value: a plan may include none of them.
     case "features":
+      return validateFeatures(state);
     case "review":
       return [];
   }

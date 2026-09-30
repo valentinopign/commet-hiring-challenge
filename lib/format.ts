@@ -132,3 +132,29 @@ export function formatSavings(savingsRatio: number, reference?: string): string 
     ? `${formatPercent(savingsRatio)} less${against}`
     : `${formatPercent(-savingsRatio)} more${against}`;
 }
+
+/** "$" for USD: the prefix money inputs show. */
+export function getCurrencySymbol(currency: string): string {
+  const parts = new Intl.NumberFormat(LOCALE, { style: "currency", currency }).formatToParts(0);
+  return parts.find((part) => part.type === "currency")?.value ?? currency;
+}
+
+/** Cents as text a person edits: 4900 → "49", 4950 → "49.50". No separators, so it parses back. */
+export function formatAmountForInput(amountInCents: number): string {
+  return amountInCents % 100 === 0 ? String(amountInCents / 100) : (amountInCents / 100).toFixed(2);
+}
+
+/** What a person types in a money field ("49", "49.5", "1,299.00") in cents; `null` when it is not an amount. */
+export function parseAmount(text: string): number | null {
+  const normalized = text.trim().replaceAll(",", "");
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  // Rounding absorbs float noise such as 0.29 × 100 = 28.999999999999996.
+  return Math.round(Number(normalized) * 100);
+}
+
+/** A count typed by a person ("12,500"); `null` when it is not a whole number. */
+export function parseWholeNumber(text: string): number | null {
+  const normalized = text.trim().replaceAll(",", "");
+  if (!/^\d+$/.test(normalized)) return null;
+  return Number(normalized);
+}

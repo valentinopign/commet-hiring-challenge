@@ -118,3 +118,18 @@ describe("warningStep", () => {
     expect(warningStep(warnings[0])).toBe("position");
   });
 });
+
+describe("validateStep: features", () => {
+  it("nothing is required, but typed text must be a number", () => {
+    expect(fields("features", createInitialState(null))).toEqual([]);
+    const state = draftFlowReducer(createInitialState(growth), {
+      type: "set_feature_input_invalid",
+      code: "storage_gb",
+      part: "unit_price",
+      invalid: true,
+    });
+    expect(validateStep("features", state, existingPlans)).toEqual([
+      { field: "feature-storage_gb-unit_price", message: "Enter an amount, like 0.50." },
+    ]);
+  });
+});

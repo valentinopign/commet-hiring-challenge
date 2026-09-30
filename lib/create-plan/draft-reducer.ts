@@ -13,7 +13,24 @@ export type PendingField =
   | "yearly_price"
   | "yearly_credits"
   | "exhaustion_policy"
-  | "overage_price";
+  | "overage_price"
+  | FeaturePendingField;
+
+/** The number inputs of a feature row; each can hold text that is not a valid number yet. */
+export type FeatureInputPart = "credits" | "amount" | "unit_price";
+export type FeaturePendingField = `feature:${string}:${FeatureInputPart}`;
+
+export function featurePendingField(code: string, part: FeatureInputPart): FeaturePendingField {
+  return `feature:${code}:${part}`;
+}
+
+/** The number inputs a feature value has, so pending text in an input that is gone is dropped. */
+function featureInputParts(feature: ReleaseFeature | null): FeatureInputPart[] {
+  if (!feature || feature.type === "boolean") return [];
+  if (feature.type === "credit") return ["credits"];
+  if (feature.limit.type === "unlimited") return [];
+  return feature.limit.overage.type === "billed" ? ["amount", "unit_price"] : ["amount"];
+}
 
 export type DraftFlowState = {
   draft: DraftPlan;
@@ -37,7 +54,8 @@ export type DraftFlowAction =
   | { type: "set_yearly_offered"; offered: boolean }
   | { type: "choose_exhaustion"; policy: ExhaustionPolicy["type"] }
   | { type: "set_overage_price"; price: number | null }
-  | { type: "set_feature"; code: string; feature: ReleaseFeature | null };
+  | { type: "set_feature"; code: string; feature: ReleaseFeature | null }
+  | { type: "set_feature_input_invalid"; code: string; part: FeatureInputPart; invalid: boolean };
 
 const SCRATCH_PENDING: PendingField[] = ["monthly_price", "monthly_credits", "exhaustion_policy"];
 
@@ -76,6 +94,17 @@ function updatePrice(
   const yearly = findPrice(pricing, "yearly");
   if (interval === "monthly") return standardPricing({ ...monthly, ...change }, yearly);
   return standardPricing(monthly, yearly ? { ...yearly, ...change } : undefined);
+}
+
+/**
+ * The monthly price that places the draft on the ladder: 0 for a free plan, `null` while a paid
+ * plan has no price yet (placing it at $0 would put it next to the free plan).
+ */
+export function getPlacedMonthlyPrice(state: DraftFlowState): number | null {
+  const { pricing } = state.draft;
+  if (pricing.type === "free") return 0;
+  if (state.pending.includes("monthly_price")) return null;
+  return findPrice(pricing, "monthly")?.price ?? null;
 }
 
 export function createInitialState(base: DraftBase | null): DraftFlowState {
@@ -226,7 +255,17 @@ export function draftFlowReducer(state: DraftFlowState, action: DraftFlowAction)
       const others = draft.features.filter((feature) => feature.code !== action.code);
       // Absent means "not included", the same rule the catalog's releases follow.
       const features = action.feature ? [...others, action.feature] : others;
-      return edited({ draft: { ...draft, features } });
+      const keptParts = featureInputParts(action.feature).map((part) => featurePendingField(action.code, part));
+      const pending = state.pending.filter(
+        (field) => !field.startsWith(`feature:${action.code}:`) || keptParts.includes(field as FeaturePendingField),
+      );
+      return edited({ draft: { ...draft, features }, pending });
     }
+
+    case "set_feature_input_invalid":
+      return {
+        ...state,
+        pending: withPending(state.pending, featurePendingField(action.code, action.part), action.invalid),
+      };
   }
 }

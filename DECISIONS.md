@@ -202,3 +202,21 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 - **The code hint does not claim the code is permanent after publishing**: nothing in the data says so.
 - **Starting from a plan copies price, credits, policy and the current version's features**, never the identity. Switching base after editing any of those asks before overwriting. `?from=` preloads a base; an unknown value starts from scratch. The plan detail page links to it with "Create plan from X".
 - **Designed for a company without plans:** with no plans the "Start from" choice is not shown and every derived helper accepts an empty ladder (covered by tests).
+
+### Price and credits step
+
+- **Monthly and yearly are edited separately.** Yearly is opt-in ("Offer yearly billing") and has its own price and credits. The existing ratio (every paid plan charges 10× the monthly price and includes 12× the credits) is computed from the data and offered as a suggestion the person applies with a button; nothing is filled in on its own. If the plans stopped sharing one ratio, no suggestion would show.
+- **Money is typed in dollars and stored in cents** through `parseAmount` / `formatAmountForInput`; a field keeps what the person types ("49.") while the draft only ever receives a parsed number or "missing".
+- **The comparison is the plan just below and just above**, on price, credits and price per 1,000 credits, the numbers that decide where the plan sits.
+- **Checks wait for real numbers.** The draft holds a $0 placeholder for a missing price, so the checks of a step only show once its values are all filled in; otherwise "same price as Free" would appear before anything was typed.
+
+### When credits run out step
+
+- **Each option explains, inside the option, what the end customer lives through**, and names the plans that use it today (from the data). The choice starts empty when building from scratch.
+- **Overage is compared with three references**: the plan's own included credits, the neighbours' overage, and the price range of credit packs. A new plan is on no pack, and the text says so in both options.
+
+### Features step
+
+- **Every catalog feature is listed, grouped as in the plan page.** Credits: included or not, and the credits per unit. Capacity: not included, limited (amount, then blocked or billed per unit) or unlimited. Access: included or not. Switching a feature on starts from the nearest neighbour's value.
+- **Neighbour values sit under each field, and the flags use `compareFeatureValues`**, the same rule as the review: worse than the cheaper plan is marked as worse; better than the pricier plan is only informative, because it can be intended (a promotion).
+- **A typed value that is not a number yet blocks "Continue"** on that step, like any other missing value.

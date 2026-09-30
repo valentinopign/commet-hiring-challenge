@@ -2,7 +2,7 @@
 export function StepPlaceholder() {
   return (
     <p className="max-w-prose rounded-card border border-dashed border-line-strong p-4 text-ink-muted">
-      This step arrives in the next review. Its values come from the plan you started from.
+      The review arrives at the next checkpoint.
     </p>
   );
 }
