@@ -185,3 +185,20 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 ### Verification
 
 - **Edge cases are covered by unit tests and the real data** (single version, not included, blocked and billed overage, unlimited capacity, invalid `?version`).
+
+## Create plan (`/plans/new`)
+
+### State and navigation
+
+- **One client boundary, `CreatePlanFlow`.** Every step and the ladder read the same draft, so the state lives there, in a `useReducer` over the existing `DraftPlan` type. The page stays a Server Component and passes everything already derived (plans to start from, existing codes, currency).
+- **Missing values are tracked, not guessed.** The reducer keeps a `pending` list (monthly price, credits, policy, overage price…). The draft holds a placeholder meanwhile so it always has the `DraftPlan` shape, and "not set yet" is never confused with a real $0.
+- **The step lives in the URL (`?step=price`) via `history.pushState`.** The browser's Back button moves between steps instead of leaving the flow and losing the draft, and there is no server round trip. Separate routes per step were rejected: each would remount the flow and force the state up into a layout.
+- **Forward is validated, back never is.** A step past the first incomplete one (a hand-edited URL, a reload) opens that step instead. "Continue" is never silently disabled: it shows every problem in the step and moves focus to the first field.
+- **No persistence.** A reload starts the draft again (from `?from=` if present). Publishing is simulated; nothing is written anywhere.
+
+### Position step
+
+- **The code follows the name** ("Growth Plus" → `growth_plus`) until the person edits it; clearing it hands it back to the name. It is checked as the person types (format and uniqueness); the name only after a first "Continue".
+- **The code hint does not claim the code is permanent after publishing**: nothing in the data says so.
+- **Starting from a plan copies price, credits, policy and the current version's features**, never the identity. Switching base after editing any of those asks before overwriting. `?from=` preloads a base; an unknown value starts from scratch. The plan detail page links to it with "Create plan from X".
+- **Designed for a company without plans:** with no plans the "Start from" choice is not shown and every derived helper accepts an empty ladder (covered by tests).

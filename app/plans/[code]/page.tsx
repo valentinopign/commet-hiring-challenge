@@ -33,7 +33,7 @@ export default async function PlanPage({ params, searchParams }: PageProps<"/pla
 
   return (
     <>
-      <PlanHeader name={plan.name} isPublic={plan.isPublic} />
+      <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} />
       <PlanAlerts alerts={alerts} planName={plan.name} planNames={getPlanNames(catalog)} />
 
       <PageSection id="pricing" title="Pricing" description={<PricingScopeNote totalCustomers={plan.totalSubscriptions} />}>
