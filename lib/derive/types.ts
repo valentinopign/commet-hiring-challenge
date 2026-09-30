@@ -297,3 +297,20 @@ export type PlanDetail = {
   alerts: CatalogAlert[];
   packComparison: PackComparison | null;
 };
+
+/**
+ * What a new plan copies from an existing one: pricing, policy and the features of the version
+ * new customers get today. Never the identity (name, code, visibility): the new plan is its own.
+ */
+export type DraftBase = {
+  code: string;
+  name: string;
+  currentReleaseVersion: number;
+  /** For showing the option; the draft itself reads `pricing`. */
+  monthly: PeriodPricing | null;
+  pricing: PlanPricing;
+  exhaustionPolicy: ExhaustionPolicy;
+  features: ReleaseFeature[];
+};
+
+export type DraftWarningsBySeverity = Record<DraftWarningSeverity, DraftWarning[]>;
