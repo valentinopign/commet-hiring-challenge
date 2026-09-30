@@ -338,7 +338,7 @@
  */
 @utility popover-unfold {
   opacity: 0;
-  clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--radius-card));
+  clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--unfold-radius, var(--radius-card)));
   transition:
     opacity 150ms var(--ease-emphasized),
     clip-path 220ms var(--ease-emphasized),
@@ -347,11 +347,11 @@
 
   &:popover-open {
     opacity: 1;
-    clip-path: inset(0 round var(--radius-card));
+    clip-path: inset(0 round var(--unfold-radius, var(--radius-card)));
 
     @starting-style {
       opacity: 0;
-      clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--radius-card));
+      clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--unfold-radius, var(--radius-card)));
     }
   }
 

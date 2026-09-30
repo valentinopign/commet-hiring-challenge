@@ -56,7 +56,7 @@ export function AlertsPopover({ alerts, planNames }: AlertsPopoverProps) {
         popover="auto"
         role="dialog"
         aria-labelledby={POPOVER_TITLE_ID}
-        className="fixed inset-auto top-[calc(var(--spacing-topbar)-0.25rem)] right-3 m-0 w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden rounded-card border border-line-strong bg-surface p-0 text-ink shadow-popover"
+        className="fixed inset-auto top-[calc(var(--spacing-topbar)-0.25rem)] right-3 m-0 w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden rounded-[calc(var(--radius-control)+0.75rem)] border border-line-strong bg-surface p-0 text-ink shadow-popover"
       >
         <PopoverLinkCloser>
           <div className="border-b border-line bg-surface-raised px-4 py-2.5">

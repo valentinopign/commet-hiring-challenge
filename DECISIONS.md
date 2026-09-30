@@ -153,7 +153,9 @@ Applied:
 - **No `<aside>` around the sidebar.** The `<nav>` inside is the landmark; the aside added a redundant "complementary" one.
 - **Plan links read "Free plan", "Starter plan"** through a visually hidden word, so they make sense in a screen reader's list of links.
 
-Pending for the final polish pass: concentric radii in the alerts popover, `scale(0.96)` press feedback on buttons and optical padding on "Create plan".
+- **Concentric radii.** A surface that holds rounded items has the items' radius plus the padding between them: the alerts popover is 20px (8px alerts + 12px padding) and the organisation box 14px (8px rows + 6px padding). Equal radii make the inner corners look pinched.
+- **Press feedback.** Icon, outline and primary buttons give a little under the pointer (scale 0.96) and spring back, 150 ms with `--ease-emphasized`; the transition names each property it animates, so colours and the press share it. Disabled buttons do not react, and reduced motion drops the press.
+- **Optical padding.** Buttons that start with an icon ("Create plan", "Create plan from X") have 10px on the icon's side and 12px on the text's: the glyph has empty space inside its box, so equal padding looked lopsided.
 
 ### Top bar: motion and organisation switcher
 

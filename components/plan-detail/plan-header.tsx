@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { VisibilityBadge } from "@/components/plans/visibility-badge";
-import { outlineControlClass } from "@/components/ui/control-styles";
+import { outlineIconControlClass } from "@/components/ui/control-styles";
 
 type PlanHeaderProps = { code: string; name: string; isPublic: boolean };
 
@@ -12,7 +12,7 @@ export function PlanHeader({ code, name, isPublic }: PlanHeaderProps) {
       <h1 className="sr-only">{name}</h1>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <VisibilityBadge isPublic={isPublic} />
-        <Link href={{ pathname: "/plans/new", query: { from: code } }} className={`${outlineControlClass} ml-auto`}>
+        <Link href={{ pathname: "/plans/new", query: { from: code } }} className={`${outlineIconControlClass} ml-auto`}>
           <PlusIcon />
           Create plan from {name}
         </Link>

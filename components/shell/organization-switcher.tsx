@@ -115,7 +115,7 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
         role="dialog"
         aria-label="Switch organization"
         style={{ "--drop-count": rowCount, padding: BOX_PADDING } as CSSProperties}
-        className="glass-panel popover-unfold fixed m-0 rounded-card text-ink"
+        className="glass-panel popover-unfold fixed m-0 rounded-[calc(var(--radius-control)+6px)] text-ink [--unfold-radius:calc(var(--radius-control)+6px)]"
       >
         <button
           ref={headerRef}
