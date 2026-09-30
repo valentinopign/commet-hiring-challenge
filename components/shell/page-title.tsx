@@ -56,8 +56,8 @@ export function PageTitle({ planNames }: PageTitleProps) {
 
   if (!title) return null;
   return (
-    <p aria-hidden="true" className="flex min-w-0 items-center gap-2 font-medium">
-      <span className="text-ink-muted">/</span>
+    <p aria-hidden="true" className="flex min-w-0 items-center gap-2.5 text-base font-semibold">
+      <span className="font-normal text-ink-muted">/</span>
       <span className="truncate">
         <TypewriterText key={title} text={title} animate={hasNavigated} />
       </span>

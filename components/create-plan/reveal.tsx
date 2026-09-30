@@ -1,7 +1,8 @@
 "use client";
 
 import { useContext, useLayoutEffect, useRef, type ReactNode } from "react";
-import { emphasizedEasing, prefersReducedMotion, StepSettledContext } from "@/components/create-plan/motion";
+import { StepSettledContext } from "@/components/create-plan/motion";
+import { emphasizedEasing, prefersReducedMotion } from "@/components/ui/motion";
 
 type RevealProps = { className?: string; children: ReactNode };
 

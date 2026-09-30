@@ -52,6 +52,16 @@
   /* Text on a solid status colour (the alerts badge). */
   --color-on-status: #0a0a0b;
 
+  /*
+   * Glass for the organisation switcher: barely any fill, so the page shows through (blurred),
+   * a visible edge that draws the box, and a faint highlight along the top and across the corner.
+   */
+  --color-glass: rgb(255 255 255 / 0.01);
+  --color-glass-edge: rgb(255 255 255 / 0.22);
+  --color-glass-shine: rgb(255 255 255 / 0.06);
+  /* Hover on a row inside the glass: a tint of ink, so it shows over any background in either theme. */
+  --color-glass-hover: rgb(255 255 255 / 0.1);
+
   /* The organisation mark. Identity, like a logo: the same in both themes. */
   --color-org-from: #8b5cf6;
   --color-org-to: #14b8a6;
@@ -102,6 +112,11 @@
 
     --color-live: #0f766e;
     --color-live-soft: rgb(15 118 110 / 0.1);
+
+    --color-glass: rgb(255 255 255 / 0.06);
+    --color-glass-edge: rgb(24 24 27 / 0.14);
+    --color-glass-shine: rgb(255 255 255 / 0.35);
+    --color-glass-hover: rgb(24 24 27 / 0.08);
 
     --color-retired: #8a8a94;
     --color-retired-soft: #e4e4e7;
@@ -208,6 +223,191 @@
 
     @starting-style {
       translate: none;
+    }
+  }
+}
+
+/*
+ * The alerts bell swings once when the app opens with something that needs attention: hung
+ * from the top, each swing smaller than the last. Once per browser session (the component keeps
+ * track), after a short beat so it is not lost among everything else appearing. Only the bell
+ * moves; the count stays still. With reduced motion there is no swing and the count fades in.
+ */
+@keyframes bell-ring {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  15% {
+    rotate: 14deg;
+  }
+  30% {
+    rotate: -12deg;
+  }
+  45% {
+    rotate: 8deg;
+  }
+  60% {
+    rotate: -5deg;
+  }
+  75% {
+    rotate: 2deg;
+  }
+}
+
+@keyframes bell-badge-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A swing eases in and out of every turn, so each segment uses ease-in-out rather than the entrance curve. */
+[data-bell-ring] > svg {
+  transform-origin: 50% 12%;
+  animation: bell-ring 700ms ease-in-out 500ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-bell-ring] > svg {
+    animation: none;
+  }
+
+  [data-bell-ring] > [data-bell-badge] {
+    animation: bell-badge-in 200ms var(--ease-emphasized) 500ms both;
+  }
+}
+
+/*
+ * Theme toggle: sun and moon are stacked in one spot and swap by fading, scaling from a quarter,
+ * unblurring and turning a little, so the change reads as one icon becoming the other. These two
+ * are exempt from the pause on transitions during a theme switch (see theme-toggle.tsx). With
+ * reduced motion only the fade remains.
+ */
+@utility theme-icon {
+  transition:
+    opacity 200ms var(--ease-emphasized),
+    scale 200ms var(--ease-emphasized),
+    rotate 200ms var(--ease-emphasized),
+    filter 200ms var(--ease-emphasized);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 200ms var(--ease-emphasized);
+  }
+}
+
+@utility theme-icon-hidden {
+  opacity: 0;
+  scale: 0.25;
+  rotate: -45deg;
+  filter: blur(4px);
+
+  @media (prefers-reduced-motion: reduce) {
+    scale: none;
+    rotate: none;
+    filter: none;
+  }
+}
+
+@utility theme-icon-shown {
+  opacity: 1;
+  scale: none;
+  rotate: none;
+  filter: none;
+}
+
+/*
+ * Liquid glass: a box drawn by its edge, with almost no fill. What is behind stays readable as
+ * shapes: a light blur (8px) that bends it rather than hiding it, more saturation so colours glow
+ * through, a lit top edge and a diagonal sheen across the corner.
+ */
+@utility glass-panel {
+  background-color: var(--color-glass);
+  background-image: linear-gradient(135deg, var(--color-glass-shine), transparent 35%, transparent 70%, var(--color-glass-shine));
+  border: 1px solid var(--color-glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--color-glass-shine),
+    inset 0 -1px 0 rgb(0 0 0 / 0.08);
+  backdrop-filter: blur(8px) saturate(2);
+}
+
+/*
+ * The organisation box unfolds downward from the name it wraps: it starts clipped to the height
+ * of the name (`--unfold-from`) and opens to its full height (220ms), fading in. It folds back the
+ * same way on close; `display` and `overlay` transition discretely so the close can play before
+ * the popover leaves the top layer. Reduced motion keeps only the fade.
+ */
+@utility popover-unfold {
+  opacity: 0;
+  clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--radius-card));
+  transition:
+    opacity 150ms var(--ease-emphasized),
+    clip-path 220ms var(--ease-emphasized),
+    display 260ms allow-discrete,
+    overlay 260ms allow-discrete;
+
+  &:popover-open {
+    opacity: 1;
+    clip-path: inset(0 round var(--radius-card));
+
+    @starting-style {
+      opacity: 0;
+      clip-path: inset(0 0 calc(100% - var(--unfold-from, 40px)) 0 round var(--radius-card));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    clip-path: none;
+
+    &:popover-open {
+      clip-path: none;
+
+      @starting-style {
+        clip-path: none;
+      }
+    }
+  }
+}
+
+/*
+ * Rows below the name come out of it one after another (220ms each, 40ms apart) and go back up in
+ * reverse, faster. Rows set `--drop-index`; the box sets `--drop-count`. Reduced motion: fades only.
+ */
+@utility drop-item {
+  opacity: 0;
+  translate: 0 calc(-6px - var(--drop-index, 0) * 6px);
+  scale: 0.97;
+  transition:
+    opacity 160ms var(--ease-emphasized),
+    translate 160ms var(--ease-emphasized),
+    scale 160ms var(--ease-emphasized);
+  transition-delay: calc((var(--drop-count, 1) - 1 - var(--drop-index, 0)) * 25ms);
+
+  :popover-open & {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    transition-duration: 220ms;
+    transition-delay: calc(var(--drop-index, 0) * 40ms);
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 calc(-6px - var(--drop-index, 0) * 6px);
+      scale: 0.97;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    translate: none;
+    scale: none;
+
+    :popover-open & {
+      translate: none;
+      scale: none;
+
+      @starting-style {
+        translate: none;
+        scale: none;
+      }
     }
   }
 }

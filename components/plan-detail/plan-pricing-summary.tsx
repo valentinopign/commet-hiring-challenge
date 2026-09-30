@@ -1,5 +1,8 @@
+import { describeCatalogAlert } from "@/components/alerts/alert-copy";
 import { CoinsIcon } from "@/components/icons/coins-icon";
 import { GaugeIcon } from "@/components/icons/gauge-icon";
+import { InfoIcon } from "@/components/icons/info-icon";
+import { WarningIcon } from "@/components/icons/warning-icon";
 import { UsersIcon } from "@/components/icons/users-icon";
 import { StatCard } from "@/components/overview/stat-card";
 import {
@@ -8,14 +11,32 @@ import {
   formatPerThousand,
 } from "@/components/plans/describe-pack-option";
 import { NotApplicable } from "@/components/ui/not-applicable";
-import type { PackComparison, PeriodPricing, PlanSummary } from "@/lib/derive/types";
+import type { CatalogAlert, PackComparison, PeriodPricing, PlanSummary } from "@/lib/derive/types";
 import { formatMoney, formatNumber } from "@/lib/format";
 
 type PlanPricingSummaryProps = {
   plan: PlanSummary;
   packComparison: PackComparison | null;
+  /** Alerts about what happens when credits run out, shown inside that card. */
+  exhaustionAlerts: CatalogAlert[];
+  planNames: Map<string, string>;
   currency: string;
 };
+
+/** The same severity cues as everywhere else: icon, colour, and a label for screen readers. */
+function ExhaustionNote({ alert, planNames }: { alert: CatalogAlert; planNames: Map<string, string> }) {
+  const copy = describeCatalogAlert(alert, planNames);
+  const isInfo = alert.severity === "info";
+  return (
+    <span className={`mt-1.5 flex items-start gap-1.5 text-caption ${isInfo ? "text-info" : "text-warning"}`}>
+      {isInfo ? <InfoIcon className="mt-px size-3.5 shrink-0" /> : <WarningIcon className="mt-px size-3.5 shrink-0" />}
+      <span>
+        <span className="sr-only">{isInfo ? "Note" : "Warning"}: </span>
+        {copy.note ?? copy.short}
+      </span>
+    </span>
+  );
+}
 
 /** Monthly and yearly are shown as the data states them; neither is derived from the other. */
 function describePeriod(period: PeriodPricing, currency: string): string {
@@ -33,7 +54,7 @@ function describeCustomers(plan: PlanSummary): string {
   return `${formatNumber(onCurrent)} on v${plan.currentReleaseVersion}, the current version`;
 }
 
-export function PlanPricingSummary({ plan, packComparison, currency }: PlanPricingSummaryProps) {
+export function PlanPricingSummary({ plan, packComparison, exhaustionAlerts, planNames, currency }: PlanPricingSummaryProps) {
   return (
     <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
@@ -59,6 +80,9 @@ export function PlanPricingSummary({ plan, packComparison, currency }: PlanPrici
         label="When credits run out"
         value={describeExhaustionPolicy(plan.exhaustionPolicy, currency)}
         detail={describePackOption(packComparison, currency)}
+        note={exhaustionAlerts.map((alert, index) => (
+          <ExhaustionNote key={`${alert.type}-${index}`} alert={alert} planNames={planNames} />
+        ))}
       />
     </dl>
   );

@@ -7,12 +7,10 @@ import type { CatalogAlert } from "@/lib/derive/types";
 type AlertListProps = {
   alerts: CatalogAlert[];
   planNames: Map<string, string>;
-  /** Tighter rows without the explanation, for the alerts popover. */
-  compact?: boolean;
 };
 
 /** Warnings stay open; informational notes are folded so they don't compete with them. */
-export function AlertList({ alerts, planNames, compact = false }: AlertListProps) {
+export function AlertList({ alerts, planNames }: AlertListProps) {
   const pending = alerts.filter(needsAttention);
   const notes = alerts.filter((alert) => !needsAttention(alert));
 
@@ -23,7 +21,6 @@ export function AlertList({ alerts, planNames, compact = false }: AlertListProps
       copy={describeCatalogAlert(alert, planNames)}
       planCode={alert.planCode}
       planName={planNames.get(alert.planCode)}
-      compact={compact}
     />
   );
 

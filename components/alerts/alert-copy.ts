@@ -8,6 +8,8 @@ export type AlertCopy = {
   short: string;
   /** How the situation came about, for the plan's own page where there is room to explain. */
   context?: string;
+  /** The consequence alone, for a card that already shows the facts behind the alert. */
+  note?: string;
 };
 
 /**
@@ -63,6 +65,7 @@ export function describeCatalogAlert(alert: CatalogAlert, planNames: Map<string,
         title: `${planName} customers cannot buy more credits`,
         detail: "Service stops at zero and no credit pack is sold on this plan, so upgrading is the only way to continue.",
         short: "No way to buy more credits",
+        note: "Upgrading is the only way to keep going.",
       };
   }
 }

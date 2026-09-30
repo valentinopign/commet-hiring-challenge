@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { LadderList } from "@/components/create-plan/ladder-list";
-import { emphasizedEasing, prefersReducedMotion } from "@/components/create-plan/motion";
+import { emphasizedEasing, prefersReducedMotion } from "@/components/ui/motion";
 import { CheckIcon } from "@/components/icons/check-icon";
 import { outlineControlClass, primaryControlClass } from "@/components/ui/control-styles";
 import type { LadderEntry } from "@/lib/derive/types";

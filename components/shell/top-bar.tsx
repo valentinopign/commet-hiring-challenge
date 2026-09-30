@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { CommetLogo } from "@/components/shell/commet-logo";
-import { OrganizationMark } from "@/components/shell/organization-mark";
 
 type TopBarProps = {
-  organizationName: string;
+  /** The organisation switcher: its name opens the list of organisations. */
+  organization: ReactNode;
   /** The mobile navigation trigger; hidden on wide screens where the sidebar is always visible. */
   menu: ReactNode;
   alerts: ReactNode;
@@ -14,7 +14,7 @@ type TopBarProps = {
 };
 
 /** Full width, on the page background and without a border: the sheet below is what stands out. */
-export function TopBar({ organizationName, menu, alerts, themeToggle, user, pageTitle }: TopBarProps) {
+export function TopBar({ organization, menu, alerts, themeToggle, user, pageTitle }: TopBarProps) {
   return (
     <header className="sticky top-0 z-10 flex h-topbar items-center gap-3 bg-canvas px-3 sm:px-4">
       {menu}
@@ -23,8 +23,9 @@ export function TopBar({ organizationName, menu, alerts, themeToggle, user, page
         <CommetLogo />
         <span aria-hidden="true" className="h-5 w-px bg-line-strong" />
       </div>
-      <div className="flex min-w-0 items-center gap-2">
-        <OrganizationMark organizationName={organizationName} />
+      {/* Room for the organisation name to grow a little while its list is open. */}
+      <div className="flex min-w-0 items-center gap-3.5">
+        {organization}
         {pageTitle}
       </div>
       {/* Wider gap on touch so the 44px hit areas of neighbouring controls do not overlap. */}

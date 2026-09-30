@@ -38,7 +38,7 @@ A log of how the data was reshaped, what was left out and why, and the trade-off
 
 ### Tooling
 
-- **Vitest** (dev dependency) tests `lib/derive` only, with a focus on diffs, alerts and sanity checks. Formatters are not unit-tested one by one.
+- **Vitest** (dev dependency) tests the pure logic in `lib`: derive functions (diffs, alerts, sanity checks, the create flow's helpers), the create flow's reducer and steps, page titles and the parsing of typed amounts. Display formatters are not unit-tested one by one.
 - Vitest 5 declares a peer dependency on `@types/node >= 22`, while the template ships `@types/node ^20`. `@types/node` was bumped to `^22` in its own commit so the peer dependency is satisfied rather than ignored; tests, typecheck and build pass with it.
 
 ### Data observations
@@ -58,7 +58,7 @@ Pointed out rather than silently worked around. None of them is "fixed" in code.
 
 ### Layout and hierarchy
 
-- **Order:** summary numbers, then alerts, then the plan ladder, then credit packs. The alerts come before the ladder because they are the only part of the page that asks for action. Informational alerts are folded in a `<details>` so they do not compete with warnings.
+- **Order** (superseded: alerts now live in the bell and next to the data they explain, and credit packs have their own page): summary numbers, then alerts, then the plan ladder, then credit packs. The alerts came before the ladder because they are the only part of the page that asks for action. Informational alerts are folded in a `<details>` so they do not compete with warnings.
 - **Monthly billing only in the ladder.** Yearly prices and credits are set separately (never derived from monthly), and showing both on every row would double the table. They belong on each plan's page; a footnote says so.
 - **Each row shows the step from the plan below** ("+$70.00 and +9,000 credits over Starter"): it answers "what separates one plan from the next" without a separate comparison view.
 - **Credit packs are compared with overage on each plan's row.** Next to the overage price, the row shows the cheapest pack available on that plan per 1,000 credits and how much cheaper it is ("Packs from $8.80 / 1,000, 27% less"). The saving is shown, not a verdict: packs expire and overage does not. A compact pack table sits at the end of the page.
@@ -81,16 +81,16 @@ Pointed out rather than silently worked around. None of them is "fixed" in code.
 
 Replaces parts of the overview above: the plan table became cards, the credit pack table moved to its own route, and the page now sits in an app shell.
 
-- **App shell.** This screen lives inside the Commet dashboard, so it gets a sidebar (organisation, user, navigation) and a top bar. The user is a placeholder, "Nimbus admin": authentication is out of scope and no real person is shown. Neither the organisation nor the user opens a menu, because there is nothing behind them.
+- **App shell.** This screen lives inside the Commet dashboard, so it gets a sidebar (organisation, user, navigation) and a top bar. The user is a placeholder, "Nimbus admin": authentication is out of scope and no real person is shown. The user opens no menu, because there is nothing behind it (the organisation later became a switcher; see "Top bar: motion and organisation switcher").
 - **"Plans" is a sidebar group, not a route.** It lists every plan (flagged when it has a pending warning) plus "New plan". A `/plans` index would duplicate the overview's cards.
 - **Mobile navigation is a native modal `<dialog>`**, which provides focus trapping, Escape, a backdrop and an inert page without extra code. It closes on backdrop clicks and on link clicks, because client-side navigation keeps the layout mounted.
 - **The alerts bell uses the native Popover API**, so the browser handles opening, light dismiss and Escape and the component stays on the server. The one piece of client code closes the popover when a link inside it is used, for the same client-side navigation reason. The badge counts warnings and data problems only; notes are listed but not counted, so the number means "something needs you". The Growth alert stays on the overview: the bell complements it.
-- **Plans are cards aligned with CSS subgrid.** Each card spans four rows of the parent grid, so name and price, credits, exhaustion policy and customers line up across all five cards and can be read horizontally. From `md` up each card has a minimum width of 11.5rem. If the cards don't fit, the row scrolls inside its box instead of squeezing the cards or scrolling the page. Below `md` they stack.
+- **Plans are cards aligned with CSS subgrid.** Each card spans a fixed number of rows of the parent grid (six since the redesign), so name and price, credits, exhaustion policy and customers line up across all five cards and can be read horizontally. From `md` up each card has a minimum width of 11.5rem. If the cards don't fit, the row scrolls inside its box instead of squeezing the cards or scrolling the page. Below `md` they stack.
 - **Cards instead of a `<table>`.** This departs from "real tables for tabular data" on purpose, for a dashboard feel. It is compensated with an ordered list (cheapest first), one `<h3>` per plan and a `<dl>` per section, so a screen reader walks plan by plan with every value labelled.
 - **Whole-card link.** The plan name is the only link; its `::after` covers the card, whose `position: relative` sits on an `<li>`, not a `<tr>`, so the Safari concern from the table no longer applies. One tab stop per plan; the card draws the focus ring via `:has(a:focus-visible)`.
 - **Credit packs have their own page** (`/credit-packs`), with cards on the same subgrid rules. Each pack lists every plan it is sold on and compares its price per 1,000 credits with that plan's overage. Plans that block at zero get "a pack is the only way to keep going without upgrading" instead of a percentage.
 - **Tokens.** Colours are unchanged. Added `--spacing-sidebar` and a single `--shadow-popover`: the popover is the only element that floats, so it is the only one with a shadow. `--container-page` grew to 88rem to fit five cards next to the sidebar.
-- **The breadcrumb in the top bar is a static "Pricing" label.** A per-page breadcrumb would need the path on the client or a prop per page; the page's `<h1>` already names it.
+- **The breadcrumb in the top bar was a static "Pricing" label** (superseded by "Page title in the top bar").
 
 ### Density pass
 
@@ -99,7 +99,7 @@ Replaces parts of the overview above: the plan table became cards, the credit pa
 - **Prices carry their period** ("$29 / mo", "$0 / mo" for Free) instead of relying on a column header that cards don't have.
 - **"—" for Free's price per 1,000 credits**, with "Not applicable" for screen readers: its credits have no price, and "$0" would read as a real, very good rate.
 - **Version legend grouped by status** ("current: v3 12%", "retired: v2 85%, v1 3%") so it stays at two lines however many versions a plan has.
-- **Sidebar:** organisation on top, user pinned to the bottom. "Plans" is a small muted group title, not a link, and the plan links under it have no icons so they read as items of that group.
+- **Sidebar** (superseded: the organisation and the user moved to the top bar): organisation on top, user pinned to the bottom. "Plans" is a small muted group title, not a link, and the plan links under it have no icons so they read as items of that group.
 
 ## Visual redesign (dark first)
 
@@ -109,7 +109,7 @@ Replaces the colour tokens, the shell layout, the sidebar and the overview's ale
 
 - **Dark is the default, light is the alternative.** Dark tokens live in `@theme`; light redefines the same semantic tokens under `:root[data-theme="light"]`. Components never change class with the theme, which also supersedes "No dark mode" above.
 - **No flash of the wrong theme.** An inline script in `<head>` reads the stored choice and sets `data-theme` before the first paint. `<html>` has `suppressHydrationWarning` because that attribute is written by the script, not React. Without a stored choice the page is dark, even if the system prefers light: dark is the primary theme the design is built and checked against, and light is a choice the person makes.
-- **The toggle never needs the theme on the server.** It renders both icons and both labels ("Switch to light/dark theme") and a `light:` custom variant shows the right one, so there is no hydration mismatch. It is the only new client component.
+- **The toggle never needs the theme on the server.** It renders both icons and both labels ("Switch to light/dark theme") and a `light:` custom variant shows the right one, so there is no hydration mismatch.
 - **Contrast checked for both themes** (WCAG, worst case over every surface; dark figures re-checked after the depth fix below): muted text 6.6 dark / 6.0 light; the `live` accent 8.1 / 5.0; warning 9.2 / 4.9; critical 6.4 / 6.0; info 7.1 / 5.9; alert colour on its own tint ≥ 5.4 / ≥ 4.75; retired stripes against the card body 3.7 / 3.4 (non-text, 3:1 needed).
 - **Depth in dark: each layer is lighter than the one below.** Sheet `#0a0a0b`, card body `#131316`, card header `#1b1b1f` (relative luminance roughly doubles at each step). Before, the card body (`#0d0d0f`) was almost the sheet's colour and only the border separated them. The token `surface-sunken` was renamed `surface-card`: the card body sits above the sheet in both themes, so "sunken" described the opposite. Light is unchanged: white cards on a light grey sheet already read as raised.
 - **Alerts in dark are a low-opacity tint** (12%, 10% in light) with a stronger border, never solid blocks, and always carry a visible label ("Warning", "Note", "Data problem").
@@ -137,7 +137,7 @@ Replaces the colour tokens, the shell layout, the sidebar and the overview's ale
 
 ### Left out on purpose
 
-- **No element without a function:** no search, no Support or Settings, no "···" menus, no "Customize", no date selectors, no trends, no organisation switcher chevron.
+- **No element without a function:** no search, no Support or Settings, no "···" menus, no "Customize", no date selectors, no trends. (An organisation switcher was added later; see "Top bar: motion and organisation switcher".)
 - **No sidebar collapse button.** Collapsed, the sidebar would show only icons, and plans have none of their own; initials would not tell them apart. The sheet already has enough width.
 - **No copyright line.** It serves no function, and it is unclear whose it would be (Commet's or Nimbus's).
 
@@ -153,13 +153,20 @@ Applied:
 - **No `<aside>` around the sidebar.** The `<nav>` inside is the landmark; the aside added a redundant "complementary" one.
 - **Plan links read "Free plan", "Starter plan"** through a visually hidden word, so they make sense in a screen reader's list of links.
 
-Pending for the final polish pass: concentric radii in the alerts popover, `scale(0.96)` press feedback on buttons, optical padding on "Create plan", and a cross-fade for the theme toggle icon.
+Pending for the final polish pass: concentric radii in the alerts popover, `scale(0.96)` press feedback on buttons and optical padding on "Create plan".
+
+### Top bar: motion and organisation switcher
+
+- **The theme icon turns into the other one.** Sun and moon are stacked in one spot; the incoming one fades in from a quarter of its size, unblurs and turns 45°, and the outgoing one does the reverse (200 ms, `--ease-emphasized`). They are the only elements exempt from the pause on transitions during a switch, since their swap is the one change meant to be seen. With reduced motion only the fade remains.
+- **The alerts bell rings once when the app opens with something that needs attention.** It swings from its top, each swing smaller (14°, −12°, 8°, −5°, 2°), over 700 ms after a 500 ms beat, with ease-in-out per swing as a pendulum does. Once per browser session: navigation keeps the layout mounted and `sessionStorage` keeps reloads quiet, so it signals "there is something new" instead of becoming noise. No alerts, no ring. With reduced motion the count fades in instead.
+- **Organisation switcher.** The organisation name in the top bar is the current option and a button (with a chevron). Pressing it grows the name a little (scale 1.05), turns the chevron up and unfolds a box around the name, as wide as the mark and the name: it opens downward from the name's height (220 ms), and the other organisations and "Add organization" drop out from under the name one after another (40 ms apart), going back up in reverse on close. The box sits exactly over the name and repeats it in the same place, so the name reads as the top of the box and never appears twice; that copy closes the box, and focus goes back to the name. The list is flat: one row per organisation. The box is drawn by its edge with almost no fill: liquid glass, an 8px blur with extra saturation so what is behind stays visible, a lit top edge and a diagonal sheen, with its own tokens per theme. Plain CSS gives this in every browser, so no glass library was added (the ones that refract the background rely on SVG filters only Chrome renders). The catalog describes one organisation; how several would be modelled is left open, and choosing another only changes the name shown. "Add organization" is simulated and says so: accounts and authentication are out of scope. Reduced motion keeps only fades.
+- **The Overview icon in the sidebar is a mixed-widget dashboard**: tall panels and squares in opposite corners, rather than four equal squares, which read as a generic grid.
 
 ## Plan detail (`/plans/[code]`)
 
 ### Layout and content
 
-- **Order:** name and description, then the plan's own alerts, then pricing, versions and features. Alerts come first because they are the only part that asks for action; on Growth the retired-majority warning also explains grandfathering (existing customers stay on their version until migrated, new customers join the current one).
+- **Order:** pricing, versions and features. **Each alert sits next to the data it explains** instead of above the page, where a full card pushed pricing down: "customers cannot buy more credits" is a note inside the "When credits run out" card, and version alerts (most customers on retired versions, a version without customers, orphan subscriptions, a current version that is not published) are one compact line at the top of Versions, above the timeline that shows the split. On Growth, "Why" unfolds the grandfathering context (existing customers stay on their version until migrated, new customers join the current one). The bell in the top bar still lists every alert.
 - **Pricing is four stat cards** (customers, monthly, yearly, when credits run out) under a note that names the real audience: "apply to all 398 customers, on every version. A change reaches them at their next renewal. Only features are versioned." Monthly and yearly are both shown as the data states them; neither is derived from the other. Free has no yearly period, so its card shows "—" with "No yearly price".
 - **Versions: timeline and changes side by side.** The timeline runs newest first (what new customers get is what the team asks about most), with status as a word plus a marker (accent for current, stripes for retired), publication and replacement dates, and customers with their share. The changes widget has one block per consecutive pair, newest first; each change states its kind (Added, Removed, Changed), the before → after values and its impact on customers. A plan with one version says there is nothing to compare yet.
 - **Features: one real `<table>` per type** (credits, capacity, access). "Not included" has the same weight as "Included", with an icon, and spans every value column. Unlimited capacity shows "—" under "Past the limit".
@@ -170,12 +177,11 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 - **Version selection is a `?version=N` link**, so the page stays a Server Component and a version can be shared by URL. The route becomes dynamic (rendered per request) as a result. Any value that is not a version of the plan (missing, "v2", "2.5", "99") falls back to the current version instead of an error; an unknown plan code is a 404.
 - **Impact colours are their own tokens**, `impact-better` and `impact-worse`, because `live` means "current" and `critical` means a data problem. The green is yellow-green (hue ~100°), about 70° away from the teal of `live` (~170°), so "better" never reads as "current". Contrast: better 9.6 dark / 5.4 light, worse 7.2 / 6.0. Each is always paired with an arrow and a label.
 - **"Neutral" impact is labelled "Trade-off"**: it only comes out of a capacity change where the included amount and the overage move in opposite directions.
-- **The alert on its own plan page has no "View plan" link**, which would point to the page itself.
 - **Pack and exhaustion wording moved to one module** (`describe-pack-option.ts`) shared by the overview card and the plan page, so both say it the same way.
 
 ### Page title in the top bar
 
-- **Every page title moved to the top bar**, after the organisation, as a breadcrumb (`Nimbus / Growth`). The sheet starts straight with the page's description. Section titles (Pricing, Versions, Features, Plans) stay in the sheet: they orient within a page, not between pages.
+- **Every page title moved to the top bar**, after the organisation, as a breadcrumb (`● Nimbus / Growth`). Name and title are 16px semibold and the organisation's mark 24px, so the bar reads as the page's heading; the "/" stays regular weight and muted, to separate without competing. The sheet starts straight with the content. Section titles (Pricing, Versions, Features, Plans) stay in the sheet: they orient within a page, not between pages.
 - **The title comes from the route** through a pure function (`lib/page-titles.ts`, tested), with plan names from the catalog. An unknown plan or route shows no title.
 - **Typewriter on navigation only.** A small client component types the new title (35 ms per character, a caret while typing). The first load shows it whole so server and client markup match; with reduced motion it appears at once.
 - **Each page keeps its `<h1>`, visually hidden.** The top-bar title is `aria-hidden`: heading navigation and the skip link still find the `<h1>`, and a screen reader never reads a half-typed word.
@@ -190,7 +196,7 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 
 ### State and navigation
 
-- **One client boundary, `CreatePlanFlow`.** Every step and the ladder read the same draft, so the state lives there, in a `useReducer` over the existing `DraftPlan` type. The page stays a Server Component and passes everything already derived (plans to start from, existing codes, currency).
+- **One client boundary, `CreatePlanFlow`.** Every step and the ladder read the same draft, so the state lives there, in a `useReducer` over the existing `DraftPlan` type. The page stays a Server Component and only resolves which plan to start from; the flow receives the catalog and derives the rest (ladder, plans to start from, existing codes, packs), since the checks run on every edit.
 - **Missing values are tracked, not guessed.** The reducer keeps a `pending` list (monthly price, credits, policy, overage price…). The draft holds a placeholder meanwhile so it always has the `DraftPlan` shape, and "not set yet" is never confused with a real $0.
 - **The step lives in the URL (`?step=price`) via `history.pushState`.** The browser's Back button moves between steps instead of leaving the flow and losing the draft, and there is no server round trip. Separate routes per step were rejected: each would remount the flow and force the state up into a layout.
 - **Forward is validated, back never is.** A step past the first incomplete one (a hand-edited URL, a reload) opens that step instead. "Continue" is never silently disabled: it shows every problem in the step and moves focus to the first field.
@@ -242,7 +248,7 @@ Pending for the final polish pass: concentric radii in the alerts popover, `scal
 ### Motion in the create flow
 
 - **Motion only where it explains what happened.** The ladder stays the one long animation (320 ms); everything else is 150–200 ms (250 ms for the new plan joining the final ladder), uses the single `--ease-emphasized` curve, animates transform and opacity (height only for revealed fields), and needs no library.
-- **Step change:** the new step fades in and slides 8px from the side it comes from (forward from the right, back from the left), 200 ms. The old step leaves at once, so the requested step is never delayed. Focus still moves to the step's title and the page never scrolls sideways.
+- **Step change:** the new step fades in and slides 8px from the side it comes from (forward from the right, back from the left), 200 ms. The old step leaves at once, so the new one is never delayed. Focus still moves to the step's title and the page never scrolls sideways.
 - **Fields revealed by a choice** (overage price, yearly billing, a feature's cost or limit, billed capacity price, credit packs, the "replace your changes?" confirmation) grow in with height and opacity, 200 ms, like the sidebar disclosure, so the choice reads as their cause. Overflow is hidden only while they grow, so focus rings are never clipped. Content already there when a step opens does not animate, and hiding is instant: it answers the person's own click.
 - **Errors after "Continue"** fade in and drop 2px (150 ms); nothing shakes. Focus on the first invalid field remains the main feedback.
 - **Live checks and feature marks** only fade in (150 ms): they change while the person types, so any movement would compete with the ladder.

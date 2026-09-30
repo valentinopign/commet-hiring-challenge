@@ -1,5 +1,6 @@
 import { AlertList } from "@/components/alerts/alert-list";
 import { BellIcon } from "@/components/icons/bell-icon";
+import { BellRing } from "@/components/shell/bell-ring";
 import { PopoverLinkCloser } from "@/components/shell/popover-link-closer";
 import { iconControlClass } from "@/components/ui/control-styles";
 import { needsAttention } from "@/lib/derive/alerts";
@@ -34,17 +35,20 @@ export function AlertsPopover({ alerts, planNames }: AlertsPopoverProps) {
         aria-label={label}
         className={iconControlClass}
       >
-        <BellIcon />
-        {pending.length > 0 && (
-          <span
-            aria-hidden="true"
-            className={`absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs leading-none font-semibold text-on-status tabular-nums ${
-              hasCritical ? "bg-critical" : "bg-warning"
-            }`}
-          >
-            {pending.length}
-          </span>
-        )}
+        <BellRing shouldRing={pending.length > 0}>
+          <BellIcon />
+          {pending.length > 0 && (
+            <span
+              aria-hidden="true"
+              data-bell-badge
+              className={`absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs leading-none font-semibold text-on-status tabular-nums ${
+                hasCritical ? "bg-critical" : "bg-warning"
+              }`}
+            >
+              {pending.length}
+            </span>
+          )}
+        </BellRing>
       </button>
 
       <div
@@ -59,7 +63,7 @@ export function AlertsPopover({ alerts, planNames }: AlertsPopoverProps) {
             <h2 id={POPOVER_TITLE_ID} className="font-semibold">Alerts</h2>
           </div>
           <div className="max-h-[70vh] overflow-y-auto p-3">
-            <AlertList alerts={alerts} planNames={planNames} compact />
+            <AlertList alerts={alerts} planNames={planNames} />
           </div>
         </PopoverLinkCloser>
       </div>

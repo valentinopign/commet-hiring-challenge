@@ -4,13 +4,14 @@ import { AlertsPopover } from "@/components/shell/alerts-popover";
 import { AppShell } from "@/components/shell/app-shell";
 import { Avatar } from "@/components/shell/avatar";
 import { MobileNavigation } from "@/components/shell/mobile-navigation";
+import { OrganizationSwitcher } from "@/components/shell/organization-switcher";
 import { PageTitle } from "@/components/shell/page-title";
 import { SidebarContent } from "@/components/shell/sidebar-content";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { TopBar } from "@/components/shell/top-bar";
 import { catalog } from "@/data/catalog";
 import { getCatalogAlerts } from "@/lib/derive/alerts";
-import { getNavigationPlans } from "@/lib/derive/navigation";
+import { getNavigationPlans, getOrganizations } from "@/lib/derive/navigation";
 import { getPlanNames } from "@/lib/derive/plans";
 import { currentUser } from "@/lib/session";
 import { themeInitScript } from "@/lib/theme";
@@ -28,7 +29,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  const organizationName = catalog.organization.name;
   const planNames = getPlanNames(catalog);
   const sidebar = <SidebarContent plans={getNavigationPlans(catalog)} />;
 
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           sidebar={sidebar}
           topBar={
             <TopBar
-              organizationName={organizationName}
+              organization={<OrganizationSwitcher organizations={getOrganizations(catalog)} currentId={catalog.organization.id} />}
               menu={<MobileNavigation>{sidebar}</MobileNavigation>}
               alerts={<AlertsPopover alerts={getCatalogAlerts(catalog)} planNames={planNames} />}
               themeToggle={<ThemeToggle />}

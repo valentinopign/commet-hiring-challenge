@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageSection } from "@/components/page-section";
+import { getAlertSection } from "@/components/plan-detail/alert-placement";
 import { FeatureConfiguration } from "@/components/plan-detail/feature-configuration";
 import { PlanAlerts } from "@/components/plan-detail/plan-alerts";
 import { PlanHeader } from "@/components/plan-detail/plan-header";
@@ -30,17 +31,27 @@ export default async function PlanPage({ params, searchParams }: PageProps<"/pla
   const viewedVersion = resolveViewedVersion(timeline, version, plan.currentReleaseVersion);
   const viewed = timeline.find((entry) => entry.version === viewedVersion);
   const current = timeline.find((entry) => entry.isCurrent);
+  const planNames = getPlanNames(catalog);
+  // Alerts sit next to what they explain; the bell in the top bar still lists them all.
+  const pricingAlerts = alerts.filter((alert) => getAlertSection(alert) === "pricing");
+  const versionAlerts = alerts.filter((alert) => getAlertSection(alert) === "versions");
 
   return (
     <>
       <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} />
-      <PlanAlerts alerts={alerts} planName={plan.name} planNames={getPlanNames(catalog)} />
 
       <PageSection id="pricing" title="Pricing" description={<PricingScopeNote totalCustomers={plan.totalSubscriptions} />}>
-        <PlanPricingSummary plan={plan} packComparison={packComparison} currency={currency} />
+        <PlanPricingSummary
+          plan={plan}
+          packComparison={packComparison}
+          exhaustionAlerts={pricingAlerts}
+          planNames={planNames}
+          currency={currency}
+        />
       </PageSection>
 
       <PageSection id="versions" title="Versions">
+        <PlanAlerts alerts={versionAlerts} planName={plan.name} planNames={planNames} />
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <VersionTimeline timeline={timeline} />
           <VersionChanges timeline={timeline} currency={currency} />

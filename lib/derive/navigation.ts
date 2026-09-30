@@ -19,3 +19,10 @@ export function getNavigationPlans(catalog: Catalog): NavigationPlan[] {
     needsAttention: flaggedCodes.has(plan.code),
   }));
 }
+
+export type OrganizationOption = { id: string; name: string };
+
+/** Every organisation the switcher offers. The catalog describes a single one today. */
+export function getOrganizations(catalog: Catalog): OrganizationOption[] {
+  return [{ id: catalog.organization.id, name: catalog.organization.name }];
+}

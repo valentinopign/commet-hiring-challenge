@@ -14,10 +14,11 @@ export function OverviewIcon({ className }: OverviewIconProps) {
       focusable="false"
       className={className ?? "size-4 shrink-0"}
     >
-      <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" />
-      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" />
-      <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" />
-      <rect x="9" y="9" width="4.5" height="4.5" rx="1" />
+      {/* A dashboard of mixed widgets: tall panels and squares in opposite corners. */}
+      <rect x="3" y="2.5" width="4" height="5.5" rx="1" />
+      <rect x="3" y="9.5" width="4" height="4" rx="1" />
+      <rect x="9" y="2.5" width="4" height="4" rx="1" />
+      <rect x="9" y="8" width="4" height="5.5" rx="1" />
     </svg>
   );
 }
