@@ -2,7 +2,7 @@ import { describeCatalogAlert } from "@/components/alerts/alert-copy";
 import { InlineAlert } from "@/components/plan-detail/inline-alert";
 import type { CatalogAlert } from "@/lib/derive/types";
 import type { ScheduledMigration } from "@/lib/edit-plan/publication";
-import { formatNumber } from "@/lib/format";
+import { formatCount, formatNumber } from "@/lib/format";
 import { MigrationEntryLink } from "./migration-entry-link";
 
 type PlanAlertsProps = {
@@ -21,15 +21,16 @@ export function PlanAlerts({ alerts, planName, planNames, schedules = [] }: Plan
         <InlineAlert
           key={`${alert.type}-${index}`}
           severity={alert.severity}
-          action={alert.type === "majority_on_retired" ? <MigrationEntryLink planCode={alert.planCode} currentVersion={alert.currentReleaseVersion} /> : undefined}
+          // Once every retired customer has a scheduled move there is nothing left to migrate.
+          action={alert.type === "majority_on_retired" && schedules.filter((item) => item.planCode === alert.planCode).reduce((total, item) => total + item.customers, 0) < alert.retiredSubscriptions ? <MigrationEntryLink planCode={alert.planCode} currentVersion={alert.currentReleaseVersion} /> : undefined}
           copy={alert.type === "majority_on_retired" && schedules.some((item) => item.planCode === alert.planCode) ? (() => {
             const relevant = schedules.filter((item) => item.planCode === alert.planCode);
             const count = relevant.reduce((total, item) => total + item.customers, 0);
             const destinations = [...new Set(relevant.map((item) => `v${item.toVersion}`))].join(", ");
             return { title: `${formatNumber(count)} of ${formatNumber(alert.totalSubscriptions)} are scheduled to move to ${destinations} at renewal`,
               short: `${formatNumber(count)} scheduled to move`,
-              detail: `${formatNumber(alert.retiredSubscriptions - count)} customers on retired versions are staying on their version.`,
-              context: "These moves are scheduled, not completed. Customer counts and version bars continue to show current subscriptions until renewal." };
+              detail: `${formatCount(alert.retiredSubscriptions - count, "customer")} on retired versions are staying on their version.`,
+              context: "These are legacy pending moves, not completed transfers. Counts stay unchanged unless you confirm a replacement migration." };
           })() : describeCatalogAlert(alert, planNames)}
         />
       ))}

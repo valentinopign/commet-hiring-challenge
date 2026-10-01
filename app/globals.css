@@ -123,7 +123,6 @@
 
   /* Strong ease-out: movement starts fast and settles, so UI feels immediate rather than sluggish. */
   --ease-emphasized: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-handoff: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Only what floats (the alerts popover) casts a shadow. In dark it is barely visible, so the border does the work. */
   --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.5);

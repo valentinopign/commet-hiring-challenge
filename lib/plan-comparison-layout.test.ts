@@ -19,7 +19,15 @@ vi.mock("@/components/organizations/catalog-link", () => ({
   },
 }));
 
-function renderComparison(props = {}) {
+function renderComparison(props: { compare?: string; diff?: string; editRequested?: boolean } = {}) {
+  if (!route.query) {
+    const query = new URLSearchParams({ version: "1" });
+    const compare = Object.hasOwn(props, "compare") ? props.compare : "scale.2";
+    if (compare) query.set("compare", compare);
+    if (props.diff) query.set("diff", props.diff);
+    if (props.editRequested) query.set("edit", "1");
+    route.query = query.toString();
+  }
   const detail = getPlanDetail(catalog, "growth");
   if (!detail) throw new Error("Missing fixture");
   return renderToStaticMarkup(createElement(CatalogPlanDetail, { catalog, detail, version: "1", compare: "scale.2", ...props }));
@@ -36,7 +44,6 @@ describe("comparison detail markup", () => {
     expect(html).not.toContain("Plan comparison actions");
   });
   it("uses the live browser URL after comparison and editing parameters are cleared", () => {
-    vi.stubGlobal("window", {});
     route.query = "version=3";
     const html = renderComparison({ editRequested: true });
     expect(html).toContain('id="edit-plan-action"');
@@ -47,6 +54,7 @@ describe("comparison detail markup", () => {
   it("supports same-plan version comparisons with shared pricing and labelled feature impacts", () => {
     const detail = getPlanDetail(catalog, "starter");
     if (!detail) throw new Error("Missing fixture");
+    route.query = "version=2&compare=starter.1";
     const html = renderToStaticMarkup(createElement(CatalogPlanDetail, { catalog, detail, version: "2", compare: "starter.1" }));
     expect(html).toContain("Comparing Starter v2 with Starter v1");
     expect(html).toContain("Other versions");
@@ -98,6 +106,7 @@ describe("comparison detail markup", () => {
   });
   it("falls back to ordinary detail for unavailable targets or an edit request", () => {
     expect(renderComparison({ compare: "does-not-exist.1" })).toContain("Comparison unavailable");
+    route.query = "";
     const editing = renderComparison({ editRequested: true });
     expect(editing).not.toContain("Comparing Growth");
     expect(editing).not.toContain("Comparison unavailable");
@@ -114,6 +123,7 @@ describe("comparison detail markup", () => {
   });
   it("keeps the real primary Edit action in both reading modes and Compare out of Features", () => {
     for (const compare of [undefined, "scale.2"]) {
+      route.query = "";
       const html = renderComparison({ compare });
       expect(html.indexOf('popoverTarget="compare-plan"')).toBeLessThan(html.indexOf("Create plan from Growth"));
       expect(html.indexOf("Create plan from Growth")).toBeLessThan(html.indexOf('id="edit-plan-action"'));

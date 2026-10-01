@@ -3,9 +3,9 @@ import type { DraftFlowState } from "@/lib/create-plan/draft-reducer";
 import { createEditState, deriveEditChecks, derivePlanChanges, validatePlanEdit } from "@/lib/edit-plan/changes";
 import { diffFeatureSets, getCurrentRelease, resolveReleaseFeatures } from "@/lib/derive/releases";
 import { isCatalog } from "@/lib/validate-catalog";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 
-/** Scheduling is operational state; subscriptions do not move until their renewal. */
+/** Legacy pending operations remain readable; current confirmations apply immediate moves. */
 export type ScheduledMigration = {
   organizationId: string; planCode: string; fromVersion: number; toVersion: number;
   customers: number; scheduledAt: string;
@@ -41,9 +41,15 @@ export function deriveMigrationSelection(catalog: Catalog, plan: Plan, state: Dr
   const allOptions = getMigrationOptions(catalog, plan, targetFeatures, schedules, migrationTiming === "immediate");
   const options = validTarget ? allOptions.filter((option) => option.version < targetVersion && option.customers > 0) : [];
   const selected = options.filter((option) => selectedVersions.includes(option.version) && !option.disabled);
-  return { targetVersion, targetFeatures, validTarget, destinations: destinations.filter((release) => allOptions.some((source) => source.version < release.version && source.customers > 0)), options,
+  return { targetVersion, targetFeatures, validTarget, destinations: destinations.filter((release) => allOptions.some((source) => source.version < release.version && !source.disabled)), options,
     selectedVersions: selected.map((option) => option.version), operationCount: selected.length,
     customers: selected.reduce((total, option) => total + option.customers, 0) };
+}
+
+/** Publishing a feature version retires the current release, including where earlier moves are headed. */
+export function getSchedulesRetiredByPublication(catalog: Catalog, plan: Plan, schedules: readonly ScheduledMigration[], createsVersion: boolean): ScheduledMigration[] {
+  if (!createsVersion) return [];
+  return schedules.filter((item) => item.organizationId === catalog.organization.id && item.planCode === plan.code && item.toVersion === plan.currentReleaseVersion);
 }
 
 export function isScheduledMigration(value: unknown, catalogs: readonly Catalog[]): value is ScheduledMigration {
@@ -110,13 +116,13 @@ export function describePublication(publication: Pick<EditPublication, "createsV
   const versions = publication.fromVersions.map((version) => `v${version}`);
   const sources = versions.length > 1 ? `${versions.slice(0, -1).join(", ")} and ${versions.at(-1)}` : versions[0];
   if (publication.migrationTiming === "immediate") {
-    const move = `${published ? "Moved" : "Moves"} ${formatNumber(publication.movedCustomers)} customers from ${sources} to v${publication.migrationTargetVersion ?? publication.version}`;
+    const move = `${published ? "Moved" : "Moves"} ${formatCount(publication.movedCustomers, "customer")} from ${sources} to v${publication.migrationTargetVersion ?? publication.version}`;
     if (!publication.createsVersion) return publication.movedCustomers > 0 ? `${move}; no new version` : "Plan updated; no new version";
     return `${published ? "Published" : "Publishes"} ${publication.name} v${publication.version}${publication.movedCustomers > 0 ? ` and ${move.toLowerCase()}` : " for new customers only"}`;
   }
   if (!publication.createsVersion) return publication.movedCustomers > 0
-    ? `Moves ${formatNumber(publication.movedCustomers)} customers from ${sources} to v${publication.migrationTargetVersion ?? publication.version} at their next renewal; no new version`
+    ? `Moves ${formatCount(publication.movedCustomers, "customer")} from ${sources} to v${publication.migrationTargetVersion ?? publication.version} at their next renewal; no new version`
     : "Plan updated; no new version";
   return `${published ? "Published" : "Publishes"} ${publication.name} v${publication.version}${publication.movedCustomers > 0
-    ? ` and ${published ? "scheduled" : "schedules"} ${formatNumber(publication.movedCustomers)} customers from ${sources} to move at their next renewal` : " for new customers only"}`;
+    ? ` and ${published ? "scheduled" : "schedules"} ${formatCount(publication.movedCustomers, "customer")} from ${sources} to move at their next renewal` : " for new customers only"}`;
 }

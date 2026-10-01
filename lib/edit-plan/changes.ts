@@ -6,6 +6,7 @@ import { getPeriodPricing, getPlanLadder, summarizeDraft } from "@/lib/derive/pl
 import { getDraftPosition, getFeatureComparisons } from "@/lib/derive/draft-flow";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
 import { compareFeatureValues } from "@/lib/derive/compare-features";
+import { compareExhaustionPolicies } from "@/lib/derive/exhaustion-policy";
 import { diffFeatureSets, getCurrentRelease, resolveReleaseFeatures } from "@/lib/derive/releases";
 import { getPlanSubscriptions } from "@/lib/derive/subscriptions";
 import type { DraftPlan, FeatureChange, FeatureImpact, FeatureValue } from "@/lib/derive/types";
@@ -76,11 +77,11 @@ export function derivePlanChanges(catalog: Catalog, plan: Plan, draft: DraftPlan
   }
   const before = plan.exhaustionPolicy;
   const after = draft.exhaustionPolicy;
-  if (!pending.includes("overage_price") && before.type !== after.type) {
-    // Continuing service and risking a larger bill is a trade-off, not an unconditional improvement.
-    planChanges.push({ field: "exhaustion_policy", before, after, impact: "neutral", scope: "renewal" });
-  } else if (!pending.includes("overage_price") && before.type === "bill_overage" && after.type === "bill_overage" && before.pricePer1000Credits !== after.pricePer1000Credits) {
-    planChanges.push({ field: "overage_price", before: before.pricePer1000Credits, after: after.pricePer1000Credits, impact: lowerIsBetter(before.pricePer1000Credits, after.pricePer1000Credits), scope: "renewal" });
+  const policyImpact = pending.includes("overage_price") ? null : compareExhaustionPolicies(before, after);
+  if (policyImpact !== null && before.type !== after.type) {
+    planChanges.push({ field: "exhaustion_policy", before, after, impact: policyImpact, scope: "renewal" });
+  } else if (policyImpact !== null && before.type === "bill_overage" && after.type === "bill_overage") {
+    planChanges.push({ field: "overage_price", before: before.pricePer1000Credits, after: after.pricePer1000Credits, impact: policyImpact, scope: "renewal" });
   }
   const featureChanges = diffFeatureSets(resolveReleaseFeatures(catalog.features, getCurrentRelease(plan)?.features ?? []), resolveReleaseFeatures(catalog.features, draft.features))
     .filter((change) => !pending.some((field) => field.startsWith(`feature:${change.feature.code}:`)));
@@ -128,7 +129,7 @@ export function deriveEditChecks(catalog: Catalog, original: Plan, state: DraftF
   const summary = summarizeDraft(catalog, state.draft);
   const position = getDraftPosition(getPlanLadder(catalog), getPlacedMonthlyPrice(state), original.code);
   return {
-    comparisons: getFeatureComparisons(summary.features, position),
+    comparisons: getFeatureComparisons(summary.features, position, summary.monthly?.price ?? null),
     position,
     warnings: checkDraftPlan(state.draft, { ...catalog, plans: catalog.plans.filter((plan) => plan.code !== original.code) }),
   };

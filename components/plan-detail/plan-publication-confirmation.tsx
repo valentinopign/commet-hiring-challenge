@@ -3,7 +3,7 @@
 import { CheckIcon } from "@/components/icons/check-icon";
 import { primaryControlClass } from "@/components/ui/control-styles";
 import type { EditPublication } from "@/lib/edit-plan/publication";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 import { ReviewDialog } from "./review-dialog";
 
 export function PlanPublicationConfirmation({ publication, persistence, persisted, animate, onClose }: {
@@ -18,11 +18,11 @@ export function PlanPublicationConfirmation({ publication, persistence, persiste
         <p className="font-medium text-live-ink">{persisted && persistence !== "memory" ? "Changes saved" : "Changes applied"}</p>
       </div>
       {publication.movedCustomers > 0 ? <div>
-        <p className="text-xl font-semibold tabular-nums">{formatNumber(publication.movedCustomers)} customers moved to v{publication.migrationTargetVersion}</p>
+        <p className="text-xl font-semibold tabular-nums">{formatCount(publication.movedCustomers, "customer")} moved to v{publication.migrationTargetVersion}</p>
         <p className="mt-1 text-caption text-ink-muted">From {publication.fromVersions.map((version) => `v${version}`).join(" and ")} · Applied immediately</p>
       </div> : <p className="text-xl font-semibold">{publication.createsVersion ? "Ready for new customers" : `${publication.name} updated`}</p>}
       {!publication.createsVersion && <p className="text-caption text-ink-muted">No new version.</p>}
-      {publication.affectedCustomers > 0 && <p className="text-caption text-ink-muted">Price, credits or exhaustion-policy changes reach all {formatNumber(publication.affectedCustomers)} customers at their next renewal.</p>}
+      {publication.affectedCustomers > 0 && <p className="text-caption text-ink-muted">Price, credits or exhaustion-policy changes reach all {formatCount(publication.affectedCustomers, "customer")} at their next renewal.</p>}
       {publication.createsVersion && <p className="text-caption text-ink-muted">New customers receive v{publication.version}. {publication.movedCustomers > 0 ? "Selected existing customers have moved; everyone else keeps their feature version." : "Existing customers keep their feature version."}</p>}
     </div>
     <div className="space-y-4 border-t border-line pt-4">

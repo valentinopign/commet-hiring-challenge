@@ -115,6 +115,34 @@ describe("stored catalog dashboard", () => {
     expect(html).toContain("340 customers scheduled to move to v4 at renewal");
     expect(html).not.toContain("Comparing Growth");
   });
+  it("compares an effective Nimbus publication after store recreation and respects a cleared editing URL", () => {
+    let raw: string | null = null;
+    const adapter = { getItem: () => raw, setItem: (_key: string, value: string) => { raw = value; }, removeItem: () => { raw = null; } };
+    const options = { builtInOrganizationId: id, storage: () => adapter };
+    activeStore = createOrganizationStore(options);
+    activeStore.hydrate();
+    const original = growth(activeStore.getSnapshot().organizations[0]);
+    const state = editPlanReducer(createEditState(catalog, original), { type: "set_feature", code: "ai_generation", feature: { code: "ai_generation", type: "credit", creditsPerUnit: 4 } });
+    expect(activeStore.publishEdit(id, { original, state, selectedVersions: [1, 2], targetVersion: 4,
+      migrationTiming: "immediate", expectedMigrationCustomers: 352, scheduledAt: "2026-10-01T18:00:00Z" }).ok).toBe(true);
+    route.query = "version=4&compare=scale.2";
+    expect(render(["plans", "growth"])).toContain("Comparing Growth v4 with Scale v2");
+    activeStore = createOrganizationStore(options);
+    activeStore.hydrate();
+    expect(render(["plans", "growth"])).toContain("Comparing Growth v4 with Scale v2");
+    const restored = activeStore.getSnapshot().organizations[0];
+    expect(restored.subscriptionsByRelease.filter((row) => row.planCode === "growth")).toEqual([
+      { planCode: "growth", version: 3, subscriptions: 46 }, { planCode: "growth", version: 4, subscriptions: 352 },
+    ]);
+    route.query = "version=1&edit=instant&compare=scale.2";
+    expect(render(["plans", "growth"])).toContain("Editing current v4");
+    route.query = "version=4";
+    const reading = render(["plans", "growth"]);
+    expect(reading).not.toContain("Editing current");
+    expect(reading).not.toContain("Comparing Growth");
+    expect(reading).toContain("Edit plan");
+    expect(activeStore.getSnapshot().organizations[0]).toEqual(restored);
+  });
   it("shows newly stored codes and handles missing plans within the client dashboard", () => {
     activeStore.saveCatalog(addOnboardingPlan(catalog, freshDraft(), "2026-10-01T18:00:00Z"));
     expect(render(["plans", "fresh"])).toContain("Create plan from Fresh plan");

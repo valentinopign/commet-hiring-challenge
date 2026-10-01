@@ -2,7 +2,7 @@
 
 import { outlineControlClass, primaryControlClass } from "@/components/ui/control-styles";
 import type { PlanChanges } from "@/lib/edit-plan/changes";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 import { useLayoutEffect, useRef, type ReactNode, type MouseEvent } from "react";
 
 export function PlanEditBar({ changes, migrationCount = 0, migrationCustomers = 0, targetVersion, migrationAction, onDiscard, onReview, invalid, onHeightChange }: { changes: PlanChanges; migrationCount?: number; migrationCustomers?: number; targetVersion?: number; migrationAction?: ReactNode; onDiscard: (event: MouseEvent<HTMLButtonElement>) => void; onReview: (event: MouseEvent<HTMLButtonElement>) => void; invalid: boolean; onHeightChange: (height: number) => void }) {
@@ -22,8 +22,8 @@ export function PlanEditBar({ changes, migrationCount = 0, migrationCustomers = 
       <div className="min-w-0 space-y-1" role="status" aria-live="polite" aria-atomic="true">
         <p className="font-medium">{changeCount} {changeCount === 1 ? "change" : "changes"}</p>
         <p className="text-caption text-ink-muted">{changes.createsVersion ? `New customers receive v${changes.nextVersion}. Migration is optional.` : "No new feature version."}</p>
-        {changes.affectsAllCustomers && <p className="text-caption font-medium">All {formatNumber(changes.affectedCustomers)} customers across all versions · next renewal</p>}
-        {migrationCount > 0 && <p className="text-caption font-medium">{formatNumber(migrationCustomers)} customers selected to move to v{targetVersion} on confirmation</p>}
+        {changes.affectsAllCustomers && <p className="text-caption font-medium">All {formatCount(changes.affectedCustomers, "customer")} across all versions · next renewal</p>}
+        {migrationCount > 0 && <p className="text-caption font-medium">{formatCount(migrationCustomers, "customer")} selected to move to v{targetVersion} on confirmation</p>}
         {invalid && <p className="text-caption text-critical">Complete the highlighted fields before reviewing.</p>}
       </div>
       <div className="flex flex-wrap items-center gap-3">

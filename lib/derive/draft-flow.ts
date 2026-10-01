@@ -175,14 +175,16 @@ export type NeighbourFeature = {
   value: FeatureValue;
   /** How the draft's value compares with this plan's, from the customer's side. */
   draftImpact: FeatureImpact;
+  /** Equal-price plans sit below the draft, so the cheaper side can cost the same. */
+  costsSameAsDraft: boolean;
 };
 
 export type FeatureComparison = { below: NeighbourFeature | null; above: NeighbourFeature | null };
 
-function neighbourFeature(plan: PlanSummary | null, code: string, draftValue: FeatureValue): NeighbourFeature | null {
+function neighbourFeature(plan: PlanSummary | null, code: string, draftValue: FeatureValue, draftMonthlyPrice: number | null): NeighbourFeature | null {
   const value = plan?.currentFeatures.find((entry) => entry.feature.code === code)?.value;
   if (!plan || !value) return null;
-  return { planCode: plan.code, planName: plan.name, value, draftImpact: compareFeatureValues(value, draftValue) };
+  return { planCode: plan.code, planName: plan.name, value, draftImpact: compareFeatureValues(value, draftValue), costsSameAsDraft: plan.monthly?.price === draftMonthlyPrice };
 }
 
 /**
@@ -193,13 +195,14 @@ function neighbourFeature(plan: PlanSummary | null, code: string, draftValue: Fe
 export function getFeatureComparisons(
   draftFeatures: ResolvedFeature[],
   position: NeighbourPlans | null,
+  draftMonthlyPrice: number | null = null,
 ): Record<string, FeatureComparison> {
   return Object.fromEntries(
     draftFeatures.map(({ feature, value }) => [
       feature.code,
       {
-        below: neighbourFeature(position?.below ?? null, feature.code, value),
-        above: neighbourFeature(position?.above ?? null, feature.code, value),
+        below: neighbourFeature(position?.below ?? null, feature.code, value, draftMonthlyPrice),
+        above: neighbourFeature(position?.above ?? null, feature.code, value, draftMonthlyPrice),
       },
     ]),
   );

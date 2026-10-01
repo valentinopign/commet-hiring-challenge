@@ -41,7 +41,7 @@ export function PlanComparison({ catalog, detail, viewed, target, onlyDifference
     </section>
     <section id="pricing" aria-labelledby="pricing-heading" className="mt-4">
       <h2 id="pricing-heading" className="sr-only">Pricing comparison</h2>
-      <ComparisonPricing left={detail} right={target.detail} leftLabel={leftLabel} rightLabel={rightLabel} currency={currency} planNames={planNames} />
+      <ComparisonPricing catalog={catalog} left={detail} right={target.detail} leftLabel={leftLabel} rightLabel={rightLabel} currency={currency} planNames={planNames} />
     </section>
     <PageSection id="features" title="Features">
       <VersionSwitcher planCode={detail.plan.code} timeline={detail.timeline} viewedVersion={viewed.version} comparisonQuery={{ compare: target.parameter, onlyDifferences }} />

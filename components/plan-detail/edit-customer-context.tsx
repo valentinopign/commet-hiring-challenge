@@ -1,7 +1,7 @@
 import { describeVersionStatus } from "@/components/plan-detail/version-status";
 import type { VersionShare } from "@/lib/derive/types";
 import type { PlanChanges } from "@/lib/edit-plan/changes";
-import { formatNumber } from "@/lib/format";
+import { formatCount, formatNumber } from "@/lib/format";
 
 export function EditCustomerContext({ versions, changes, migration }: { versions: VersionShare[]; changes: PlanChanges; migration?: { operationCount: number; customers: number; targetVersion: number } }) {
   const scopeClass = "rounded-control border border-live bg-live-soft px-2.5 py-2";
@@ -27,13 +27,13 @@ export function EditCustomerContext({ versions, changes, migration }: { versions
         {changes.changeCount === 0 && !migration?.operationCount && <p className="text-ink-muted">No changes yet</p>}
         {changes.affectsAllCustomers && <p className={scopeClass}>
           <span className="sr-only">Price, credits or policy changed: </span>
-          <span className="font-medium">{formatNumber(changes.totalCustomers)} customers · at renewal</span>
+          <span className="font-medium">{formatCount(changes.totalCustomers, "customer")} · at renewal</span>
         </p>}
         {changes.createsVersion && <p className={scopeClass}>
           <span className="sr-only">Features changed: </span>
           <span className="font-medium">New customers receive v{changes.nextVersion}</span>
         </p>}
-        {migration && migration.operationCount > 0 && <p className={scopeClass}><span className="sr-only">Migration selected: </span><span className="font-medium">{formatNumber(migration.customers)} customers · move to v{migration.targetVersion} on confirmation</span></p>}
+        {migration && migration.operationCount > 0 && <p className={scopeClass}><span className="sr-only">Migration selected: </span><span className="font-medium">{formatCount(migration.customers, "customer")} · move to v{migration.targetVersion} on confirmation</span></p>}
         {changes.changeCount > 0 && !changes.affectsAllCustomers && !changes.createsVersion && <p className="pt-1 text-ink-muted">Name or visibility only; subscriptions stay active.</p>}
       </div>
     </section>

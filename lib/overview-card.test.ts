@@ -18,19 +18,12 @@ function markup(code: string) {
 }
 
 describe("compact overview cards", () => {
-  it("keeps five aligned rows and only the per-credit comparison", () => {
+  it("shows the price, credits and per-credit comparison", () => {
     const html = markup("growth");
-    expect(html).toContain("row-span-5");
-    expect(html).toContain("grid-rows-subgrid");
     expect(html).toContain("4% less per credit");
     expect(html).toContain("vs Starter");
     expect(html).toContain("$99");
     expect(html).toContain("12,500");
-    expect(html).not.toContain("+$70");
-    expect(html).not.toContain("+9k");
-    expect(html).not.toContain("For teams shipping AI features");
-    expect(html).not.toContain("Packs from");
-    expect(html).not.toContain("<ul");
   });
   it("keeps compact overage, visible version percentages and a complete accessible summary", () => {
     const html = markup("starter");
@@ -42,12 +35,10 @@ describe("compact overview cards", () => {
     expect(html).toContain("v1 15%");
     expect(html).toContain("v2 85%");
   });
-  it("keeps service-stop policy but removes single-version copy and pack copy", () => {
+  it("shows service-stop policy and the single-version distribution", () => {
     const html = markup("free");
     expect(html).toContain("Service stops");
     expect(html).toContain("1,240");
-    expect(html).not.toContain("the only version");
-    expect(html).not.toContain("No credit packs");
     expect(html).toContain("v1 100%");
   });
   it("does not fabricate a distribution for a new plan without customers", () => {

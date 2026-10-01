@@ -18,7 +18,7 @@ const GROUPS: { type: "credit" | "capacity" | "boolean"; title: string; descript
 
 export function FeaturesStep({ state, dispatch, data, derived, issues, showAllIssues }: StepProps) {
   const { position, summary } = derived;
-  const comparisons = getFeatureComparisons(summary.features, position);
+  const comparisons = getFeatureComparisons(summary.features, position, summary.monthly?.price ?? null);
   const groups = groupFeaturesByType(summary.features);
   const hasNeighbours = Boolean(position?.below || position?.above);
 

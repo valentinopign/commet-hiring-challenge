@@ -125,7 +125,10 @@ function checkAgainstNeighbours(summary: DraftSummary, ladder: PlanSummary[]): D
   }
 
   const { below, above } = findNeighbourPlans(ladder, monthly.price);
-  const draftPerThousand = monthly.pricePerThousandCredits;
+  // Equal-price plans sit below the draft on the ladder, so "cheaper" may mean "same price".
+  const neighbourCostsSame = below?.monthly?.price === monthly.price;
+  // Free credits have no price, so a free draft has no credit price to compare with anyone.
+  const draftPerThousand = monthly.price > 0 ? monthly.pricePerThousandCredits : null;
 
   // A free plan's credits cost nothing, so any paid draft would trivially be "more expensive".
   const belowPerThousand = below?.monthly && below.monthly.price > 0
@@ -138,6 +141,7 @@ function checkAgainstNeighbours(summary: DraftSummary, ladder: PlanSummary[]): D
       planCode: below.code,
       draftValue: draftPerThousand,
       neighbourValue: belowPerThousand,
+      neighbourCostsSame,
     });
   }
 
@@ -164,17 +168,18 @@ function checkAgainstNeighbours(summary: DraftSummary, ladder: PlanSummary[]): D
       planCode: below.code,
       draftValue: summary.exhaustionPolicy.pricePer1000Credits,
       neighbourValue: below.exhaustionPolicy.pricePer1000Credits,
+      neighbourCostsSame,
     });
   }
 
-  if (below) warnings.push(...compareFeaturesWithCheaperPlan(summary, below));
+  if (below) warnings.push(...compareFeaturesWithCheaperPlan(summary, below, neighbourCostsSame));
   if (above) warnings.push(...compareFeaturesWithPricierPlan(summary, above));
 
   return warnings;
 }
 
 /** Paying more should never get the customer less of something. */
-function compareFeaturesWithCheaperPlan(summary: DraftSummary, below: PlanSummary): DraftWarning[] {
+function compareFeaturesWithCheaperPlan(summary: DraftSummary, below: PlanSummary, neighbourCostsSame: boolean): DraftWarning[] {
   const belowByCode = new Map(below.currentFeatures.map((entry) => [entry.feature.code, entry.value]));
   return summary.features.flatMap(({ feature, value: draftValue }) => {
     const neighbourValue = belowByCode.get(feature.code);
@@ -186,6 +191,7 @@ function compareFeaturesWithCheaperPlan(summary: DraftSummary, below: PlanSummar
       feature,
       neighbourValue,
       draftValue,
+      neighbourCostsSame,
     }];
   });
 }

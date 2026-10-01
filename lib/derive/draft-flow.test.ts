@@ -210,6 +210,7 @@ describe("getFeatureComparisons", () => {
 
   it("has nothing to compare without neighbours or a position", () => {
     const draft = resolveReleaseFeatures(catalog.features, []);
+    expect(getFeatureComparisons(draft, position, null).storage_gb?.below?.costsSameAsDraft).toBe(false);
     expect(getFeatureComparisons(draft, null).sso).toEqual({ below: null, above: null });
     expect(getFeatureComparisons(draft, { below: null, above: null }).sso).toEqual({ below: null, above: null });
   });

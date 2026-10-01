@@ -137,6 +137,7 @@ describe("edit publication and scheduled migrations", () => {
     expect(publication).toMatchObject({ createsVersion: false, version: 3, migrationTargetVersion: 3, movedCustomers: 352, affectedCustomers: 0 });
     expect(publication.schedules.map((item) => item.toVersion)).toEqual([3, 3]);
     expect(describePublication(publication, true)).toBe("Moves 352 customers from v1 and v2 to v3 at their next renewal; no new version");
+    expect(describePublication({ ...publication, movedCustomers: 1, fromVersions: [1] }, true)).toBe("Moves 1 customer from v1 to v3 at their next renewal; no new version");
   });
   it("allows an intermediate destination without changing the current release", () => {
     const publication = success({ ...request(), state: createEditState(catalog, plan), targetVersion: 2, selectedVersions: [1] });
@@ -151,6 +152,13 @@ describe("edit publication and scheduled migrations", () => {
     for (const selection of [{ targetVersion: 2, selectedVersions: [2] }, { targetVersion: 2, selectedVersions: [3] }, { targetVersion: 1, selectedVersions: [2] }, { targetVersion: 99, selectedVersions: [1] }]) {
       expect(publishPlanEdit(catalog, [], { ...base, ...selection })).toEqual({ ok: false, reason: "invalid-migration" });
     }
+  });
+  it("offers only destinations that still have a source without a scheduled move", () => {
+    const scheduled = (fromVersion: number): ScheduledMigration => ({ organizationId: catalog.organization.id, planCode: plan.code, fromVersion, toVersion: 3, customers: 1, scheduledAt: "2026-10-01T16:00:00Z" });
+    const onlyFirst = deriveMigrationSelection(catalog, plan, createEditState(catalog, plan), [scheduled(1)], 3, []);
+    expect(onlyFirst.destinations.map((release) => release.version)).toEqual([3]);
+    const both = deriveMigrationSelection(catalog, plan, createEditState(catalog, plan), [scheduled(1), scheduled(2)], 3, []);
+    expect(both.destinations).toEqual([]);
   });
   it("filters source selection as targets change or feature changes are reverted", () => {
     const initial = createEditState(catalog, plan);
