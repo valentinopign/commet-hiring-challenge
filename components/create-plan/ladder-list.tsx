@@ -59,7 +59,7 @@ export function LadderList({ entries, isPlaced, draftLabel, isPublished = false,
                 <span className="flex min-w-0 items-center gap-1.5">
                   <span className="truncate font-medium">{draft.name || "This plan"}</span>
                   <span
-                    className={`shrink-0 rounded-mark border px-1.5 text-xs ${isPublished ? "border-live text-live" : "border-line-strong text-ink-muted"}`}
+                    className={`shrink-0 rounded-mark border px-1.5 text-xs ${isPublished ? "border-live text-live-ink" : "border-line-strong text-ink-muted"}`}
                   >
                     {draftLabel}
                   </span>

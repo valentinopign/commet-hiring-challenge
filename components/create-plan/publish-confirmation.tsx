@@ -51,7 +51,7 @@ export function PublishConfirmation({ planName, entries, positionText, currency,
   return (
     <section aria-labelledby="published-heading" className="max-w-2xl space-y-6">
       <div>
-        <p ref={badgeRef} className="flex w-fit items-center gap-2 text-caption font-medium text-live">
+        <p ref={badgeRef} className="flex w-fit items-center gap-2 text-caption font-medium text-live-ink">
           <CheckIcon className="size-4 shrink-0" />
           Published (simulated)
         </p>

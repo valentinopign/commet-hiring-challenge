@@ -111,7 +111,7 @@ export function OnboardingIntro() {
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
         <div className={`onboarding-heading flex flex-col items-center ${setupVisible ? "is-setting-up" : ""}`}>
         <p className={`mb-8 text-xs tracking-[0.2em] text-onboarding-muted uppercase transition-opacity duration-200 ${transitioning ? "opacity-0" : ""}`}>Your next chapter</p>
-        <h1 className="w-full max-w-5xl text-[clamp(2.5rem,6.4vw,6rem)] leading-[1.12] font-medium tracking-[-0.045em]">
+        <h1 className="onboarding-intro-title w-full max-w-5xl leading-[1.12] font-medium tracking-[-0.045em]">
           <span className="sr-only">Set up your organization’s pricing</span>
           <DissolvingPhrase key={phrase} text={text} leaving={leaving || transitioning} />
         </h1>

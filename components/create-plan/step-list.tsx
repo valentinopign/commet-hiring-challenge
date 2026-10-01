@@ -29,7 +29,7 @@ export function StepList({ current, furthest, onSelect }: StepListProps) {
               aria-hidden="true"
               className={`flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums ${
                 isCurrent
-                  ? "border-live bg-live text-on-status"
+                  ? "border-live bg-live text-on-live"
                   : isDone
                     ? "border-line-strong text-ink"
                     : "border-line text-ink-muted"

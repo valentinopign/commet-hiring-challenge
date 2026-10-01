@@ -48,8 +48,10 @@
   --color-ink-muted: #a0a0a9;
 
   /* The only accent. It means "what a new customer gets today": the current version, and focus. */
-  --color-live: #2fc7ac;
-  --color-live-soft: rgb(47 199 172 / 0.12);
+  --color-live: #50765a;
+  --color-live-soft: rgb(80 118 90 / 0.12);
+  --color-live-ink: #8fb29b;
+  --color-on-live: #ffffff;
 
   /* Retired versions are always paired with a stripe pattern and a text label, never colour alone. */
   --color-retired: #6e6e78;
@@ -63,9 +65,8 @@
   --color-info: #7ea6f5;
   --color-info-soft: rgb(126 166 245 / 0.12);
   /*
-   * Impact of a feature change on customers. The green sits ~70° of hue away from the teal of
-   * 'live' (yellow-green against blue-green), so "better" never reads as "current". Always paired
-   * with an arrow icon and a label.
+   * Impact of a feature change on customers. "Better" uses yellow-green rather than the muted
+   * sage of 'live'. Both states retain explicit labels; impact also carries an arrow icon.
    */
   --color-impact-better: #8fd46a;
   --color-impact-worse: #f28b82;
@@ -129,6 +130,19 @@
 .onboarding-stage {
   background: var(--color-onboarding-canvas);
   color-scheme: dark;
+}
+
+.onboarding-intro-title {
+  /* Fluid sizing stays viewport-based; rem limits follow the shared type scale. */
+  font-size: clamp(2.5rem, 6.4vw, 6rem);
+  text-wrap: balance;
+}
+
+@media (min-width: 80rem) {
+  html {
+    /* Scale all rem-based UI together without changing browser zoom or viewport geometry. */
+    font-size: 125%;
+  }
 }
 
 .onboarding-glow {
@@ -385,6 +399,7 @@
   --color-line: var(--color-onboarding-line);
   --color-line-strong: var(--color-onboarding-line-strong);
   --color-live: var(--color-onboarding-focus);
+  --color-on-live: var(--color-onboarding-canvas);
   --color-warning: #f2b155;
   --color-critical: #f47a72;
   --color-info: #7ea6f5;
@@ -502,8 +517,9 @@
     --color-ink: #18181b;
     --color-ink-muted: #5c5c66;
 
-    --color-live: #0f766e;
-    --color-live-soft: rgb(15 118 110 / 0.1);
+    --color-live: #50765a;
+    --color-live-soft: rgb(80 118 90 / 0.1);
+    --color-live-ink: #50765a;
 
     --color-glass: rgb(255 255 255 / 0.06);
     --color-glass-edge: rgb(24 24 27 / 0.14);

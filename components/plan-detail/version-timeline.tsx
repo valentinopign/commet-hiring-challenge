@@ -35,7 +35,7 @@ export function VersionTimeline({ timeline }: VersionTimelineProps) {
                 />
                 <p className="flex flex-wrap items-baseline gap-x-2">
                   <span className="font-semibold">v{entry.version}</span>
-                  <span className={entry.isCurrent ? "text-live" : "text-ink-muted"}>{status.label}</span>
+                  <span className={entry.isCurrent ? "text-live-ink" : "text-ink-muted"}>{status.label}</span>
                 </p>
                 <p className="text-caption text-ink-muted">
                   Published {formatDate(entry.publishedAt)}

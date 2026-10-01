@@ -62,7 +62,7 @@ export function ReviewStep({ state, data, derived, onGoToStep }: ReviewStepProps
         <h3 id="checks-heading" className="font-medium">Checks</h3>
         {warnings.length === 0 ? (
           <p className="flex items-center gap-2 text-ink-muted">
-            <CheckIcon className="size-4 shrink-0 text-live" />
+            <CheckIcon className="size-4 shrink-0 text-live-ink" />
             No issues found. The plan fits between the plans around it.
           </p>
         ) : (
