@@ -49,7 +49,7 @@ export function LocalOrganizationDashboard({ organizationId, path, builtInOrgani
     </main>;
   }
   const sidebar = <SidebarContent plans={getNavigationPlans(catalog)} />;
-  return <AppShell sidebar={sidebar} topBar={<TopBar
+  return <div data-organization-dashboard><AppShell sidebar={sidebar} topBar={<TopBar
     organization={<OrganizationSwitcher organizations={builtInOrganizations} currentId={organizationId} />}
     menu={<MobileNavigation>{sidebar}</MobileNavigation>}
     alerts={<AlertsPopover alerts={getCatalogAlerts(catalog)} planNames={planNames} />}
@@ -60,5 +60,5 @@ export function LocalOrganizationDashboard({ organizationId, path, builtInOrgani
     <StorageNotice />
     {path.length === 0 ? <CatalogOverview catalog={catalog} /> : <LocalOrganizationContent key={organizationId} catalog={catalog} path={path} />}
     <ResetDemo />
-  </AppShell>;
+  </AppShell></div>;
 }

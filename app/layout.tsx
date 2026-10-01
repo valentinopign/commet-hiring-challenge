@@ -19,6 +19,7 @@ import { themeInitScript } from "@/lib/theme";
 import { OrganizationProvider } from "@/components/organizations/organization-provider";
 import { ResetDemo } from "@/components/organizations/reset-demo";
 import { StorageNotice } from "@/components/organizations/storage-notice";
+import { SetupHandoffProvider } from "@/components/onboarding/setup-handoff-provider";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <OrganizationProvider builtInOrganizationId={catalog.organization.id}>
+        <SetupHandoffProvider>
         <RouteShell dashboard={<AppShell
           sidebar={sidebar}
           topBar={
@@ -69,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </AppShell>}>
           {children}
         </RouteShell>
+        </SetupHandoffProvider>
         </OrganizationProvider>
       </body>
     </html>

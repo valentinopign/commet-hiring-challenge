@@ -9,7 +9,7 @@ import { LiquidGlassSurface } from "@/components/ui/liquid-glass-surface";
 import { DitherBackground } from "@/components/onboarding/dither-background";
 
 const PHRASES = ["You build the product.", "We take care of your billing.", "Let’s shape your pricing."];
-const READ_TIME = 2100;
+const READ_TIME = 1470;
 const EXIT_TIME = 850;
 
 /** The opening hands off to company setup; navigation and skip cancel pending timers. */

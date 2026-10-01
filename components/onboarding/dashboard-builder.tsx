@@ -10,7 +10,7 @@ import { SuggestedMeasurementInput } from "@/components/onboarding/suggested-mea
 import { addOnboardingPlan } from "@/lib/onboarding/add-plan";
 import type { DraftPlan } from "@/lib/derive/types";
 import { PlanCollection } from "@/components/onboarding/plan-collection";
-import { useRouter } from "next/navigation";
+import { useSetupHandoff } from "@/components/onboarding/setup-handoff-provider";
 import { useOrganizations } from "@/components/organizations/organization-provider";
 import { organizationPath } from "@/lib/organization-routes";
 
@@ -23,7 +23,9 @@ const FEATURE_TYPES = [
 export function DashboardBuilder({ companyName, ready = true }: { companyName: string; ready?: boolean }) {
   const [features, setFeatures] = useState<CatalogFeature[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const router = useRouter();
+  const beginHandoff = useSetupHandoff();
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [finishing, setFinishing] = useState(false);
   const { store } = useOrganizations();
   const organizationId = useRef<string | null>(null);
   const [finishError, setFinishError] = useState("");
@@ -89,7 +91,7 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
   }
 
   function finishSetup() {
-    if (!plans.length) return;
+    if (!plans.length || finishing) return;
     organizationId.current ??= `org_${crypto.randomUUID()}`;
     const result = store.saveCatalog({ ...catalog, organization: { ...catalog.organization, id: organizationId.current } });
     if (!result.ok) {
@@ -97,7 +99,8 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
       return;
     }
     setFinishError("");
-    router.push(organizationPath(organizationId.current));
+    setFinishing(true);
+    beginHandoff(organizationPath(organizationId.current), previewRef.current?.firstElementChild instanceof HTMLElement ? previewRef.current.firstElementChild : null);
   }
 
   if (stage === "collection") {
@@ -107,7 +110,7 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
         <h1 ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">Your plans.</h1>
         <StepTransition key={stage} direction="forward">
           {finishError && <p role="alert" className="mb-4 text-critical">{finishError}</p>}
-          <PlanCollection catalog={catalog} onAdd={startPlan} onFinish={finishSetup} onBack={plans.length ? undefined : () => setShowPlanCollection(false)} />
+          <PlanCollection catalog={catalog} previewRef={previewRef} finishing={finishing} onAdd={startPlan} onFinish={finishSetup} onBack={plans.length ? undefined : () => setShowPlanCollection(false)} />
         </StepTransition>
       </div>
     );

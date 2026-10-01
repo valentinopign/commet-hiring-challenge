@@ -122,6 +122,7 @@
 
   /* Strong ease-out: movement starts fast and settles, so UI feels immediate rather than sluggish. */
   --ease-emphasized: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-handoff: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Only what floats (the alerts popover) casts a shadow. In dark it is barely visible, so the border does the work. */
   --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.5);
@@ -406,6 +407,45 @@
   --color-impact-better: #8fd46a;
   --color-impact-worse: #f28b82;
   animation: onboarding-workspace-in 700ms var(--ease-emphasized) 950ms both;
+}
+
+.setup-handoff {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  overflow: hidden;
+}
+.setup-handoff-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-onboarding-canvas);
+}
+.setup-handoff-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  border-radius: var(--radius-sheet);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.setup-handoff-preview.onboarding-builder {
+  color: var(--color-onboarding-ink);
+  animation: none;
+  padding: 0;
+  height: 100%;
+}
+.setup-handoff-preview .onboarding-preview {
+  position: static;
+  animation: none;
+  transform: none;
+  opacity: 1;
+  height: 100%;
+}
+.setup-handoff-preview * {
+  animation: none !important;
 }
 
 .onboarding-preview {

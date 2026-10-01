@@ -2,12 +2,15 @@ import type { Catalog } from "@/lib/catalog";
 import { getPlanLadder } from "@/lib/derive/plans";
 import { formatCredits, formatMoney } from "@/lib/format";
 import { DashboardPreview } from "./dashboard-preview";
+import type { RefObject } from "react";
 
-export function PlanCollection({ catalog, onAdd, onFinish, onBack }: {
+export function PlanCollection({ catalog, onAdd, onFinish, onBack, previewRef, finishing = false }: {
   catalog: Catalog;
   onAdd: () => void;
   onFinish: () => void;
   onBack?: () => void;
+  previewRef?: RefObject<HTMLDivElement | null>;
+  finishing?: boolean;
 }) {
   const plans = getPlanLadder(catalog);
   return (
@@ -25,11 +28,11 @@ export function PlanCollection({ catalog, onAdd, onFinish, onBack }: {
             <li><button type="button" onClick={onAdd} className="flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-card border border-dashed border-onboarding-muted/40 p-5 text-onboarding-ink focus-visible:outline-2 focus-visible:outline-offset-4"><span aria-hidden="true" className="text-3xl font-light text-onboarding-muted">+</span><span className="font-medium">Add plan</span><span className="text-sm text-onboarding-muted">{plans.length ? "Expand your pricing" : "Create your first plan"}</span></button></li>
           </ul>
           <div className="mt-8">
-            <button type="button" onClick={onFinish} disabled={!plans.length} aria-describedby="finish-setup-hint" className="min-h-11 rounded-control bg-onboarding-ink px-5 py-3 text-sm font-medium text-onboarding-canvas disabled:cursor-not-allowed disabled:opacity-40">Finish setup <span aria-hidden="true">→</span></button>
+            <button type="button" onClick={onFinish} disabled={!plans.length || finishing} aria-describedby="finish-setup-hint" className="min-h-11 rounded-control bg-onboarding-ink px-5 py-3 text-sm font-medium text-onboarding-canvas disabled:cursor-not-allowed disabled:opacity-40">{finishing ? "Opening dashboard…" : "Finish setup"} <span aria-hidden="true">→</span></button>
             <p id="finish-setup-hint" className="mt-3 text-xs text-onboarding-muted">{plans.length ? "Open your dashboard with these plans and features." : "Add at least one plan to finish setup."}</p>
           </div>
         </div>
-        <DashboardPreview catalog={catalog} showPlans={false} />
+        <div ref={previewRef} className="lg:sticky lg:top-8"><DashboardPreview catalog={catalog} showPlans={false} /></div>
       </div>
     </>
   );
