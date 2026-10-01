@@ -133,7 +133,9 @@ describe("comparison pricing and URL transitions", () => {
     expect(comparePlanContext(detail("free"), detail("growth"))).toMatchObject({ policyDiffers: true, packDiffers: true });
     expect(comparePlanContext(detail("growth"), detail("starter")).policyImpact).toBe("worse");
     expect(comparePlanContext(detail("starter"), detail("growth")).policyImpact).toBe("better");
-    expect(comparePlanContext(detail("growth"), detail("free")).policyImpact).toBe("worse");
+    // Blocking versus billing overage is a trade-off, not a loss for customers.
+    expect(comparePlanContext(detail("growth"), detail("free")).policyImpact).toBe("neutral");
+    expect(comparePlanContext(detail("free"), detail("growth")).policyImpact).toBe("neutral");
   });
   it("classifies lower prices and higher allowances individually, leaving missing/equal amounts neutral", () => {
     expect(numericComparisonImpact(-7000, "lower")).toBe("better");

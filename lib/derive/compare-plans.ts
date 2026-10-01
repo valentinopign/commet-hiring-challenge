@@ -1,5 +1,6 @@
 import type { Catalog } from "@/lib/catalog";
 import { areFeatureValuesEqual, compareFeatureValues, isFeatureAvailable } from "@/lib/derive/compare-features";
+import { compareExhaustionPolicies } from "@/lib/derive/exhaustion-policy";
 import { getPlanDetail, groupFeaturesByType, resolveViewedVersion } from "@/lib/derive/plan-detail";
 import { getPlanLadder } from "@/lib/derive/plans";
 import type { FeatureImpact, FeatureValue, PeriodPricing, PlanDetail, ResolvedFeature, TimelineEntry } from "@/lib/derive/types";
@@ -32,14 +33,11 @@ export function comparePeriodPricing(left: PeriodPricing | null, right: PeriodPr
 }
 
 export function comparePlanContext(left: PlanDetail, right: PlanDetail) {
-  const before = left.plan.exhaustionPolicy;
-  const after = right.plan.exhaustionPolicy;
+  const policyImpact = compareExhaustionPolicies(left.plan.exhaustionPolicy, right.plan.exhaustionPolicy);
   return {
     customerDelta: right.plan.totalSubscriptions - left.plan.totalSubscriptions,
-    policyDiffers: before.type !== after.type || (before.type === "bill_overage" && after.type === "bill_overage" && before.pricePer1000Credits !== after.pricePer1000Credits),
-    policyImpact: before.type === "bill_overage" && after.type === "bill_overage"
-      ? numericComparisonImpact(after.pricePer1000Credits - before.pricePer1000Credits, "lower")
-      : before.type === after.type ? null : after.type === "bill_overage" ? "better" as const : "worse" as const,
+    policyDiffers: policyImpact !== null,
+    policyImpact,
     packDiffers: left.packComparison?.cheapestPack.code !== right.packComparison?.cheapestPack.code,
   };
 }
