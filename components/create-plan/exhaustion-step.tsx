@@ -127,7 +127,7 @@ export function ExhaustionStep({ state, dispatch, data, derived, issues, showAll
                   )}
                 </li>
               )}
-              {neighbourLine(position?.below ?? null, "costs less", currency)}
+              {neighbourLine(position?.below ?? null, position?.below?.monthly?.price === derived.summary.monthly?.price ? "costs the same" : "costs less", currency)}
               {neighbourLine(position?.above ?? null, "costs more", currency)}
             </ul>
           </section>

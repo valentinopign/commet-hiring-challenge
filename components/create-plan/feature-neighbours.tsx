@@ -24,7 +24,7 @@ export function FeatureNeighbours({ feature, comparison, currency }: FeatureNeig
   return (
     <div className="space-y-1 text-caption">
       <p className="text-ink-muted">
-        {below && <>{below.planName} (costs less): {value(below)}</>}
+        {below && <>{below.planName} ({below.costsSameAsDraft ? "costs the same" : "costs less"}): {value(below)}</>}
         {below && above && <span aria-hidden="true"> · </span>}
         {below && above && <span className="sr-only">. </span>}
         {above && <>{above.planName} (costs more): {value(above)}</>}
@@ -32,7 +32,7 @@ export function FeatureNeighbours({ feature, comparison, currency }: FeatureNeig
       {below?.draftImpact === "worse" && (
         <p className="enter-fade flex items-center gap-1.5 font-medium text-impact-worse">
           <ArrowDownIcon className="size-3.5 shrink-0" />
-          Worse than {below.planName}, which costs less
+          Worse than {below.planName}, which {below.costsSameAsDraft ? "costs the same" : "costs less"}
         </p>
       )}
       {above?.draftImpact === "better" && (

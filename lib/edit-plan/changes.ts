@@ -129,7 +129,7 @@ export function deriveEditChecks(catalog: Catalog, original: Plan, state: DraftF
   const summary = summarizeDraft(catalog, state.draft);
   const position = getDraftPosition(getPlanLadder(catalog), getPlacedMonthlyPrice(state), original.code);
   return {
-    comparisons: getFeatureComparisons(summary.features, position),
+    comparisons: getFeatureComparisons(summary.features, position, summary.monthly?.price ?? null),
     position,
     warnings: checkDraftPlan(state.draft, { ...catalog, plans: catalog.plans.filter((plan) => plan.code !== original.code) }),
   };

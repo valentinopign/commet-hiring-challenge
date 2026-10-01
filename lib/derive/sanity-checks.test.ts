@@ -67,6 +67,7 @@ describe("checkDraftPlan", () => {
       planCode: "growth",
       draftValue: 995,
       neighbourValue: 792,
+      neighbourCostsSame: false,
     });
   });
 
@@ -84,6 +85,23 @@ describe("checkDraftPlan", () => {
     expect(warningTypes(draft)).not.toContain("price_per_thousand_above_cheaper_plan");
   });
 
+  it("does not compare a free draft's credit price with any neighbour", () => {
+    const draft = makeDraft({ code: "trial", pricing: { type: "free", includedCredits: 200 }, exhaustionPolicy: { type: "block" } });
+    const types = warningTypes(draft);
+    expect(types).not.toContain("price_per_thousand_above_cheaper_plan");
+    expect(types).not.toContain("price_per_thousand_below_pricier_plan");
+  });
+
+  it("marks a neighbour at the same monthly price as costing the same, not less", () => {
+    const draft = makeDraft({ code: "trial", pricing: { type: "free", includedCredits: 200 }, exhaustionPolicy: { type: "block" }, features: [] });
+    const worse = checkDraftPlan(draft, catalog).filter((warning) => warning.type === "feature_worse_than_cheaper_plan");
+    expect(worse.length).toBeGreaterThan(0);
+    expect(worse.every((warning) => warning.planCode === "free" && warning.neighbourCostsSame)).toBe(true);
+    const cheaper = checkDraftPlan(makeDraft({ features: withFeature(getRelease("growth", 3).features, { code: "ai_generation", type: "credit", creditsPerUnit: 7 }) }), catalog)
+      .find((warning) => warning.type === "feature_worse_than_cheaper_plan");
+    expect(cheaper).toMatchObject({ planCode: "growth", neighbourCostsSame: false });
+  });
+
   it("warns when a feature is worse than on the cheaper neighbour", () => {
     const features = withFeature(getRelease("growth", 3).features, {
       code: "ai_generation",
@@ -97,6 +115,7 @@ describe("checkDraftPlan", () => {
       feature: catalog.features[0],
       neighbourValue: { kind: "credit", creditsPerUnit: 5 },
       draftValue: { kind: "credit", creditsPerUnit: 7 },
+      neighbourCostsSame: false,
     });
   });
 

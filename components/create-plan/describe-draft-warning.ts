@@ -39,7 +39,7 @@ export function describeDraftWarning(
     case "price_per_thousand_above_cheaper_plan":
       return {
         title: `Credits cost more than on ${planName(warning.planCode)}`,
-        detail: `${money(warning.draftValue)} per 1,000 here, ${money(warning.neighbourValue)} on ${planName(warning.planCode)}, which costs less. Customers usually expect a bigger plan to be cheaper per credit.`,
+        detail: `${money(warning.draftValue)} per 1,000 here, ${money(warning.neighbourValue)} on ${planName(warning.planCode)}, which ${warning.neighbourCostsSame ? "costs the same" : "costs less"}. Customers usually expect a bigger plan to be cheaper per credit.`,
       };
     case "price_per_thousand_below_pricier_plan":
       return {
@@ -54,7 +54,7 @@ export function describeDraftWarning(
     case "overage_above_cheaper_plan":
       return {
         title: `Overage costs more than on ${planName(warning.planCode)}`,
-        detail: `${money(warning.draftValue)} per 1,000 here, ${money(warning.neighbourValue)} on ${planName(warning.planCode)}, which costs less. Bigger plans usually pay less for extra credits.`,
+        detail: `${money(warning.draftValue)} per 1,000 here, ${money(warning.neighbourValue)} on ${planName(warning.planCode)}, which ${warning.neighbourCostsSame ? "costs the same" : "costs less"}. Bigger plans usually pay less for extra credits.`,
       };
     case "yearly_more_expensive_than_monthly":
       return {
@@ -80,7 +80,7 @@ export function describeDraftWarning(
       const neighbour = planName(warning.planCode);
       return {
         title: `${warning.feature.name} is worse than on ${neighbour}`,
-        detail: `${neighbour} costs less and gives ${formatFeatureValue({ feature: warning.feature, value: warning.neighbourValue }, currency)}; this plan gives ${formatFeatureValue({ feature: warning.feature, value: warning.draftValue }, currency)}.`,
+        detail: `${neighbour} ${warning.neighbourCostsSame ? "costs the same" : "costs less"} and gives ${formatFeatureValue({ feature: warning.feature, value: warning.neighbourValue }, currency)}; this plan gives ${formatFeatureValue({ feature: warning.feature, value: warning.draftValue }, currency)}.`,
       };
     }
     case "feature_better_than_pricier_plan": {

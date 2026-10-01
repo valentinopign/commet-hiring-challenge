@@ -204,6 +204,8 @@ export type DraftWarning =
       planCode: string;
       draftValue: number;
       neighbourValue: number;
+      /** The cheaper neighbour can share the draft's monthly price, so it does not always cost less. */
+      neighbourCostsSame: boolean;
     }
   | {
       type: "price_per_thousand_below_pricier_plan";
@@ -224,6 +226,8 @@ export type DraftWarning =
       planCode: string;
       draftValue: number;
       neighbourValue: number;
+      /** The cheaper neighbour can share the draft's monthly price, so it does not always cost less. */
+      neighbourCostsSame: boolean;
     }
   | {
       type: "yearly_more_expensive_than_monthly";
@@ -246,6 +250,7 @@ export type DraftWarning =
       feature: CatalogFeature;
       neighbourValue: FeatureValue;
       draftValue: FeatureValue;
+      neighbourCostsSame: boolean;
     }
   | {
       type: "feature_better_than_pricier_plan";
