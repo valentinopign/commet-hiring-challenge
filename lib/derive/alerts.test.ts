@@ -59,7 +59,7 @@ describe("getCatalogAlerts", () => {
     });
   });
 
-  it("warns about a published version with no customers, but not about a draft", () => {
+  it("does not warn about zero customers on new published, retired or draft versions", () => {
     const edited = cloneCatalog();
     edited.subscriptionsByRelease = edited.subscriptionsByRelease.filter(
       (row) => row.planCode !== "enterprise",
@@ -73,15 +73,9 @@ describe("getCatalogAlerts", () => {
     const empty = getCatalogAlerts(edited).filter(
       (alert) => alert.type === "release_without_customers",
     );
-    expect(empty).toEqual([
-      {
-        type: "release_without_customers",
-        severity: "warning",
-        planCode: "enterprise",
-        version: 1,
-        status: "published",
-      },
-    ]);
+    expect(empty).toEqual([]);
+    edited.subscriptionsByRelease = [];
+    expect(getCatalogAlerts(edited).filter(needsAttention)).toEqual([]);
   });
 });
 

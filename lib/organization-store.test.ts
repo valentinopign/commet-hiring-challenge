@@ -35,6 +35,8 @@ describe("organization store", () => {
     store.hydrate();
     expect(getter).toHaveBeenCalledTimes(1);
     expect(store.getSnapshot()).toMatchObject({ hydrated: true, persistence: "local" });
+    expect(store.getServerSnapshot()).toBe(initial);
+    expect(store.getServerSnapshot().hydrated).toBe(false);
   });
   it("hydrates an empty browser to the seed and writes it only after hydration", () => {
     const adapter = storage();

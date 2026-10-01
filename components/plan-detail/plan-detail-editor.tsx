@@ -21,17 +21,18 @@ import { getCurrentRelease } from "@/lib/derive/releases";
 import { deriveEditPricingContext } from "@/lib/edit-plan/pricing-context";
 import type { PlanDetail } from "@/lib/derive/types";
 import { getPlanDetail, resolveViewedVersion } from "@/lib/derive/plan-detail";
-import { describePublication, deriveMigrationSelection, publishPlanEdit, type EditPublication, type EditPublicationRequest, type PublicationResult, type ScheduledMigration } from "@/lib/edit-plan/publication";
+import { deriveMigrationSelection, publishPlanEdit, type EditPublication, type EditPublicationRequest, type PublicationResult, type ScheduledMigration } from "@/lib/edit-plan/publication";
 import { MigrationVersionSelector } from "./migration-version-selector";
 import { MigrationDestinationSelect } from "./migration-destination-select";
 import { PlanDetailReading } from "./plan-detail-reading";
 import { PlanDetailHistory } from "./plan-detail-history";
 import { PlanEditReview } from "./plan-edit-review";
+import { PlanPublicationConfirmation } from "./plan-publication-confirmation";
 import { ReviewDialog } from "./review-dialog";
 import { formatNumber } from "@/lib/format";
 
 type Props = { catalog: Catalog; detail: PlanDetail; viewedVersion: number; editRequested: boolean; compare?: string | string[]; diff?: string | string[]; animateEditEntry?: boolean; readOnly: ReactNode; history: ReactNode;
-  schedules?: readonly ScheduledMigration[]; onPublish?: (request: EditPublicationRequest, animate?: boolean) => PublicationResult; migrationEntry?: string | null };
+  schedules?: readonly ScheduledMigration[]; onPublish?: (request: EditPublicationRequest, animate?: boolean, migrationOnly?: boolean) => PublicationResult; migrationEntry?: string | null };
 
 /** Server-rendered reading/history stay in slots; only draft controls and actions own browser state. */
 export function PlanDetailEditor(props: Props) {
@@ -49,11 +50,13 @@ export function PlanDetailEditor(props: Props) {
   const viewedVersion = editRequested ? detail.plan.currentReleaseVersion : resolveViewedVersion(detail.timeline, params.get("version") ?? String(props.viewedVersion), detail.plan.currentReleaseVersion);
   const compare = params.get("compare") ?? (routeFallback ? props.compare : undefined);
   const comparisonKey = Array.isArray(compare) ? compare[0] : compare;
-  function publish(request: EditPublicationRequest, animate = false): PublicationResult {
+  function publish(request: EditPublicationRequest, animate = false, migrationOnly = false): PublicationResult {
     const result = props.onPublish ? props.onPublish(request) : publishPlanEdit(catalog, schedules, request);
     if (!result.ok) return result;
     if (!props.onPublish) setSimulation(result.publication);
     setConfirmation({ publication: result.publication, persistence: result.persistence, animate });
+    // A standalone move must preserve unsaved plan controls and keep the editing URL.
+    if (migrationOnly) return result;
     setRevision((value) => value + 1);
     const url = new URL(window.location.href);
     url.searchParams.delete("edit");
@@ -73,14 +76,7 @@ export function PlanDetailEditor(props: Props) {
       editRequested={editRequested} onPublish={publish}
       readOnly={updated ? <PlanDetailReading catalog={catalog} detail={detail} viewedVersion={viewedVersion} /> : props.readOnly}
       history={updated ? <PlanDetailHistory catalog={catalog} detail={detail} schedules={schedules} /> : props.history} />
-    {confirmation && <ReviewDialog open animate={confirmation.animate} title={confirmation.publication.createsVersion ? `${confirmation.publication.name} v${confirmation.publication.version}` : confirmation.publication.movedCustomers > 0 ? "Customer moves scheduled; no new version" : "Plan updated; no new version"} onClose={() => { setConfirmation(null); requestAnimationFrame(() => document.getElementById("edit-plan-action")?.focus({ preventScroll: true })); }}>
-      <p className="font-medium">{describePublication(confirmation.publication, true)}.</p>
-      {confirmation.publication.affectedCustomers > 0 && <p className="text-caption">Price, credits or exhaustion-policy changes apply to all {formatNumber(confirmation.publication.affectedCustomers)} customers at their next renewal.</p>}
-      {confirmation.publication.createsVersion && <p className="text-caption text-ink-muted">New customers receive v{confirmation.publication.version}. Existing customers keep their features until a scheduled move takes effect at renewal.</p>}
-      <p className="rounded-control border border-line bg-surface-raised p-3 text-caption text-ink-muted">{props.onPublish
-        ? confirmation.persistence === "memory" ? "Browser storage is unavailable. These changes and scheduled moves last only for this browser session." : "Changes and scheduled moves are saved in this browser. Moves are pending; current customer counts have not changed."
-        : "Simulated publication for Nimbus. Changes and scheduled moves are visible on this detail page; reloading restores the original catalog. No customers have been moved."}</p>
-    </ReviewDialog>}
+    {confirmation && <PlanPublicationConfirmation {...confirmation} persisted={Boolean(props.onPublish)} onClose={() => { setConfirmation(null); requestAnimationFrame(() => (document.getElementById("customer-migration") ?? document.getElementById("edit-plan-action"))?.focus({ preventScroll: true })); }} />}
   </>;
 }
 
@@ -97,12 +93,15 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
   const [targetVersion, setTargetVersion] = useState(original.currentReleaseVersion);
   const [migrationNotice, setMigrationNotice] = useState("");
   const [migrationOpen, setMigrationOpen] = useState(Boolean(migrationEntry && editRequested));
+  const [migrationConfirm, setMigrationConfirm] = useState(false);
+  const migrationPublishing = useRef(false);
   const migrationButton = useRef<HTMLButtonElement>(null);
+  const migrationConfirmation = useRef<HTMLParagraphElement>(null);
   const editButton = useRef<HTMLButtonElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const canEdit = getCurrentRelease(original)?.status === "published";
   const changes = derivePlanChanges(catalog, original, state.draft, state.pending);
-  const migration = deriveMigrationSelection(catalog, original, state, schedules, targetVersion, selectedVersions);
+  const migration = deriveMigrationSelection(catalog, original, state, schedules, targetVersion, selectedVersions, "immediate");
   const validSelectionKey = JSON.stringify(migration.selectedVersions);
   const selectionKey = JSON.stringify(selectedVersions);
   const issues = validatePlanEdit(state);
@@ -118,6 +117,10 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
   }, [editing, migrationEntry]);
 
   useEffect(() => {
+    if (migrationConfirm) migrationConfirmation.current?.focus({ preventScroll: true });
+  }, [migrationConfirm]);
+
+  useEffect(() => {
     if (!editRequested || !migrationEntry || viewedVersion !== original.currentReleaseVersion) return;
     setEditing(true);
     setMigrationOpen(true);
@@ -129,7 +132,7 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
     const selected: number[] = JSON.parse(selectionKey);
     if (selected.some((version) => !valid.includes(version))) {
       setSelectedVersions(valid);
-      setMigrationNotice("Some sources were deselected because they cannot move forward to this destination or already have a scheduled move.");
+      setMigrationNotice("Some sources were deselected because they no longer have customers or cannot move forward to this destination.");
     }
   }, [validSelectionKey, selectionKey]);
 
@@ -160,6 +163,7 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
     setAnimateEntry(event.detail > 0);
     setEditing(false);
     setMigrationOpen(false);
+    setMigrationConfirm(false);
     dispatch({ type: "discard", state: createEditState(catalog, original) });
     setSelectedVersions([]);
     setTargetVersion(original.currentReleaseVersion);
@@ -172,6 +176,24 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
     url.hash = "";
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     requestAnimationFrame(() => editButton.current?.focus({ preventScroll: true }));
+  }
+
+  function confirmMigration(event: MouseEvent<HTMLButtonElement>) {
+    if (!onPublish || migrationPublishing.current) return;
+    migrationPublishing.current = true;
+    const result = onPublish({ original, state: createEditState(catalog, original), selectedVersions: migration.selectedVersions,
+      targetVersion: migration.targetVersion, scheduledAt: new Date().toISOString(), migrationTiming: "immediate",
+      expectedMigrationCustomers: migration.customers }, event.detail > 0, true);
+    if (!result.ok) {
+      migrationPublishing.current = false;
+      setMigrationNotice("Could not move these customers. Their plan or counts may have changed. Close this panel and review the latest versions.");
+      return;
+    }
+    setMigrationOpen(false);
+    setMigrationConfirm(false);
+    setSelectedVersions([]);
+    setMigrationNotice("");
+    migrationPublishing.current = false;
   }
 
   const identityMark = (field: "name" | "visibility") => {
@@ -221,19 +243,26 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
         <h2 id="edit-checks-heading" className="font-medium">Checks against other plans</h2>
         <DraftWarningList warnings={warnings} planNames={getPlanNames(catalog)} currency={currency} label="Plan checks" />
       </section>}
-      <PlanEditBar changes={changes} migrationCount={migration.operationCount} migrationCustomers={migration.customers} targetVersion={migration.targetVersion} migrationAction={migration.options.length > 0 ? <button id="customer-migration" ref={migrationButton} type="button" className={`${outlineControlClass} min-h-11`} onClick={(event) => { setAnimateDialog(event.detail > 0); setMigrationOpen(true); }}>Configure migration</button> : undefined} onDiscard={discard} onReview={(event) => { setAnimateDialog(event.detail > 0); setReviewOpen(true); }} invalid={issues.length > 0 || !migration.validTarget || warnings.some((warning) => warning.severity === "blocking")} onHeightChange={setBarHeight} />
+      <PlanEditBar changes={changes} migrationCount={migration.operationCount} migrationCustomers={migration.customers} targetVersion={migration.targetVersion} migrationAction={migration.options.length > 0 ? <button id="customer-migration" ref={migrationButton} type="button" className={`${outlineControlClass} min-h-11`} onClick={(event) => { setAnimateDialog(event.detail > 0); setMigrationConfirm(false); setMigrationOpen(true); }}>Configure migration</button> : undefined} onDiscard={discard} onReview={(event) => { setAnimateDialog(event.detail > 0); setReviewOpen(true); }} invalid={issues.length > 0 || !migration.validTarget || warnings.some((warning) => warning.severity === "blocking")} onHeightChange={setBarHeight} />
       {reviewOpen && onPublish && <PlanEditReview catalog={catalog} plan={original} state={state} changes={changes} schedules={schedules} animateDialog={animateDialog} selectedVersions={migration.selectedVersions} targetVersion={migration.targetVersion} onSelectionChange={setSelectedVersions} onClose={() => setReviewOpen(false)} onPublish={onPublish} />}
     </>}
     {history}
     </>}
-    {editing && migrationOpen && migration.options.length > 0 && <ReviewDialog open animate={animateDialog} title="Customer migration" onClose={() => { setMigrationOpen(false); requestAnimationFrame(() => migrationButton.current?.focus({ preventScroll: true })); }}>
+    {editing && migrationOpen && migration.options.length > 0 && <ReviewDialog open animate={animateDialog} title={migrationConfirm ? "Confirm customer migration" : "Customer migration"} onClose={() => { setMigrationOpen(false); setMigrationConfirm(false); requestAnimationFrame(() => migrationButton.current?.focus({ preventScroll: true })); }}>
+      {migrationConfirm ? <>
+        <p ref={migrationConfirmation} tabIndex={-1} className="font-medium outline-none">You’re about to move {formatNumber(migration.customers)} customers from {migration.selectedVersions.map((version) => `v${version}`).join(" and ")} to v{migration.targetVersion}.</p>
+        <p className="text-caption text-ink-muted">This applies immediately and saves the updated customer counts in this browser. Only the migration is applied; other unsaved plan changes stay in your draft.</p>
+        {migrationNotice && <p role="alert" className="text-caption text-critical">{migrationNotice}</p>}
+        <div className="flex gap-3"><button type="button" className={`${outlineControlClass} min-h-11`} onClick={() => { setMigrationConfirm(false); setMigrationNotice(""); }}>Back</button><button type="button" className={`${primaryControlClass} min-h-11`} onClick={confirmMigration}>Confirm & move customers</button></div>
+      </> : <>
         {changes.createsVersion ? <p className="text-caption text-ink-muted">Destination: v{migration.targetVersion}, the new feature version.</p> : <MigrationDestinationSelect destinations={migration.destinations} currentVersion={original.currentReleaseVersion} value={migration.targetVersion} onChange={setTargetVersion} />}
         {migrationNotice && <p role="status" className="text-caption text-warning">{migrationNotice}</p>}
         <MigrationVersionSelector catalog={catalog} plan={original} targetVersion={migration.targetVersion} targetFeatures={migration.targetFeatures} schedules={schedules} selectedVersions={migration.selectedVersions} onChange={(versions) => { setSelectedVersions([...versions].sort((a, b) => a - b)); setMigrationNotice(""); }} />
       <div className="border-t border-line pt-4">
-        <p className="text-caption text-ink-muted">{migration.operationCount > 0 ? `${formatNumber(migration.customers)} customers selected · v${migration.targetVersion} · next renewal` : "No customers selected."} Nothing is scheduled until you publish in Review.</p>
-        <button type="button" data-dialog-close className={`${primaryControlClass} mt-3 min-h-11`}>Done</button>
+        <p className="text-caption text-ink-muted">{migration.operationCount > 0 ? `${formatNumber(migration.customers)} customers selected · v${migration.targetVersion}.` : "No customers selected."} {changes.createsVersion ? "The new version and selected moves are applied together in Review & publish." : "Done opens a confirmation before moving any customers."}</p>
+        {changes.createsVersion || migration.operationCount === 0 ? <button type="button" data-dialog-close className={`${primaryControlClass} mt-3 min-h-11`}>Done</button> : <button type="button" className={`${primaryControlClass} mt-3 min-h-11`} onClick={() => setMigrationConfirm(true)}>Done</button>}
       </div>
+      </>}
     </ReviewDialog>}
   </div>;
 }

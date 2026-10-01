@@ -85,7 +85,7 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
     const result = store.selectOrganization(organizationId);
     if (!result.ok) return;
     popoverRef.current?.hidePopover();
-    router.push(snapshot.organizations.some((entry) => entry.organization.id === organizationId) ? organizationPath(organizationId) : "/");
+    router.push(organizationPath(organizationId));
   }
 
   const name = (

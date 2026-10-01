@@ -10,34 +10,35 @@ export type ScheduledMigration = {
   organizationId: string; planCode: string; fromVersion: number; toVersion: number;
   customers: number; scheduledAt: string;
 };
-export type EditPublicationRequest = { original: Plan; state: DraftFlowState; selectedVersions: number[]; targetVersion?: number; scheduledAt: string };
+export type EditPublicationRequest = { original: Plan; state: DraftFlowState; selectedVersions: number[]; targetVersion?: number; scheduledAt: string; migrationTiming?: "immediate"; expectedMigrationCustomers?: number };
 export type EditPublication = {
   catalog: Catalog; schedules: ScheduledMigration[]; name: string; version: number;
   createsVersion: boolean; affectedCustomers: number; movedCustomers: number; fromVersions: number[]; migrationTargetVersion: number;
+  migrationTiming?: "immediate";
 };
 export type PublicationResult = { ok: true; publication: EditPublication; persistence?: "local" | "memory" }
   | { ok: false; reason: "stale-plan" | "invalid-edit" | "no-changes" | "invalid-migration" | "unknown-organization" };
 
-export function getMigrationOptions(catalog: Catalog, plan: Plan, targetFeatures: ReleaseFeature[], schedules: readonly ScheduledMigration[]) {
+export function getMigrationOptions(catalog: Catalog, plan: Plan, targetFeatures: ReleaseFeature[], schedules: readonly ScheduledMigration[], includeScheduled = false) {
   const target = resolveReleaseFeatures(catalog.features, targetFeatures);
   return plan.releases.filter((release) => release.status !== "building").map((release) => {
     const customers = catalog.subscriptionsByRelease.filter((row) => row.planCode === plan.code && row.version === release.version).reduce((total, row) => total + row.subscriptions, 0);
     const scheduled = schedules.filter((item) => item.organizationId === catalog.organization.id && item.planCode === plan.code && item.fromVersion === release.version);
     return { version: release.version, customers, current: release.version === plan.currentReleaseVersion,
-      scheduled, disabled: customers === 0 || scheduled.length > 0,
+      scheduled, disabled: customers === 0 || (!includeScheduled && scheduled.length > 0),
       changes: diffFeatureSets(resolveReleaseFeatures(catalog.features, release.features), target) };
   });
 }
 
 /** Only forward moves are eligible, whether the destination already exists or is being published. */
-export function deriveMigrationSelection(catalog: Catalog, plan: Plan, state: DraftFlowState, schedules: readonly ScheduledMigration[], requestedTarget: number, selectedVersions: number[]) {
+export function deriveMigrationSelection(catalog: Catalog, plan: Plan, state: DraftFlowState, schedules: readonly ScheduledMigration[], requestedTarget: number, selectedVersions: number[], migrationTiming?: "immediate") {
   const changes = derivePlanChanges(catalog, plan, state.draft, state.pending);
   const destinations = plan.releases.filter((release) => release.status !== "building").sort((a, b) => a.version - b.version);
   const targetVersion = changes.createsVersion ? changes.nextVersion : requestedTarget;
   const destination = destinations.find((release) => release.version === targetVersion);
   const validTarget = changes.createsVersion || destination !== undefined;
   const targetFeatures = changes.createsVersion ? state.draft.features : destination?.features ?? [];
-  const allOptions = getMigrationOptions(catalog, plan, targetFeatures, schedules);
+  const allOptions = getMigrationOptions(catalog, plan, targetFeatures, schedules, migrationTiming === "immediate");
   const options = validTarget ? allOptions.filter((option) => option.version < targetVersion && option.customers > 0) : [];
   const selected = options.filter((option) => selectedVersions.includes(option.version) && !option.disabled);
   return { targetVersion, targetFeatures, validTarget, destinations: destinations.filter((release) => allOptions.some((source) => source.version < release.version && source.customers > 0)), options,
@@ -71,9 +72,10 @@ export function publishPlanEdit(catalog: Catalog, schedules: readonly ScheduledM
     || draft.code !== plan.code || JSON.stringify(structure(draft.pricing)) !== JSON.stringify(structure(plan.pricing))
     || JSON.stringify(draft.creditPackCodes) !== JSON.stringify(baseline.creditPackCodes)) return { ok: false, reason: "invalid-edit" };
   const changes = derivePlanChanges(catalog, plan, draft, state.pending);
-  const migration = deriveMigrationSelection(catalog, plan, state, schedules, request.targetVersion ?? plan.currentReleaseVersion, selectedVersions);
+  const migration = deriveMigrationSelection(catalog, plan, state, schedules, request.targetVersion ?? plan.currentReleaseVersion, selectedVersions, request.migrationTiming);
   if (!migration.validTarget || (changes.createsVersion && request.targetVersion !== undefined && request.targetVersion !== changes.nextVersion)
-    || new Set(selectedVersions).size !== selectedVersions.length || migration.operationCount !== selectedVersions.length) return { ok: false, reason: "invalid-migration" };
+    || new Set(selectedVersions).size !== selectedVersions.length || migration.operationCount !== selectedVersions.length
+    || (request.expectedMigrationCustomers !== undefined && request.expectedMigrationCustomers !== migration.customers)) return { ok: false, reason: "invalid-migration" };
   if (!changes.changeCount && !migration.operationCount) return { ok: false, reason: "no-changes" };
   const selected = migration.options.filter((option) => migration.selectedVersions.includes(option.version));
   const version = changes.createsVersion ? changes.nextVersion : plan.currentReleaseVersion;
@@ -86,17 +88,32 @@ export function publishPlanEdit(catalog: Catalog, schedules: readonly ScheduledM
     updated.currentReleaseVersion = version;
   }
   const nextCatalog: Catalog = { ...structuredClone(catalog), plans: catalog.plans.map((entry) => entry.code === plan.code ? updated : structuredClone(entry)) };
+  if (request.migrationTiming === "immediate" && migration.customers > 0) {
+    // Move entire selected populations atomically, preserving the plan's total and unrelated rows.
+    nextCatalog.subscriptionsByRelease = nextCatalog.subscriptionsByRelease.filter((row) => row.planCode !== plan.code
+      || (!migration.selectedVersions.includes(row.version) && row.version !== migration.targetVersion));
+    const existing = catalog.subscriptionsByRelease.filter((row) => row.planCode === plan.code && row.version === migration.targetVersion)
+      .reduce((total, row) => total + row.subscriptions, 0);
+    nextCatalog.subscriptionsByRelease.push({ planCode: plan.code, version: migration.targetVersion, subscriptions: existing + migration.customers });
+  }
   if (!isCatalog(nextCatalog)) return { ok: false, reason: "invalid-edit" };
-  const nextSchedules = [...structuredClone(schedules), ...selected.map((option) => ({ organizationId: catalog.organization.id, planCode: plan.code,
-    fromVersion: option.version, toVersion: migration.targetVersion, customers: option.customers, scheduledAt }))];
+  const retainedSchedules = request.migrationTiming === "immediate" ? schedules.filter((item) => item.organizationId !== catalog.organization.id
+    || item.planCode !== plan.code || !migration.selectedVersions.includes(item.fromVersion)) : schedules;
+  const nextSchedules = [...structuredClone(retainedSchedules), ...(request.migrationTiming === "immediate" ? [] : selected.map((option) => ({ organizationId: catalog.organization.id, planCode: plan.code,
+    fromVersion: option.version, toVersion: migration.targetVersion, customers: option.customers, scheduledAt })))];
   return { ok: true, publication: { catalog: nextCatalog, schedules: nextSchedules, name: updated.name, version,
     createsVersion: changes.createsVersion, affectedCustomers: changes.affectedCustomers,
-    movedCustomers: migration.customers, fromVersions: migration.selectedVersions, migrationTargetVersion: migration.targetVersion } };
+    movedCustomers: migration.customers, fromVersions: migration.selectedVersions, migrationTargetVersion: migration.targetVersion, migrationTiming: request.migrationTiming } };
 }
 
-export function describePublication(publication: Pick<EditPublication, "createsVersion" | "name" | "version" | "movedCustomers" | "fromVersions"> & { migrationTargetVersion?: number }, published = false) {
+export function describePublication(publication: Pick<EditPublication, "createsVersion" | "name" | "version" | "movedCustomers" | "fromVersions"> & { migrationTargetVersion?: number; migrationTiming?: "immediate" }, published = false) {
   const versions = publication.fromVersions.map((version) => `v${version}`);
   const sources = versions.length > 1 ? `${versions.slice(0, -1).join(", ")} and ${versions.at(-1)}` : versions[0];
+  if (publication.migrationTiming === "immediate") {
+    const move = `${published ? "Moved" : "Moves"} ${formatNumber(publication.movedCustomers)} customers from ${sources} to v${publication.migrationTargetVersion ?? publication.version}`;
+    if (!publication.createsVersion) return publication.movedCustomers > 0 ? `${move}; no new version` : "Plan updated; no new version";
+    return `${published ? "Published" : "Publishes"} ${publication.name} v${publication.version}${publication.movedCustomers > 0 ? ` and ${move.toLowerCase()}` : " for new customers only"}`;
+  }
   if (!publication.createsVersion) return publication.movedCustomers > 0
     ? `Moves ${formatNumber(publication.movedCustomers)} customers from ${sources} to v${publication.migrationTargetVersion ?? publication.version} at their next renewal; no new version`
     : "Plan updated; no new version";

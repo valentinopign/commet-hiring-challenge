@@ -85,15 +85,21 @@ pnpm dev
 
 ## Local company demo
 
-Open **Add organization** from the organization switcher, name the company, define features and create one or more plans. **Finish setup** saves the company in this browser and opens its dashboard. The switcher lets you return to Nimbus or another saved company; creating a plan inside a saved company also persists it.
+Nimbus and completed local companies use the same versioned localStorage store. The first visit seeds Nimbus from `data/catalog.ts`; creating plans, editing plan properties or features, and confirming customer moves saves them in this browser and survives reload. Nimbus keeps its existing root URLs.
 
-Completed companies use versioned localStorage data. They are not shared between browsers/devices and unfinished onboarding or plan drafts are not saved. If storage is blocked, the interface keeps working in memory and displays a warning. **Reset demo**, below dashboard content, removes created companies after confirmation without changing Nimbus or the theme.
+In **Edit plan → Configure migration**, select an existing destination and source versions, then **Done → Confirm & move customers**. The demo applies the move immediately, updates version counts and preserves other unsaved plan changes. When feature changes create a new version, **Review & publish** saves that version and the selected moves together. Price, credit and policy effects keep their next-renewal scope. Previously saved pending moves remain visible until explicitly replaced by a confirmed move.
+
+Open **Add organization** from the switcher, name the company, define features and create plans. **Finish setup** saves the company and opens its dashboard. The switcher returns to Nimbus or any saved company; each catalog keeps its own plans and pending moves.
+
+Nimbus's initial server HTML comes from the seed. After hydration, saved values can replace that content. Local companies show a loading state until their browser data loads. An updated seed version restores Nimbus to the current seed and clears its pending moves, with a notice; saved local companies and their moves remain.
+
+Saved data is specific to this browser. Unfinished onboarding and plan drafts are not saved. Storage failures keep changes in memory with a warning. **Reset demo**, below dashboard content, restores Nimbus to its seed, removes created companies and clears pending moves after confirmation. It preserves the theme and unrelated storage keys. Simultaneous tabs can overwrite one another's saved changes; cross-tab synchronization and conflict handling remain outside this prototype.
 
 ## Editing and scheduled moves
 
 **Edit plan** opens controls inside the current plan detail. Review separates feature changes (a new version for new customers) from price, credits and exhaustion changes (all customers at renewal). **Configure migration**, beside Review & publish in the fixed bottom action bar, opens a side panel to select a destination and existing customer versions, with or without other edits. Closing the panel keeps the selection; publication happens in Review. Feature changes fix the destination to the new release; otherwise the current release is the default and an intermediate version can be chosen. Only forward moves are allowed. Each selected source counts as a change and shows its own feature diff and customer impact; ordinary editing starts unchecked.
 
-**Migrate customers** links in the retired-version alert and timeline enter the same editing mode and open the migration panel; timeline links preselect their source version. Scheduled moves appear on their source versions in the timeline and in the retired-version alert. They do not change current subscription counts. Local companies save edits and pending moves together in this browser. Nimbus simulates them on the current detail page only: reloading restores its original data. This prototype does not execute renewals or offer a separate migration screen.
+**Migrate customers** links in the retired-version alert and timeline enter the same editing mode and open the migration panel; timeline links preselect their source version. Scheduled moves appear on their source versions in the timeline and in the retired-version alert. They do not change current subscription counts. Nimbus and local companies save edits and pending moves together in this browser; reload restores them when storage is available. This prototype does not execute renewals or offer a separate migration screen.
 
 Adding catalog features, changing billing structure or periods, and editing packs remain outside plan editing.
 

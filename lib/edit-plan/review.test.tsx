@@ -41,12 +41,12 @@ describe("review and scheduled migration visibility", () => {
   it("reviews migration-only selections with their source diffs and no new version", () => {
     const state = createEditState(catalog, plan);
     const html = renderToStaticMarkup(<PlanEditReview catalog={catalog} plan={plan} state={state} changes={derivePlanChanges(catalog, plan, state.draft)} schedules={[]} selectedVersions={[1, 2]} targetVersion={3} onSelectionChange={vi.fn()} onClose={vi.fn()} onPublish={vi.fn()} />);
-    expect(html).toContain("Moves 352 customers from v1 and v2 to v3 at their next renewal; no new version");
+    expect(html).toContain("Moves 352 customers from v1 and v2 to v3; no new version");
     expect(html).toContain("2 effective changes");
     expect(html.match(/checked=""/g)).toHaveLength(2);
     expect(html).toContain("v1 → v3");
     expect(html).toContain("v2 → v3");
-    expect(html).toContain("Schedule moves");
+    expect(html).toContain("Confirm &amp; move customers");
     expect(html).not.toContain("Publish changes</button>");
   });
   it("counts selected sources and enables Review for migration-only editing", () => {
@@ -54,7 +54,7 @@ describe("review and scheduled migration visibility", () => {
     const changes = derivePlanChanges(catalog, plan, state.draft);
     const html = renderToStaticMarkup(<PlanEditBar changes={changes} migrationCount={2} migrationCustomers={352} targetVersion={3} onDiscard={vi.fn()} onReview={vi.fn()} invalid={false} onHeightChange={vi.fn()} />);
     expect(html).toContain("2 changes");
-    expect(html).toContain("352 customers scheduled to move to v3 at renewal");
+    expect(html).toContain("352 customers selected to move to v3 on confirmation");
     expect(html).not.toContain('disabled=""');
     expect(renderToStaticMarkup(<PlanEditBar changes={changes} onDiscard={vi.fn()} onReview={vi.fn()} invalid={false} onHeightChange={vi.fn()} />)).toContain('disabled=""');
   });
@@ -91,5 +91,20 @@ describe("review and scheduled migration visibility", () => {
     expect(html).toContain("46 customers on retired versions are staying on their version");
     expect(detail.plan.totalSubscriptions).toBe(398);
     expect(detail.timeline.find((entry) => entry.version === 4)?.subscriptions).toBe(0);
+  });
+  it("updates history and clears the retired-majority alert when confirmed customers actually move", () => {
+    const result = publishPlanEdit(catalog, [], { original: plan, state: createEditState(catalog, plan), selectedVersions: [1, 2], targetVersion: 3,
+      scheduledAt: "2026-10-01T18:00:00Z", migrationTiming: "immediate" });
+    if (!result.ok) throw new Error(result.reason);
+    const detail = getPlanDetail(result.publication.catalog, "growth");
+    if (!detail) throw new Error("Missing updated detail");
+    expect(detail.plan.totalSubscriptions).toBe(398);
+    expect(detail.timeline.find((entry) => entry.version === 3)?.subscriptions).toBe(398);
+    expect(detail.timeline.filter((entry) => entry.version < 3).every((entry) => entry.subscriptions === 0)).toBe(true);
+    expect(detail.alerts.some((alert) => alert.type === "majority_on_retired")).toBe(false);
+    const html = renderToStaticMarkup(<PlanDetailHistory catalog={result.publication.catalog} detail={detail} schedules={result.publication.schedules} />);
+    expect(html).not.toContain("scheduled to move");
+    expect(html).not.toContain("Migrate customers from v1");
+    expect(html).not.toContain("Migrate customers from v2");
   });
 });

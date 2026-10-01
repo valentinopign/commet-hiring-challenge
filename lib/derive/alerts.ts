@@ -33,17 +33,7 @@ export function getCatalogAlerts(catalog: Catalog): CatalogAlert[] {
       const subscriptions = getReleaseSubscriptions(catalog, plan.code, release.version);
       totalSubscriptions += subscriptions;
       if (release.status === "retired") retiredSubscriptions += subscriptions;
-      // A draft has no customers by definition, so an empty one is not news.
-      if (subscriptions === 0 && release.status !== "building") {
-        alerts.push({
-          type: "release_without_customers",
-          // An empty retired version is harmless; an empty published one means nobody new is joining.
-          severity: release.status === "published" ? "warning" : "info",
-          planCode: plan.code,
-          version: release.version,
-          status: release.status,
-        });
-      }
+      // Zero customers is normal for a new company, plan or release and needs no alert.
     }
 
     const retiredShare = totalSubscriptions > 0 ? retiredSubscriptions / totalSubscriptions : 0;

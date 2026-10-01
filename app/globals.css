@@ -143,7 +143,12 @@
 @media (min-width: 80rem) {
   html {
     /* Scale all rem-based UI together without changing browser zoom or viewport geometry. */
-    font-size: 125%;
+    font-size: 112.5%;
+  }
+
+  .onboarding-intro-title {
+    /* Match the 10% desktop reduction even while the fluid vw value wins the clamp. */
+    font-size: clamp(2.5rem, 5.76vw, 6rem);
   }
 }
 

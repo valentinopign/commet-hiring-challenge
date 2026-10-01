@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { CatalogPlanDetail } from "@/components/plan-detail/catalog-plan-detail";
-import { catalog } from "@/data/catalog";
-import { getPlanDetail } from "@/lib/derive/plan-detail";
+import { NimbusDashboard } from "@/components/organizations/nimbus-dashboard";
 
-export async function generateMetadata({ params }: PageProps<"/plans/[code]">): Promise<Metadata> {
-  const { code } = await params;
-  const detail = getPlanDetail(catalog, code);
-  return { title: `${detail?.plan.name ?? "Plan"} · ${catalog.organization.name} pricing` };
-}
+// Saved plan names/codes exist only in this browser. The dashboard sets the hydrated title
+// and handles missing codes; a seed-only server lookup would reject newly created plans.
+export const metadata: Metadata = { title: "Plan · Nimbus pricing" };
 
 export default async function PlanPage({ params, searchParams }: PageProps<"/plans/[code]">) {
   const { code } = await params;
-  const { version, compare, diff, edit } = await searchParams;
-  const detail = getPlanDetail(catalog, code);
-  if (!detail) notFound();
-  return <CatalogPlanDetail catalog={catalog} detail={detail} version={version} compare={compare} diff={diff} editRequested={edit === "1" || edit === "instant"} animateEditEntry={edit !== "instant"} />;
+  // Resolve query-dependent rendering on the server; the shared client reads the same URL.
+  await searchParams;
+  return <NimbusDashboard path={["plans", code]} />;
 }

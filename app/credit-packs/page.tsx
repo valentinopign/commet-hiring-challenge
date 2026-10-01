@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { CatalogCreditPacks } from "@/components/credit-packs/catalog-credit-packs";
-import { catalog } from "@/data/catalog";
+import { NimbusDashboard } from "@/components/organizations/nimbus-dashboard";
 
-export const metadata: Metadata = { title: `Credit packs · ${catalog.organization.name} pricing` };
+export const metadata: Metadata = { title: "Credit packs · Nimbus pricing" };
 
 export default function CreditPacksPage() {
-  return <CatalogCreditPacks catalog={catalog} />;
+  return <NimbusDashboard path={["credit-packs"]} />;
 }

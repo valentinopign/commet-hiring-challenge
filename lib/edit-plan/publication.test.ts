@@ -19,6 +19,44 @@ function success(input = request(), schedules: ScheduledMigration[] = []) {
 }
 
 describe("edit publication and scheduled migrations", () => {
+  it("moves populations immediately to the current version, preserving totals and unrelated plans", () => {
+    const before = structuredClone(catalog);
+    const publication = success({ ...request(), state: createEditState(catalog, plan), selectedVersions: [1, 2], migrationTiming: "immediate", expectedMigrationCustomers: 352 });
+    expect(publication.catalog.plans).toEqual(catalog.plans);
+    expect(publication.catalog.subscriptionsByRelease.filter((row) => row.planCode === "growth")).toEqual([{ planCode: "growth", version: 3, subscriptions: 398 }]);
+    expect(publication.catalog.subscriptionsByRelease.filter((row) => row.planCode !== "growth")).toEqual(catalog.subscriptionsByRelease.filter((row) => row.planCode !== "growth"));
+    expect(publication.schedules).toEqual([]);
+    expect(describePublication(publication, true)).toBe("Moved 352 customers from v1 and v2 to v3; no new version");
+    expect(catalog).toEqual(before);
+    expect(publishPlanEdit(publication.catalog, [], { ...request(), state: createEditState(catalog, plan), selectedVersions: [1, 2], migrationTiming: "immediate" })).toEqual({ ok: false, reason: "invalid-migration" });
+  });
+  it("publishes a new feature version and immediately moves only the selected origins", () => {
+    const publication = success({ ...request(), selectedVersions: [2, 3], migrationTiming: "immediate" });
+    expect(publication.catalog.plans.find((entry) => entry.code === "growth")?.currentReleaseVersion).toBe(4);
+    expect(publication.catalog.subscriptionsByRelease.filter((row) => row.planCode === "growth")).toEqual([{ planCode: "growth", version: 1, subscriptions: 12 }, { planCode: "growth", version: 4, subscriptions: 386 }]);
+    expect(publication.schedules).toEqual([]);
+    expect(describePublication(publication, true)).toBe("Published Growth v4 and moved 386 customers from v2 and v3 to v4");
+  });
+  it("moves forward to an intermediate version, adding to its existing population", () => {
+    const publication = success({ ...request(), state: createEditState(catalog, plan), targetVersion: 2, selectedVersions: [1], migrationTiming: "immediate" });
+    expect(publication.catalog.subscriptionsByRelease.filter((row) => row.planCode === "growth").sort((a, b) => a.version - b.version)).toEqual([{ planCode: "growth", version: 2, subscriptions: 352 }, { planCode: "growth", version: 3, subscriptions: 46 }]);
+    expect(publication.catalog.plans).toEqual(catalog.plans);
+  });
+  it("rejects changed customer counts rather than applying a different confirmed population", () => {
+    const input = { ...request(), state: createEditState(catalog, plan), selectedVersions: [1, 2], migrationTiming: "immediate" as const, expectedMigrationCustomers: 352 };
+    const latest = structuredClone(catalog);
+    const row = latest.subscriptionsByRelease.find((entry) => entry.planCode === "growth" && entry.version === 1);
+    if (!row) throw new Error("Missing source");
+    row.subscriptions += 1;
+    expect(publishPlanEdit(latest, [], input)).toEqual({ ok: false, reason: "invalid-migration" });
+  });
+  it("replaces only the selected origins' legacy schedules when applying an immediate move", () => {
+    const first = success({ ...request(), state: createEditState(catalog, plan), selectedVersions: [1, 2] });
+    const publication = success({ ...request(), state: createEditState(catalog, plan), selectedVersions: [2], migrationTiming: "immediate" }, first.schedules);
+    expect(publication.schedules).toEqual([first.schedules[0]]);
+    expect(publication.catalog.subscriptionsByRelease.find((row) => row.planCode === "growth" && row.version === 3)?.subscriptions).toBe(386);
+    expect(publication.schedules.every((item) => isScheduledMigration(item, [publication.catalog]))).toBe(true);
+  });
   it("publishes exactly the next feature version, retires the current one and preserves the input", () => {
     const before = structuredClone(catalog);
     const publication = success();

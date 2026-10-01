@@ -14,10 +14,12 @@ type PublishConfirmationProps = {
   positionText: string;
   currency: string;
   onCreateAnother: () => void;
+  planCode?: string;
+  persistence?: "local" | "memory";
 };
 
-/** The end of the flow. It says plainly that nothing was saved: the publish is simulated. */
-export function PublishConfirmation({ planName, entries, positionText, currency, onCreateAnother }: PublishConfirmationProps) {
+/** The end of the flow distinguishes saved publication from the standalone preview. */
+export function PublishConfirmation({ planName, entries, positionText, currency, onCreateAnother, planCode, persistence }: PublishConfirmationProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const badgeRef = useRef<HTMLParagraphElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
@@ -53,15 +55,17 @@ export function PublishConfirmation({ planName, entries, positionText, currency,
       <div>
         <p ref={badgeRef} className="flex w-fit items-center gap-2 text-caption font-medium text-live-ink">
           <CheckIcon className="size-4 shrink-0" />
-          Published (simulated)
+          {planCode ? "Plan created" : "Published (simulated)"}
         </p>
         <div ref={introRef}>
           <h2 id="published-heading" ref={headingRef} tabIndex={-1} className="mt-1 text-xl font-semibold tracking-tight focus:outline-none">
-            {planName} is ready
+            {planCode ? `${planName} v1` : `${planName} is ready`}
           </h2>
           <p className="mt-2 max-w-prose text-ink-muted">
-            Nothing was saved. This dashboard is a prototype: in Commet, publishing would create the plan and its first
-            version, v1, and the Overview would list it.
+            {planCode ? persistence === "memory"
+              ? "Your plan was created. Browser storage is unavailable, so it only lasts for this session."
+              : "Your plan and its first feature version are saved in this browser. You can find it in the Overview and edit it anytime."
+              : "Nothing was saved. This dashboard is a prototype: in Commet, publishing would create the plan and its first version, v1, and the Overview would list it."}
           </p>
         </div>
       </div>
@@ -80,12 +84,13 @@ export function PublishConfirmation({ planName, entries, positionText, currency,
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={onCreateAnother} className={primaryControlClass}>
-          Create another plan
-        </button>
+        {planCode && <Link href={`/plans/${planCode}`} className={primaryControlClass}>View plan</Link>}
         <Link href="/" className={outlineControlClass}>
           Back to overview
         </Link>
+        <button type="button" onClick={onCreateAnother} className={planCode ? outlineControlClass : primaryControlClass}>
+          Create another plan
+        </button>
       </div>
     </section>
   );

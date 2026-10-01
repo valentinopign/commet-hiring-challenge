@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { CatalogOverview } from "@/components/overview/catalog-overview";
-import { LocalOrganizationContent } from "@/components/organizations/local-organization-content";
+import { StoredCatalogContent } from "@/components/organizations/local-organization-content";
 import { useOrganizations } from "@/components/organizations/organization-provider";
 import { StorageNotice } from "@/components/organizations/storage-notice";
 import { ResetDemo } from "@/components/organizations/reset-demo";
@@ -17,14 +17,14 @@ import { SidebarContent } from "@/components/shell/sidebar-content";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { TopBar } from "@/components/shell/top-bar";
 import { getCatalogAlerts } from "@/lib/derive/alerts";
-import { getNavigationPlans, type OrganizationOption } from "@/lib/derive/navigation";
+import { getNavigationPlans } from "@/lib/derive/navigation";
 import { getPlanNames } from "@/lib/derive/plans";
 import { getPageTitle } from "@/lib/page-titles";
+import { NIMBUS_ORGANIZATION_ID } from "@/lib/nimbus-seed";
 
-export function LocalOrganizationDashboard({ organizationId, path, builtInOrganizations }: {
+export function StoredCatalogDashboard({ organizationId, path }: {
   organizationId: string;
   path: string[];
-  builtInOrganizations: OrganizationOption[];
 }) {
   const { snapshot } = useOrganizations();
   const catalog = snapshot.organizations.find((organization) => organization.organization.id === organizationId);
@@ -36,7 +36,7 @@ export function LocalOrganizationDashboard({ organizationId, path, builtInOrgani
     document.title = documentTitle;
   }, [documentTitle]);
 
-  if (!snapshot.hydrated) {
+  if (!snapshot.hydrated && organizationId !== NIMBUS_ORGANIZATION_ID) {
     return <main id="main" className="p-8"><p role="status" className="text-ink-muted">Loading your company…</p></main>;
   }
   if (!catalog) {
@@ -50,7 +50,7 @@ export function LocalOrganizationDashboard({ organizationId, path, builtInOrgani
   }
   const sidebar = <SidebarContent plans={getNavigationPlans(catalog)} />;
   return <div data-organization-dashboard><AppShell sidebar={sidebar} topBar={<TopBar
-    organization={<OrganizationSwitcher organizations={builtInOrganizations} currentId={organizationId} />}
+    organization={<OrganizationSwitcher organizations={snapshot.organizations.map(({ organization }) => ({ id: organization.id, name: organization.name }))} currentId={organizationId} />}
     menu={<MobileNavigation>{sidebar}</MobileNavigation>}
     alerts={<AlertsPopover alerts={getCatalogAlerts(catalog)} planNames={planNames} />}
     themeToggle={<ThemeToggle />}
@@ -58,7 +58,8 @@ export function LocalOrganizationDashboard({ organizationId, path, builtInOrgani
     user={<Avatar name={`${catalog.organization.name} admin`} initials={catalog.organization.name.slice(0, 2).toUpperCase()} />}
   />}>
     <StorageNotice />
-    {path.length === 0 ? <CatalogOverview catalog={catalog} /> : <LocalOrganizationContent key={organizationId} catalog={catalog} path={path} />}
+    {/* Rebase initial drafts once on hydration; later publications retain their controller state. */}
+    {path.length === 0 ? <CatalogOverview catalog={catalog} /> : <StoredCatalogContent key={`${organizationId}:${path.join("/")}:${snapshot.hydrated ? "stored" : "seed"}`} catalog={catalog} path={path} />}
     <ResetDemo />
   </AppShell></div>;
 }

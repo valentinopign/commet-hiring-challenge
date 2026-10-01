@@ -1,6 +1,5 @@
-import { CatalogOverview } from "@/components/overview/catalog-overview";
-import { catalog } from "@/data/catalog";
+import { NimbusDashboard } from "@/components/organizations/nimbus-dashboard";
 
 export default function OverviewPage() {
-  return <CatalogOverview catalog={catalog} />;
+  return <NimbusDashboard />;
 }

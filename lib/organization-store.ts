@@ -43,10 +43,11 @@ export function createOrganizationStore({ builtInOrganizationId, seedCatalog = n
   }
   const seed = freeze(structuredClone(seedCatalog));
   let adapter: StorageAdapter | null = null;
-  let snapshot: OrganizationSnapshot = freeze({
+  const initialSnapshot: OrganizationSnapshot = freeze({
     hydrated: false, organizations: [seed], scheduledMigrations: [], activeOrganizationId: builtInOrganizationId,
     persistence: "memory", recovery: "none",
   });
+  let snapshot = initialSnapshot;
   const listeners = new Set<() => void>();
 
   function notify(next: OrganizationSnapshot) {
@@ -140,6 +141,7 @@ export function createOrganizationStore({ builtInOrganizationId, seedCatalog = n
 
   return {
     getSnapshot: () => snapshot,
+    getServerSnapshot: () => initialSnapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     hydrate,
     publishEdit(organizationId: string, request: EditPublicationRequest): PublicationResult {

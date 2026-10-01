@@ -33,7 +33,7 @@ export function EditCustomerContext({ versions, changes, migration }: { versions
           <span className="sr-only">Features changed: </span>
           <span className="font-medium">New customers receive v{changes.nextVersion}</span>
         </p>}
-        {migration && migration.operationCount > 0 && <p className={scopeClass}><span className="sr-only">Migration selected: </span><span className="font-medium">{formatNumber(migration.customers)} customers · move to v{migration.targetVersion} at renewal</span></p>}
+        {migration && migration.operationCount > 0 && <p className={scopeClass}><span className="sr-only">Migration selected: </span><span className="font-medium">{formatNumber(migration.customers)} customers · move to v{migration.targetVersion} on confirmation</span></p>}
         {changes.changeCount > 0 && !changes.affectsAllCustomers && !changes.createsVersion && <p className="pt-1 text-ink-muted">Name or visibility only; subscriptions stay active.</p>}
       </div>
     </section>

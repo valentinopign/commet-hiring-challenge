@@ -24,11 +24,11 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
 }) {
   const [error, setError] = useState("");
   const publishing = useRef(false);
-  const migration = deriveMigrationSelection(catalog, plan, state, schedules, targetVersion, selectedVersions);
+  const migration = deriveMigrationSelection(catalog, plan, state, schedules, targetVersion, selectedVersions, "immediate");
   const { warnings } = deriveEditChecks(catalog, plan, state);
   const movedCustomers = migration.customers;
   const changeCount = changes.changeCount + migration.operationCount;
-  const summary = describePublication({ createsVersion: changes.createsVersion, name: state.draft.name.trim(), version: changes.nextVersion, movedCustomers, fromVersions: migration.selectedVersions, migrationTargetVersion: migration.targetVersion });
+  const summary = describePublication({ createsVersion: changes.createsVersion, name: state.draft.name.trim(), version: changes.nextVersion, movedCustomers, fromVersions: migration.selectedVersions, migrationTargetVersion: migration.targetVersion, migrationTiming: "immediate" });
   const describeValue = (change: PlanChange, value: PlanChange["before"]): string => {
     if (typeof value === "boolean") return value ? "Public" : "Private";
     if (typeof value === "number") return change.field.endsWith("credits") ? `${formatNumber(value)} credits` : formatMoney(value, catalog.organization.currency);
@@ -39,7 +39,7 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
   function publish(event: MouseEvent<HTMLButtonElement>) {
     if (publishing.current) return;
     publishing.current = true;
-    const result = onPublish({ original: plan, state, selectedVersions: migration.selectedVersions, targetVersion: migration.targetVersion, scheduledAt: new Date().toISOString() }, event.detail > 0);
+    const result = onPublish({ original: plan, state, selectedVersions: migration.selectedVersions, targetVersion: migration.targetVersion, scheduledAt: new Date().toISOString(), migrationTiming: "immediate", expectedMigrationCustomers: migration.customers }, event.detail > 0);
     if (!result.ok) {
       publishing.current = false;
       setError(result.reason === "stale-plan" ? "This plan changed while you were editing. Close Review, discard and reopen the latest plan." : "Could not publish these changes. Check the configuration and selected versions, then try again.");
@@ -64,7 +64,8 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
       <p className="font-medium" role="status" aria-live="polite">{summary}.</p>
       {changes.affectsAllCustomers && <p className="mt-2 text-caption text-ink-muted">Plan property changes also reach all {formatNumber(changes.affectedCustomers)} customers at renewal, including customers keeping older features.</p>}
       {error && <p role="alert" className="mt-3 text-caption text-critical">{error}</p>}
-      <button type="button" className={`${primaryControlClass} mt-4 min-h-11 disabled:opacity-40`} disabled={changeCount === 0 || !migration.validTarget} onClick={publish}>{changes.changeCount === 0 ? "Schedule moves" : movedCustomers > 0 ? "Publish changes & schedule moves" : "Publish changes"}</button>
+      {movedCustomers > 0 && <p className="mt-2 text-caption text-ink-muted">Selected customers move immediately when you confirm. Updated counts are saved with these changes.</p>}
+      <button type="button" className={`${primaryControlClass} mt-4 min-h-11 disabled:opacity-40`} disabled={changeCount === 0 || !migration.validTarget} onClick={publish}>{changes.changeCount === 0 ? "Confirm & move customers" : movedCustomers > 0 ? "Publish changes & move customers" : "Publish changes"}</button>
     </section>
   </ReviewDialog>;
 }

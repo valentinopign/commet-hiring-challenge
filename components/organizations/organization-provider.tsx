@@ -9,7 +9,7 @@ const OrganizationContext = createContext<OrganizationStore | null>(null);
 
 export function OrganizationProvider({ builtInOrganizationId, children }: { builtInOrganizationId: string; children: ReactNode }) {
   const [store] = useState(() => createOrganizationStore({ builtInOrganizationId }));
-  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
   const pathname = usePathname();
   useEffect(() => { store.hydrate(); }, [store]);
   useEffect(() => {
@@ -23,6 +23,6 @@ export function OrganizationProvider({ builtInOrganizationId, children }: { buil
 export function useOrganizations() {
   const store = useContext(OrganizationContext);
   if (!store) throw new Error("OrganizationProvider is required.");
-  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
   return { store, snapshot };
 }

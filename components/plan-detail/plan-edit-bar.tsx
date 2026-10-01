@@ -23,7 +23,7 @@ export function PlanEditBar({ changes, migrationCount = 0, migrationCustomers = 
         <p className="font-medium">{changeCount} {changeCount === 1 ? "change" : "changes"}</p>
         <p className="text-caption text-ink-muted">{changes.createsVersion ? `New customers receive v${changes.nextVersion}. Migration is optional.` : "No new feature version."}</p>
         {changes.affectsAllCustomers && <p className="text-caption font-medium">All {formatNumber(changes.affectedCustomers)} customers across all versions · next renewal</p>}
-        {migrationCount > 0 && <p className="text-caption font-medium">{formatNumber(migrationCustomers)} customers scheduled to move to v{targetVersion} at renewal</p>}
+        {migrationCount > 0 && <p className="text-caption font-medium">{formatNumber(migrationCustomers)} customers selected to move to v{targetVersion} on confirmation</p>}
         {invalid && <p className="text-caption text-critical">Complete the highlighted fields before reviewing.</p>}
       </div>
       <div className="flex flex-wrap items-center gap-3">
