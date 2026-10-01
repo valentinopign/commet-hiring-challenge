@@ -1,4 +1,61 @@
-# Commet Challenge
+# Nimbus pricing dashboard
+
+An internal pricing dashboard for the Nimbus team to manage plans, credits and customer feature versions. Built with Next.js 16, React 19, TypeScript and Tailwind CSS 4.
+
+**Live demo:** https://commet-hiring-challenge.vercel.app/
+
+## Run locally
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Run the tests in another terminal:
+
+```bash
+pnpm test
+```
+
+## What it includes
+
+- Overview, credit pack reference, and plan details with version history and feature changes.
+- Plan and version comparison, plus five-step plan creation with an animated pricing ladder.
+- In-place editing, new feature versions and confirmed customer migration.
+- Onboarding for new organizations, plus dark and light dashboard themes.
+
+Nimbus represents a company with a mature catalog. Onboarding covers the opposite case: a company starting from zero, guided through its first features and plan with a live dashboard preview. The dashboard is a daily work tool, so it is deliberately restrained: color only when it carries meaning, no decorative motion competing with the data. Onboarding happens once per company, so that is where I allowed a more expressive layer: the animated background, the intro and the transition into the dashboard.
+
+## Suggested walkthrough
+
+1. Open the Overview: customer distribution and how plans step up.
+2. Open Growth: 88% of its customers are on retired versions. Follow the alert to move them.
+3. Compare Growth with Scale to see what separates them.
+4. Edit Growth: change a feature and the price, and review who each change reaches before publishing.
+5. Create a plan from scratch and watch it take its place on the ladder. Use **Reset demo** to start over.
+
+## Data and reset
+
+Completed catalogs, published plans, edits and customer moves live in this browser's localStorage. `data/catalog.ts` seeds Nimbus on the first visit. **Reset demo** restores that seed and removes created organizations, while keeping the theme. Unfinished drafts are not saved; if storage is unavailable, changes last only for the current session.
+
+## Main decisions and limits
+
+- I did not change the source data or its types. I reshape it for display through pure functions in `lib/derive` (resolved features, version diffs, customer impact, neighbouring plans).
+- Only features are versioned; existing customers keep their version unless explicitly moved.
+- Prices, included credits and exhaustion policy belong to the plan and affect every version at renewal.
+- The prototype applies customer migration on confirmation; a real system would apply it at each customer's renewal.
+- Managing credit packs and adding catalog features after onboarding are outside the current workflow: they need their own rules (pack pricing, and how new features reach existing versions). New plans can still choose which existing packs they join.
+- There is no real backend, billing execution or cross-device persistence.
+- Tabs do not synchronize; concurrent changes can overwrite one another.
+
+See [DECISIONS.md](DECISIONS.md) for the detailed design choices and trade-offs.
+
+## Architecture
+
+Pricing logic lives in pure, tested functions in `lib/derive`, separate from the interface.
+Exposing it as an API or SDK would wrap that layer without rewriting its rules.
+
+## Original brief
 
 Commet is the platform where a company configures how it charges its customers. This exercise is an interface inside the Commet dashboard. You don't need to follow Commet's design system: typography, color, layout and components are your call. We evaluate your design judgment as much as your code.
 
@@ -6,12 +63,12 @@ Nimbus is a customer of Commet: it generates images, copy and video with AI, and
 
 The people using it are the Nimbus team: technical people shipping their own product and changing its pricing often. Not Nimbus end customers.
 
-## Objective
+### Objective
 
 1. **Present complex data.** Someone at Nimbus opens the interface and understands how they are charging their customers.
 2. **Create a new plan.** A flow that takes them from nothing to a published plan, understanding what each decision means before making it.
 
-## Questions to start from
+### Questions to start from
 
 Starting points, not a checklist. You don't need to answer every one.
 
@@ -29,7 +86,7 @@ Starting points, not a checklist. You don't need to answer every one.
 - What does the person need to see before publishing?
 - How do they notice a plan that doesn't make sense next to the others?
 
-## Data model
+### Data model
 
 Nimbus charges in credits: every plan includes an amount per period, and every action in the product consumes a different amount.
 
@@ -55,7 +112,7 @@ Nimbus charges in credits: every plan includes an amount per period, and every a
 
 Amounts are in cents: `9900` is $99.00.
 
-### How the entities relate
+#### How the entities relate
 
 The credit chain: the `PlanPrice` sets a budget (`includedCredits`), consumption features spend it (`creditsPerUnit` × usage), the `exhaustionPolicy` decides what happens when it runs out, and a `creditPack` buys more without changing plan.
 
@@ -64,49 +121,12 @@ The credit chain: the `PlanPrice` sets a budget (`includedCredits`), consumption
 - A `ReleaseFeature` configures, by `code`, a feature that already exists in the catalog. The same feature is configured differently in every version of every plan.
 - `subscriptionsByRelease` joins the plans on `planCode` + `version`.
 
-## Scope
+### Scope
 
 One page or several, laid out however presents the information best. Nothing has to persist — faking the save is fine. What matters is what you choose to show, in what order, and what you leave out, and that the experience makes clear what each field means before it is set.
 
 The data is organized for storage, not for display. The interface doesn't have to follow its structure, and you can reshape it if it gets in the way. Tell us what you changed.
 
-You can use AI agents. The code you hand in is yours and we will read it.
-
-## Delivering
+### Delivering
 
 Create a public repository from this template with "Use this template", work there, and email the link to decker@commet.co with a few lines on what you left out and why.
-
-## Running
-
-```bash
-pnpm install
-pnpm dev
-```
-
-## Local company demo
-
-Nimbus and completed local companies use the same versioned localStorage store. The first visit seeds Nimbus from `data/catalog.ts`; creating plans, editing plan properties or features, and confirming customer moves saves them in this browser and survives reload. Nimbus keeps its existing root URLs.
-
-In **Edit plan → Configure migration**, select an existing destination and source versions, then **Done → Confirm & move customers**. The demo applies the move immediately, updates version counts and preserves other unsaved plan changes. When feature changes create a new version, **Review & publish** saves that version and the selected moves together. Price, credit and policy effects keep their next-renewal scope. Previously saved pending moves remain visible until explicitly replaced by a confirmed move.
-
-Open **Add organization** from the switcher, name the company, define features and create plans. **Finish setup** saves the company and opens its dashboard. The switcher returns to Nimbus or any saved company; each catalog keeps its own plans and pending moves.
-
-Nimbus's initial server HTML comes from the seed. After hydration, saved values can replace that content. Local companies show a loading state until their browser data loads. An updated seed version restores Nimbus to the current seed and clears its pending moves, with a notice; saved local companies and their moves remain.
-
-Saved data is specific to this browser. Unfinished onboarding and plan drafts are not saved. Storage failures keep changes in memory with a warning. **Reset demo**, below dashboard content, restores Nimbus to its seed, removes created companies and clears pending moves after confirmation. It preserves the theme and unrelated storage keys. Simultaneous tabs can overwrite one another's saved changes; cross-tab synchronization and conflict handling remain outside this prototype.
-
-## Editing and confirmed customer moves
-
-**Edit plan** opens controls inside the current plan detail. Review separates feature changes (a new version for new customers) from price, credits and exhaustion changes (all customers at renewal). **Configure migration**, beside Review & publish in the fixed bottom action bar, opens a side panel to select a destination and source versions. For an existing destination, **Done** opens a confirmation and **Confirm & move customers** applies only the migration immediately, preserving other unsaved plan controls. Feature changes fix the destination to the prospective release; **Review & publish** creates that version and moves selected customers together. Otherwise the current release is the default and an intermediate version can be chosen. Only forward moves are allowed. Each selected source shows its feature diff and customer impact; ordinary editing starts unchecked.
-
-**Migrate customers** links in the retired-version alert and timeline enter the same editing mode and open the migration panel; timeline links preselect their source version. Confirmed moves update subscription counts, version bars and alerts immediately, and persist with the catalog in this browser for Nimbus and local companies. In a real system, migration would be scheduled for each customer's renewal; the prototype applies it on confirmation so the result is observable without a billing simulator. Legacy pending records from earlier saved data remain labelled as scheduled and do not change counts until explicitly replaced by a confirmed move. This prototype does not execute billing renewals or offer a separate migration screen.
-
-Adding catalog features, changing billing structure or periods, and editing packs remain outside plan editing.
-
-Verification:
-
-```bash
-pnpm typecheck
-pnpm test
-pnpm build
-```
