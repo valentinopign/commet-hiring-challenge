@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { PolicyOption } from "@/components/create-plan/policy-option";
 import { AmountInput } from "@/components/create-plan/amount-input";
 import { CreditPackSelector } from "@/components/create-plan/credit-pack-selector";
 import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
@@ -14,51 +14,10 @@ import { warningStep } from "@/lib/create-plan/steps";
 import type { PlanSummary } from "@/lib/derive/types";
 import { formatMoney, formatSavings, getCurrencySymbol } from "@/lib/format";
 
-function listNames(names: string[]): string {
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-}
-
 function describePolicy(policy: ExhaustionPolicy, currency: string): string {
   return policy.type === "block"
     ? "stops the service"
     : `${formatMoney(policy.pricePer1000Credits, currency)} per 1,000 extra credits`;
-}
-
-type PolicyOptionProps = {
-  id?: string;
-  value: ExhaustionPolicy["type"];
-  checked: boolean;
-  title: string;
-  usedBy: string[];
-  describedBy?: string;
-  onChoose: () => void;
-  children: ReactNode;
-};
-
-/** The explanation sits inside the option, so it is read before choosing, not after. */
-function PolicyOption({ id, value, checked, title, usedBy, describedBy, onChoose, children }: PolicyOptionProps) {
-  return (
-    <label className="flex cursor-pointer gap-3 rounded-card border border-line bg-surface-card p-4 transition-colors hover:border-line-strong has-checked:border-live has-checked:bg-live-soft">
-      <input
-        id={id}
-        type="radio"
-        name="exhaustion-policy"
-        value={value}
-        checked={checked}
-        onChange={onChoose}
-        aria-describedby={describedBy}
-        className="mt-0.5 size-4 shrink-0 accent-live"
-      />
-      <span className="min-w-0 space-y-1.5">
-        <span className="block font-medium">{title}</span>
-        <span className="block space-y-1.5 text-ink-muted">{children}</span>
-        {usedBy.length > 0 && (
-          <span className="block text-caption text-ink-muted">Today: {listNames(usedBy)}.</span>
-        )}
-      </span>
-    </label>
-  );
 }
 
 function neighbourLine(plan: PlanSummary | null, relation: string, currency: string) {

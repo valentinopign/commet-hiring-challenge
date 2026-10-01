@@ -12,8 +12,8 @@ export async function generateMetadata({ params }: PageProps<"/plans/[code]">): 
 
 export default async function PlanPage({ params, searchParams }: PageProps<"/plans/[code]">) {
   const { code } = await params;
-  const { version } = await searchParams;
+  const { version, edit } = await searchParams;
   const detail = getPlanDetail(catalog, code);
   if (!detail) notFound();
-  return <CatalogPlanDetail catalog={catalog} detail={detail} version={version} />;
+  return <CatalogPlanDetail catalog={catalog} detail={detail} version={version} editRequested={edit === "1" || edit === "instant"} animateEditEntry={edit !== "instant"} />;
 }

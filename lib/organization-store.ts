@@ -1,5 +1,6 @@
 import type { Catalog } from "@/lib/catalog";
 import { isCatalog } from "@/lib/validate-catalog";
+import { isScheduledMigration, publishPlanEdit, type ScheduledMigration, type EditPublicationRequest, type PublicationResult } from "@/lib/edit-plan/publication";
 
 export const ORGANIZATION_STORAGE_KEY = "commet.demo.organizations";
 export const ORGANIZATION_SCHEMA_VERSION = 1;
@@ -7,6 +8,7 @@ export const ORGANIZATION_SCHEMA_VERSION = 1;
 export type OrganizationSnapshot = {
   hydrated: boolean;
   organizations: readonly Catalog[];
+  scheduledMigrations: readonly ScheduledMigration[];
   activeOrganizationId: string;
   persistence: "local" | "memory";
   recovery: "none" | "invalid-data" | "unsupported-version" | "partial-data";
@@ -37,7 +39,7 @@ function freeze<T>(value: T, seen = new WeakSet<object>()): T {
 export function createOrganizationStore({ builtInOrganizationId, storage = browserStorage }: StoreOptions) {
   let adapter: StorageAdapter | null = null;
   let snapshot: OrganizationSnapshot = freeze({
-    hydrated: false, organizations: [], activeOrganizationId: builtInOrganizationId,
+    hydrated: false, organizations: [], scheduledMigrations: [], activeOrganizationId: builtInOrganizationId,
     persistence: "memory", recovery: "none",
   });
   const listeners = new Set<() => void>();
@@ -50,6 +52,7 @@ export function createOrganizationStore({ builtInOrganizationId, storage = brows
   function hydrate() {
     if (snapshot.hydrated) return;
     let organizations: Catalog[] = [];
+    const scheduledMigrations: ScheduledMigration[] = [];
     let activeOrganizationId = builtInOrganizationId;
     let recovery: OrganizationSnapshot["recovery"] = "none";
     let raw: string | null = null;
@@ -76,10 +79,20 @@ export function createOrganizationStore({ builtInOrganizationId, storage = brows
           }
           if (ids.has(payload.activeOrganizationId)) activeOrganizationId = payload.activeOrganizationId;
           else recovery = "partial-data";
+          if ("scheduledMigrations" in payload) {
+            if (!Array.isArray(payload.scheduledMigrations)) recovery = "partial-data";
+            else for (const candidate of payload.scheduledMigrations) {
+              if (!isScheduledMigration(candidate, organizations) || scheduledMigrations.some((item) => item.organizationId === candidate.organizationId && item.planCode === candidate.planCode && item.fromVersion === candidate.fromVersion)) {
+                recovery = "partial-data";
+                continue;
+              }
+              scheduledMigrations.push(candidate);
+            }
+          }
         }
       } catch { recovery = "invalid-data"; }
     }
-    notify({ hydrated: true, organizations, activeOrganizationId, recovery, persistence: adapter ? "local" : "memory" });
+    notify({ hydrated: true, organizations, scheduledMigrations, activeOrganizationId, recovery, persistence: adapter ? "local" : "memory" });
   }
 
   function write(next: OrganizationSnapshot, reset = false, recovery: OrganizationSnapshot["recovery"] = "none"): MutationResult {
@@ -88,6 +101,7 @@ export function createOrganizationStore({ builtInOrganizationId, storage = brows
       else adapter?.setItem(ORGANIZATION_STORAGE_KEY, JSON.stringify({
         version: ORGANIZATION_SCHEMA_VERSION,
         organizations: next.organizations,
+        scheduledMigrations: next.scheduledMigrations,
         activeOrganizationId: next.activeOrganizationId,
       }));
     } catch { adapter = null; }
@@ -99,6 +113,15 @@ export function createOrganizationStore({ builtInOrganizationId, storage = brows
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     hydrate,
+    publishEdit(organizationId: string, request: EditPublicationRequest): PublicationResult {
+      hydrate();
+      const latest = snapshot.organizations.find((entry) => entry.organization.id === organizationId);
+      if (!latest) return { ok: false, reason: "unknown-organization" };
+      const result = publishPlanEdit(latest, snapshot.scheduledMigrations, request);
+      if (!result.ok) return result;
+      write({ ...snapshot, organizations: snapshot.organizations.map((entry) => entry.organization.id === organizationId ? result.publication.catalog : entry), scheduledMigrations: result.publication.schedules });
+      return { ...result, persistence: snapshot.persistence };
+    },
     saveCatalog(catalog: unknown, activate = true): MutationResult {
       hydrate();
       if (!isCatalog(catalog)) return { ok: false, reason: "invalid-catalog" };
@@ -121,7 +144,7 @@ export function createOrganizationStore({ builtInOrganizationId, storage = brows
     },
     resetDemo(): MutationResult {
       hydrate();
-      return write({ ...snapshot, organizations: [], activeOrganizationId: builtInOrganizationId }, true);
+      return write({ ...snapshot, organizations: [], scheduledMigrations: [], activeOrganizationId: builtInOrganizationId }, true);
     },
   };
 }

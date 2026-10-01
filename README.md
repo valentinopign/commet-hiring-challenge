@@ -89,6 +89,14 @@ Open **Add organization** from the organization switcher, name the company, defi
 
 Completed companies use versioned localStorage data. They are not shared between browsers/devices and unfinished onboarding or plan drafts are not saved. If storage is blocked, the interface keeps working in memory and displays a warning. **Reset demo**, below dashboard content, removes created companies after confirmation without changing Nimbus or the theme.
 
+## Editing and scheduled moves
+
+**Edit plan** opens controls inside the current plan detail. Review separates feature changes (a new version for new customers) from price, credits and exhaustion changes (all customers at renewal). **Configure migration**, beside Review & publish in the fixed bottom action bar, opens a side panel to select a destination and existing customer versions, with or without other edits. Closing the panel keeps the selection; publication happens in Review. Feature changes fix the destination to the new release; otherwise the current release is the default and an intermediate version can be chosen. Only forward moves are allowed. Each selected source counts as a change and shows its own feature diff and customer impact; ordinary editing starts unchecked.
+
+**Migrate customers** links in the retired-version alert and timeline enter the same editing mode and open the migration panel; timeline links preselect their source version. Scheduled moves appear on their source versions in the timeline and in the retired-version alert. They do not change current subscription counts. Local companies save edits and pending moves together in this browser. Nimbus simulates them on the current detail page only: reloading restores its original data. This prototype does not execute renewals or offer a separate migration screen.
+
+Adding catalog features, changing billing structure or periods, and editing packs remain outside plan editing.
+
 Verification:
 
 ```bash

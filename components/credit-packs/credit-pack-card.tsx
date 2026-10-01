@@ -36,9 +36,9 @@ export function CreditPackCard({ row: { pack, plans }, currency }: CreditPackCar
         </dd>
       </dl>
 
-      <dl className={SECTION}>
+      <dl className={`${SECTION} flex flex-col`}>
         <dt className={`${TERM} mb-1.5`}>Available on</dt>
-        <dd>
+        <dd className="flex flex-1 flex-col">
           <PackPlanAvailability plans={plans} currency={currency} />
         </dd>
       </dl>

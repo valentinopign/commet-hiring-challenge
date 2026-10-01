@@ -13,13 +13,13 @@ const SEVERITY_STYLES: Record<Severity, { label: string; text: string; box: stri
   info: { label: "Note", text: "text-info", box: "border-info/30 bg-info-soft", icon: <InfoIcon /> },
 };
 
-type InlineAlertProps = { severity: Severity; copy: AlertCopy };
+type InlineAlertProps = { severity: Severity; copy: AlertCopy; action?: ReactNode };
 
 /**
  * One compact line inside the section it explains. When there is more to say (how the situation
  * came about), "Why" folds it into a native disclosure, animated like the sidebar's.
  */
-export function InlineAlert({ severity, copy }: InlineAlertProps) {
+export function InlineAlert({ severity, copy, action }: InlineAlertProps) {
   const style = SEVERITY_STYLES[severity];
   const line = (
     <>
@@ -47,6 +47,7 @@ export function InlineAlert({ severity, copy }: InlineAlertProps) {
       ) : (
         <p className="flex items-start gap-2.5">{line}</p>
       )}
+      {action && <div className="pl-6.5">{action}</div>}
     </li>
   );
 }

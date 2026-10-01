@@ -409,6 +409,93 @@
   animation: onboarding-workspace-in 700ms var(--ease-emphasized) 950ms both;
 }
 
+.plan-edit-enter {
+  transition: opacity 180ms var(--ease-emphasized), transform 180ms var(--ease-emphasized);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.plan-edit-enter-pricing { transition-delay: 30ms; }
+.plan-edit-enter-features { transition-delay: 60ms; }
+
+.plan-review-dialog {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 250ms var(--ease-emphasized), transform 250ms var(--ease-emphasized);
+  &[open] {
+    @starting-style { opacity: 0; transform: translateX(8%); }
+  }
+  &[data-closing="true"] {
+    opacity: 0;
+    transform: translateX(8%);
+    transition-duration: 200ms;
+  }
+  &::backdrop {
+    opacity: 1;
+    transition: opacity 200ms var(--ease-emphasized);
+    @starting-style { opacity: 0; }
+  }
+  &[data-closing="true"]::backdrop { opacity: 0; }
+}
+
+.plan-read-enter {
+  transition: opacity 180ms var(--ease-emphasized), transform 180ms var(--ease-emphasized);
+  @starting-style { opacity: 0; transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-review-dialog,
+  .plan-review-dialog[data-closing="true"],
+  .plan-read-enter {
+    transform: none;
+    transition: opacity 150ms var(--ease-emphasized);
+    @starting-style { opacity: 0; transform: none; }
+  }
+  .plan-review-dialog[open] {
+    @starting-style { opacity: 0; transform: none; }
+  }
+  .plan-review-dialog::backdrop { transition-duration: 150ms; }
+}
+
+.plan-review-dialog[data-animate="false"] {
+  transform: none;
+  transition: none;
+  &[open] { @starting-style { opacity: 1; transform: none; } }
+  &::backdrop { transition: none; @starting-style { opacity: 1; } }
+}
+
+.plan-edit-bar {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  transition: opacity 180ms var(--ease-emphasized), transform 180ms var(--ease-emphasized);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-edit-enter,
+  .plan-edit-bar {
+    transition: opacity 150ms var(--ease-emphasized);
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
+
+[data-edit-animate="false"] {
+  .plan-edit-enter,
+  .plan-edit-bar {
+    transition: none;
+    @starting-style {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
 .setup-handoff {
   position: fixed;
   inset: 0;

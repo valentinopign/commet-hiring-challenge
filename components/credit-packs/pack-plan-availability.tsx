@@ -12,11 +12,11 @@ export function PackPlanAvailability({ plans, currency }: PackPlanAvailabilityPr
   const unavailable = plans.filter((plan) => !plan.isAvailable);
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       {available.length === 0 ? (
-        <p className="text-ink-muted">Not available on any plan.</p>
+        <p className="flex-1 text-ink-muted">Not available on any plan.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="flex-1 space-y-2">
           {available.map((plan) => (
             <li key={plan.planCode}>
               <span className="font-medium">{plan.planName}</span>

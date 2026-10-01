@@ -3,8 +3,10 @@ import { describeVersionStatus } from "@/components/plan-detail/version-status";
 import { WidgetHeader } from "@/components/ui/widget-header";
 import type { TimelineEntry } from "@/lib/derive/types";
 import { formatDate, formatNumber } from "@/lib/format";
+import type { ScheduledMigration } from "@/lib/edit-plan/publication";
+import { MigrationEntryLink } from "./migration-entry-link";
 
-type VersionTimelineProps = { timeline: TimelineEntry[] };
+type VersionTimelineProps = { timeline: TimelineEntry[]; schedules?: readonly ScheduledMigration[]; planCode?: string };
 
 function describeCustomers(entry: TimelineEntry): string {
   if (entry.subscriptions === 0) return "No customers";
@@ -13,8 +15,9 @@ function describeCustomers(entry: TimelineEntry): string {
 }
 
 /** Newest first: the version new customers get today is what the team asks about most. */
-export function VersionTimeline({ timeline }: VersionTimelineProps) {
+export function VersionTimeline({ timeline, schedules = [], planCode }: VersionTimelineProps) {
   const newestFirst = [...timeline].reverse();
+  const currentVersion = timeline.find((entry) => entry.isCurrent && entry.status === "published")?.version;
 
   return (
     <section aria-labelledby="timeline-heading" className="flex flex-col overflow-hidden rounded-card border border-line">
@@ -42,9 +45,11 @@ export function VersionTimeline({ timeline }: VersionTimelineProps) {
                   {entry.replacedAt && <> · replaced {formatDate(entry.replacedAt)}</>}
                 </p>
                 <p className="mt-0.5 tabular-nums">{describeCustomers(entry)}</p>
+                {schedules.filter((item) => item.fromVersion === entry.version).map((item) => <p key={item.toVersion} className="mt-1 text-caption font-medium text-info">{formatNumber(item.customers)} customers scheduled to move to v{item.toVersion} at renewal.</p>)}
                 {entry.isCurrent && (
                   <p className="text-caption text-ink-muted">New customers get this version.</p>
                 )}
+                {planCode && currentVersion !== undefined && entry.status === "retired" && entry.subscriptions > 0 && entry.version < currentVersion && <MigrationEntryLink planCode={planCode} currentVersion={currentVersion} sourceVersion={entry.version} />}
               </li>
             );
           })}
