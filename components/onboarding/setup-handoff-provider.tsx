@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { emphasizedEasing, prefersReducedMotion } from "@/components/ui/motion";
-import { getHandoffTiming } from "@/lib/onboarding/handoff-timing";
+import { destinationWaitLimit, getHandoffTiming } from "@/lib/onboarding/handoff-timing";
 import { ditherMasks } from "./dither-masks";
 
 type Handoff = { destination: string; origin: string; scene: HTMLElement | null; background: HTMLElement | null; reduced: boolean };
@@ -82,11 +82,15 @@ export function SetupHandoffProvider({ children }: { children: ReactNode }) {
     const animations: Animation[] = [];
     let cancelled = false;
     let started = false;
+    let hiddenShell: HTMLElement | null = null;
     const reveal = () => {
       const dashboard = document.querySelector<HTMLElement>("[data-organization-dashboard] #main");
       const shell = dashboard?.closest<HTMLElement>("[data-organization-dashboard]");
       if (!dashboard || !shell || started) return;
       started = true;
+      // The dashboard is invisible during the exit, so it must not receive clicks or focus yet.
+      shell.inert = true;
+      hiddenShell = shell;
       const timing = getHandoffTiming(handoff.reduced);
       const easing = emphasizedEasing();
       if (handoff.background && !handoff.reduced) {
@@ -123,6 +127,7 @@ export function SetupHandoffProvider({ children }: { children: ReactNode }) {
       Promise.all(animations.map((animation) => animation.finished)).then(() => {
         if (cancelled) return;
         busy.current = false;
+        shell.inert = false;
         setHandoff(null);
         if (origin.current) origin.current.inert = false;
         dashboard.setAttribute("tabindex", "-1");
@@ -133,7 +138,21 @@ export function SetupHandoffProvider({ children }: { children: ReactNode }) {
     // Wait for the company's real content, rather than dissolving into a loading screen.
     const observer = new MutationObserver(reveal);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => { cancelled = true; observer.disconnect(); animations.forEach((animation) => animation.cancel()); };
+    // A loading, missing or failed destination ends the handoff instead of waiting forever.
+    const fallback = setTimeout(() => {
+      if (started) return;
+      started = true;
+      observer.disconnect();
+      busy.current = false;
+      setHandoff(null);
+    }, destinationWaitLimit);
+    return () => {
+      cancelled = true;
+      clearTimeout(fallback);
+      observer.disconnect();
+      animations.forEach((animation) => animation.cancel());
+      if (hiddenShell) hiddenShell.inert = false;
+    };
   }, [handoff, pathname]);
 
   return <SetupHandoffContext value={begin}>
