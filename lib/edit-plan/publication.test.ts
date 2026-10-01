@@ -115,6 +115,13 @@ describe("edit publication and scheduled migrations", () => {
       expect(publishPlanEdit(catalog, [], { ...base, ...selection })).toEqual({ ok: false, reason: "invalid-migration" });
     }
   });
+  it("offers only destinations that still have a source without a scheduled move", () => {
+    const scheduled = (fromVersion: number): ScheduledMigration => ({ organizationId: catalog.organization.id, planCode: plan.code, fromVersion, toVersion: 3, customers: 1, scheduledAt: "2026-10-01T16:00:00Z" });
+    const onlyFirst = deriveMigrationSelection(catalog, plan, createEditState(catalog, plan), [scheduled(1)], 3, []);
+    expect(onlyFirst.destinations.map((release) => release.version)).toEqual([3]);
+    const both = deriveMigrationSelection(catalog, plan, createEditState(catalog, plan), [scheduled(1), scheduled(2)], 3, []);
+    expect(both.destinations).toEqual([]);
+  });
   it("filters source selection as targets change or feature changes are reverted", () => {
     const initial = createEditState(catalog, plan);
     const intermediate = deriveMigrationSelection(catalog, plan, initial, [], 2, [1, 2]);

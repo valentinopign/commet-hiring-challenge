@@ -49,7 +49,7 @@ export function VersionTimeline({ timeline, schedules = [], planCode }: VersionT
                 {entry.isCurrent && (
                   <p className="text-caption text-ink-muted">New customers get this version.</p>
                 )}
-                {planCode && currentVersion !== undefined && entry.status === "retired" && entry.subscriptions > 0 && entry.version < currentVersion && <MigrationEntryLink planCode={planCode} currentVersion={currentVersion} sourceVersion={entry.version} />}
+                {planCode && currentVersion !== undefined && entry.status === "retired" && entry.subscriptions > 0 && entry.version < currentVersion && !schedules.some((item) => item.fromVersion === entry.version) && <MigrationEntryLink planCode={planCode} currentVersion={currentVersion} sourceVersion={entry.version} />}
               </li>
             );
           })}

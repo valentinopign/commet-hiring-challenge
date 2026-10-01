@@ -21,7 +21,8 @@ export function PlanAlerts({ alerts, planName, planNames, schedules = [] }: Plan
         <InlineAlert
           key={`${alert.type}-${index}`}
           severity={alert.severity}
-          action={alert.type === "majority_on_retired" ? <MigrationEntryLink planCode={alert.planCode} currentVersion={alert.currentReleaseVersion} /> : undefined}
+          // Once every retired customer has a scheduled move there is nothing left to migrate.
+          action={alert.type === "majority_on_retired" && schedules.filter((item) => item.planCode === alert.planCode).reduce((total, item) => total + item.customers, 0) < alert.retiredSubscriptions ? <MigrationEntryLink planCode={alert.planCode} currentVersion={alert.currentReleaseVersion} /> : undefined}
           copy={alert.type === "majority_on_retired" && schedules.some((item) => item.planCode === alert.planCode) ? (() => {
             const relevant = schedules.filter((item) => item.planCode === alert.planCode);
             const count = relevant.reduce((total, item) => total + item.customers, 0);

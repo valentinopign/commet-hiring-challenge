@@ -86,7 +86,9 @@ export function PlanDetailEditor(props: Props) {
 
 function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, diff, editRequested, animateEditEntry = true, readOnly, history, schedules = [], onPublish, migrationEntry }: Props & { original: Plan }) {
   const router = useRouter();
-  const [editing, setEditing] = useState(editRequested && viewedVersion === original.currentReleaseVersion);
+  // A URL can request editing, but only a published current release has values to edit.
+  const canEdit = getCurrentRelease(original)?.status === "published";
+  const [editing, setEditing] = useState(canEdit && editRequested && viewedVersion === original.currentReleaseVersion);
   const [animateEntry, setAnimateEntry] = useState(animateEditEntry);
   const [state, dispatch] = useReducer(editPlanReducer, original, (plan) => createEditState(catalog, plan));
   const [barHeight, setBarHeight] = useState(0);
@@ -96,11 +98,10 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
   const [selectedVersions, setSelectedVersions] = useState<number[]>(() => migrationEntry && /^\d+$/.test(migrationEntry) ? [Number(migrationEntry)] : []);
   const [targetVersion, setTargetVersion] = useState(original.currentReleaseVersion);
   const [migrationNotice, setMigrationNotice] = useState("");
-  const [migrationOpen, setMigrationOpen] = useState(Boolean(migrationEntry && editRequested));
+  const [migrationOpen, setMigrationOpen] = useState(Boolean(canEdit && migrationEntry && editRequested));
   const migrationButton = useRef<HTMLButtonElement>(null);
   const editButton = useRef<HTMLButtonElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
-  const canEdit = getCurrentRelease(original)?.status === "published";
   const changes = derivePlanChanges(catalog, original, state.draft, state.pending);
   const migration = deriveMigrationSelection(catalog, original, state, schedules, targetVersion, selectedVersions);
   const validSelectionKey = JSON.stringify(migration.selectedVersions);
@@ -118,11 +119,11 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
   }, [editing, migrationEntry]);
 
   useEffect(() => {
-    if (!editRequested || !migrationEntry || viewedVersion !== original.currentReleaseVersion) return;
+    if (!canEdit || !editRequested || !migrationEntry || viewedVersion !== original.currentReleaseVersion) return;
     setEditing(true);
     setMigrationOpen(true);
     setSelectedVersions(/^\d+$/.test(migrationEntry) ? [Number(migrationEntry)] : []);
-  }, [editRequested, migrationEntry, viewedVersion, original.currentReleaseVersion]);
+  }, [canEdit, editRequested, migrationEntry, viewedVersion, original.currentReleaseVersion]);
 
   useEffect(() => {
     const valid: number[] = JSON.parse(validSelectionKey);

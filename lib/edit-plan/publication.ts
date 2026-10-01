@@ -40,7 +40,7 @@ export function deriveMigrationSelection(catalog: Catalog, plan: Plan, state: Dr
   const allOptions = getMigrationOptions(catalog, plan, targetFeatures, schedules);
   const options = validTarget ? allOptions.filter((option) => option.version < targetVersion && option.customers > 0) : [];
   const selected = options.filter((option) => selectedVersions.includes(option.version) && !option.disabled);
-  return { targetVersion, targetFeatures, validTarget, destinations: destinations.filter((release) => allOptions.some((source) => source.version < release.version && source.customers > 0)), options,
+  return { targetVersion, targetFeatures, validTarget, destinations: destinations.filter((release) => allOptions.some((source) => source.version < release.version && !source.disabled)), options,
     selectedVersions: selected.map((option) => option.version), operationCount: selected.length,
     customers: selected.reduce((total, option) => total + option.customers, 0) };
 }

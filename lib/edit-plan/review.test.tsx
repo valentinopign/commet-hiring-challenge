@@ -70,6 +70,14 @@ describe("review and scheduled migration visibility", () => {
     const entry = renderToStaticMarkup(<MigrationEntryLink planCode="growth" currentVersion={3} sourceVersion={2} />);
     expect(entry).toContain('/plans/growth?version=3&amp;edit=instant&amp;migrate=2#customer-migration');
   });
+  it("drops the alert's migration link once every retired customer has a scheduled move", () => {
+    const result = publishPlanEdit(catalog, [], { original: plan, state: createEditState(catalog, plan), selectedVersions: [1, 2], targetVersion: 3, scheduledAt: "2026-10-01T16:00:00Z" });
+    if (!result.ok) throw new Error(result.reason);
+    const detail = getPlanDetail(result.publication.catalog, "growth");
+    if (!detail) throw new Error("Missing updated detail");
+    const html = renderToStaticMarkup(<PlanDetailHistory catalog={result.publication.catalog} detail={detail} schedules={result.publication.schedules} />);
+    expect(html).not.toContain("#customer-migration");
+  });
   it("shows the selected source-to-target diff and explicitly highlights worse changes", () => {
     const html = renderToStaticMarkup(<MigrationVersionSelector catalog={catalog} plan={plan} targetVersion={4} targetFeatures={featureState.draft.features} schedules={[]} selectedVersions={[1, 2]} onChange={vi.fn()} />);
     expect(html.match(/checked=""/g)).toHaveLength(2);
@@ -89,6 +97,11 @@ describe("review and scheduled migration visibility", () => {
     expect(html).toContain("340 customers scheduled to move to v4 at renewal");
     expect(html).toContain("352 of 398 are scheduled to move to v4 at renewal");
     expect(html).toContain("46 customers on retired versions are staying on their version");
+    // Scheduled sources lose their entry link; the unscheduled former current version keeps it, and so does the alert.
+    expect(html).not.toContain("migrate=1#customer-migration");
+    expect(html).not.toContain("migrate=2#customer-migration");
+    expect(html).toContain("migrate=3#customer-migration");
+    expect(html).toContain("migrate=all#customer-migration");
     expect(detail.plan.totalSubscriptions).toBe(398);
     expect(detail.timeline.find((entry) => entry.version === 4)?.subscriptions).toBe(0);
   });
