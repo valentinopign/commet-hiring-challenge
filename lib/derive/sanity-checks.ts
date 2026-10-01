@@ -12,6 +12,8 @@ import type {
 
 /** Same shape as the existing codes (`free`, `growth`): lowercase snake_case. */
 export const PLAN_CODE_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+export const RESERVED_PLAN_CODE = "new";
+export const RESERVED_PLAN_CODE_MESSAGE = 'The code "new" is reserved for plan creation. Choose another code.';
 
 const MONTHS_PER_YEAR = 12;
 
@@ -38,7 +40,7 @@ export function checkDraftPlan(draft: DraftPlan, catalog: Catalog): DraftWarning
 }
 
 function checkCode(draft: DraftPlan, catalog: Catalog): DraftWarning[] {
-  if (!PLAN_CODE_PATTERN.test(draft.code)) {
+  if (draft.code === RESERVED_PLAN_CODE || !PLAN_CODE_PATTERN.test(draft.code)) {
     return [{ type: "code_invalid", severity: "blocking", code: draft.code }];
   }
   if (catalog.plans.some((plan) => plan.code === draft.code)) {

@@ -1,6 +1,6 @@
 import type { BillingInterval, PlanPricing } from "@/lib/catalog";
 import type { DraftFlowState, PendingField } from "@/lib/create-plan/draft-reducer";
-import { PLAN_CODE_PATTERN } from "@/lib/derive/sanity-checks";
+import { PLAN_CODE_PATTERN, RESERVED_PLAN_CODE, RESERVED_PLAN_CODE_MESSAGE } from "@/lib/derive/sanity-checks";
 import type { DraftWarning } from "@/lib/derive/types";
 
 /**
@@ -49,6 +49,8 @@ function validatePosition({ draft }: DraftFlowState, existingPlans: ExistingPlan
   const owner = existingPlans.find((plan) => plan.code === draft.code);
   if (draft.code === "") {
     issues.push({ field: "plan-code", message: "Add a code." });
+  } else if (draft.code === RESERVED_PLAN_CODE) {
+    issues.push({ field: "plan-code", message: RESERVED_PLAN_CODE_MESSAGE });
   } else if (!PLAN_CODE_PATTERN.test(draft.code)) {
     issues.push({
       field: "plan-code",

@@ -3,6 +3,14 @@ import { catalog } from "@/data/catalog";
 import { isCatalog } from "./validate-catalog";
 
 describe("isCatalog", () => {
+  it.each(["new", "Pro Plan", "UPPER", "../growth", "growth-plus", "1growth", "growth__plus", "growth_", " growth"])("rejects invalid or route-reserved plan codes: %s", (code) => {
+    const value = structuredClone(catalog);
+    const original = value.plans[0].code;
+    value.plans[0].code = code;
+    value.creditPacks.forEach((pack) => { pack.planCodes = pack.planCodes.map((entry) => entry === original ? code : entry); });
+    value.subscriptionsByRelease.forEach((entry) => { if (entry.planCode === original) entry.planCode = code; });
+    expect(isCatalog(value)).toBe(false);
+  });
   it("accepts Nimbus and an empty company using the same Catalog shape", () => {
     expect(isCatalog(catalog)).toBe(true);
     expect(isCatalog({ organization: catalog.organization, features: [], plans: [], creditPacks: [], subscriptionsByRelease: [] })).toBe(true);

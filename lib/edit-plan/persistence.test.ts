@@ -28,9 +28,9 @@ describe("publication persistence boundary", () => {
     const restored = createOrganizationStore({ builtInOrganizationId: catalog.organization.id, storage: () => adapter });
     restored.hydrate();
     expect(restored.getSnapshot().recovery).toBe("none");
-    expect(restored.getSnapshot().organizations[0].plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(4);
+    expect(restored.getSnapshot().organizations.find((entry) => entry.organization.id === local.organization.id)?.plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(4);
     expect(restored.getSnapshot().scheduledMigrations).toHaveLength(2);
-    expect(restored.getSnapshot().organizations[0].subscriptionsByRelease).toEqual(local.subscriptionsByRelease);
+    expect(restored.getSnapshot().organizations.find((entry) => entry.organization.id === local.organization.id)?.subscriptionsByRelease).toEqual(local.subscriptionsByRelease);
   });
   it("reads older organization envelopes without scheduling data", () => {
     const { local, adapter } = fixture();
@@ -59,8 +59,8 @@ describe("publication persistence boundary", () => {
     other.organization.id = "org_other";
     store.saveCatalog(other);
     expect(store.publishEdit(local.organization.id, request).ok).toBe(true);
-    expect(store.getSnapshot().organizations[0].plans[0].name).toBe("Changed Free");
-    expect(store.getSnapshot().organizations[1]).toEqual(other);
+    expect(store.getSnapshot().organizations.find((entry) => entry.organization.id === local.organization.id)?.plans[0].name).toBe("Changed Free");
+    expect(store.getSnapshot().organizations.find((entry) => entry.organization.id === other.organization.id)).toEqual(other);
   });
   it("retains a complete session transaction when localStorage writes fail", () => {
     const { local, request, adapter, store } = fixture();
@@ -68,7 +68,7 @@ describe("publication persistence boundary", () => {
     adapter.setItem.mockImplementation(() => { throw new Error("Unavailable"); });
     expect(store.publishEdit(local.organization.id, request)).toMatchObject({ ok: true, persistence: "memory" });
     expect(store.getSnapshot().scheduledMigrations).toHaveLength(2);
-    expect(store.getSnapshot().organizations[0].plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(4);
+    expect(store.getSnapshot().organizations.find((entry) => entry.organization.id === local.organization.id)?.plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(4);
   });
   it("skips invalid/duplicate schedules, retaining valid catalogs and reporting partial recovery", () => {
     const { local, request, adapter } = fixture();
@@ -81,15 +81,18 @@ describe("publication persistence boundary", () => {
     restored.hydrate();
     expect(restored.getSnapshot()).toMatchObject({ recovery: "partial-data" });
     expect(restored.getSnapshot().scheduledMigrations).toHaveLength(2);
-    expect(restored.getSnapshot().organizations).toHaveLength(1);
+    expect(restored.getSnapshot().organizations).toHaveLength(2);
   });
-  it("protects Nimbus and removes schedules with Reset demo", () => {
+  it("publishes Nimbus edits and restores the seed with Reset demo", () => {
     const { local, request, store } = fixture();
-    expect(store.publishEdit(catalog.organization.id, request)).toEqual({ ok: false, reason: "unknown-organization" });
+    const original = catalog.plans.find((plan) => plan.code === "growth");
+    if (!original) throw new Error("Missing fixture");
+    expect(store.publishEdit(catalog.organization.id, { ...request, original })).toMatchObject({ ok: true });
+    expect(store.getSnapshot().organizations[0].plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(4);
     store.saveCatalog(local);
     store.publishEdit(local.organization.id, request);
     store.resetDemo();
-    expect(store.getSnapshot()).toMatchObject({ organizations: [], scheduledMigrations: [] });
+    expect(store.getSnapshot()).toMatchObject({ organizations: [catalog], scheduledMigrations: [] });
     expect(catalog.plans.find((plan) => plan.code === "growth")?.currentReleaseVersion).toBe(3);
   });
   it("restores migration-only operations toward an intermediate version without publishing a release", () => {
@@ -99,7 +102,7 @@ describe("publication persistence boundary", () => {
     expect(store.publishEdit(local.organization.id, migrationOnly)).toMatchObject({ ok: true, publication: { createsVersion: false, migrationTargetVersion: 2 } });
     const restored = createOrganizationStore({ builtInOrganizationId: catalog.organization.id, storage: () => adapter });
     restored.hydrate();
-    expect(restored.getSnapshot().organizations[0]).toEqual(local);
+    expect(restored.getSnapshot().organizations.find((entry) => entry.organization.id === local.organization.id)).toEqual(local);
     expect(restored.getSnapshot().scheduledMigrations).toEqual([expect.objectContaining({ fromVersion: 1, toVersion: 2, customers: 12 })]);
     expect(restored.getSnapshot().recovery).toBe("none");
   });

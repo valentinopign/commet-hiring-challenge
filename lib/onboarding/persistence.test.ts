@@ -70,15 +70,15 @@ describe("onboarding to persisted dashboard", () => {
 
     // A new plan after setup updates only this company and survives another reload.
     expect(restored.saveCatalog(addOnboardingPlan(first, draft("pro"), date)).ok).toBe(true);
-    expect(restored.getSnapshot().organizations[1].plans).toHaveLength(1);
+    expect(restored.getSnapshot().organizations.find((item) => item.organization.id === "org_two")?.plans).toHaveLength(1);
     const reloaded = createOrganizationStore(options);
     reloaded.hydrate();
-    expect(reloaded.getSnapshot().organizations[0].plans).toHaveLength(3);
+    expect(reloaded.getSnapshot().organizations.find((item) => item.organization.id === "org_one")?.plans).toHaveLength(3);
     reloaded.selectOrganization(nimbus.organization.id);
-    expect(reloaded.getSnapshot().organizations).toHaveLength(2);
+    expect(reloaded.getSnapshot().organizations).toHaveLength(3);
     reloaded.resetDemo();
     expect(values.has(ORGANIZATION_STORAGE_KEY)).toBe(false);
-    expect(reloaded.getSnapshot().organizations).toEqual([]);
+    expect(reloaded.getSnapshot().organizations).toEqual([nimbus]);
     expect(nimbus.plans).toHaveLength(5);
   });
 });

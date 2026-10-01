@@ -1,4 +1,5 @@
 import type { Catalog, CatalogFeature, CreditPack, Plan, PlanPrice, PlanRelease, ReleaseFeature, ReleaseSubscriptions } from "@/lib/catalog";
+import { PLAN_CODE_PATTERN, RESERVED_PLAN_CODE } from "@/lib/derive/sanity-checks";
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -39,7 +40,7 @@ function release(value: unknown): value is PlanRelease {
     && list(value.features, releaseFeature) && unique(value.features, (feature) => feature.code);
 }
 function plan(value: unknown): value is Plan {
-  if (!record(value) || !text(value.id) || !text(value.code) || !text(value.name)
+  if (!record(value) || !text(value.id) || !text(value.code) || !PLAN_CODE_PATTERN.test(value.code) || value.code === RESERVED_PLAN_CODE || !text(value.name)
     || typeof value.description !== "string" || typeof value.isPublic !== "boolean" || typeof value.isDefault !== "boolean"
     || !positive(value.currentReleaseVersion) || !record(value.pricing) || !record(value.exhaustionPolicy)) return false;
   const pricing = value.pricing;

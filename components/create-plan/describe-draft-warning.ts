@@ -1,4 +1,5 @@
 import type { DraftWarning } from "@/lib/derive/types";
+import { RESERVED_PLAN_CODE, RESERVED_PLAN_CODE_MESSAGE } from "@/lib/derive/sanity-checks";
 import { formatFeatureValue, formatMoney, formatNumber } from "@/lib/format";
 
 export type DraftWarningCopy = { title: string; detail: string };
@@ -22,6 +23,7 @@ export function describeDraftWarning(
         detail: `${planName(warning.code)} already uses it, and a code identifies one plan only.`,
       };
     case "code_invalid":
+      if (warning.code === RESERVED_PLAN_CODE) return { title: 'The code "new" is reserved', detail: RESERVED_PLAN_CODE_MESSAGE };
       return {
         title: "The code is not valid",
         detail: "Use lowercase letters, numbers and underscores, starting with a letter, like growth_plus.",

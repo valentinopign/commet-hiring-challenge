@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { organizationPath, parseOrganizationPath, scopeCatalogHref } from "./organization-routes";
+import { NIMBUS_ORGANIZATION_ID } from "./nimbus-seed";
 
 describe("organization routes", () => {
+  it("keeps Nimbus at root paths, including comparison and creation queries", () => {
+    expect(organizationPath(NIMBUS_ORGANIZATION_ID)).toBe("/");
+    expect(organizationPath(NIMBUS_ORGANIZATION_ID, "/plans/growth")).toBe("/plans/growth");
+    expect(scopeCatalogHref("/plans/growth?compare=scale.2&diff=1#features", NIMBUS_ORGANIZATION_ID)).toBe("/plans/growth?compare=scale.2&diff=1#features");
+    expect(scopeCatalogHref("/plans/new?from=growth", NIMBUS_ORGANIZATION_ID)).toBe("/plans/new?from=growth");
+  });
   it("encodes IDs and resolves overview and nested catalog paths", () => {
     expect(organizationPath("org one")).toBe("/organizations/org%20one");
     expect(parseOrganizationPath(organizationPath("org one", "/plans/growth"))).toEqual({ id: "org one", pathname: "/plans/growth" });

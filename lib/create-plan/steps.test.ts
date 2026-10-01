@@ -25,6 +25,11 @@ function fields(step: Parameters<typeof validateStep>[0], state: DraftFlowState)
 }
 
 describe("validateStep: position", () => {
+  it("reserves new for the creation route with a clear explanation", () => {
+    expect(validateStep("position", named(createInitialState(null), "New"), [])).toEqual([
+      { field: "plan-code", message: 'The code "new" is reserved for plan creation. Choose another code.' },
+    ]);
+  });
   it("asks for a name and a code", () => {
     expect(fields("position", createInitialState(null))).toEqual(["plan-name", "plan-code"]);
   });

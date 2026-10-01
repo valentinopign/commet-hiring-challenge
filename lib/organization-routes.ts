@@ -1,5 +1,8 @@
-/** The URL identifies a local catalog without asking the server to read browser storage. */
+import { NIMBUS_ORGANIZATION_ID } from "@/lib/nimbus-seed";
+
+/** Nimbus retains its public paths; other browser catalogs use company-scoped URLs. */
 export function organizationPath(id: string, pathname = "/"): string {
+  if (id === NIMBUS_ORGANIZATION_ID) return pathname;
   return `/organizations/${encodeURIComponent(id)}${pathname === "/" ? "" : pathname}`;
 }
 

@@ -50,6 +50,7 @@ describe("checkDraftPlan", () => {
   });
 
   it("blocks a code that is already used or badly formed", () => {
+    expect(checkDraftPlan(makeDraft({ code: "new" }), catalog)[0]).toEqual({ type: "code_invalid", severity: "blocking", code: "new" });
     expect(checkDraftPlan(makeDraft({ code: "growth" }), catalog)[0]).toEqual({
       type: "code_taken",
       severity: "blocking",
