@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import type { ReactNode } from "react";
 import { outlineControlClass, primaryControlClass, touchTargetClass } from "@/components/ui/control-styles";
 

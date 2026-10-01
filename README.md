@@ -82,3 +82,17 @@ Create a public repository from this template with "Use this template", work the
 pnpm install
 pnpm dev
 ```
+
+## Local company demo
+
+Open **Add organization** from the organization switcher, name the company, define features and create one or more plans. **Finish setup** saves the company in this browser and opens its dashboard. The switcher lets you return to Nimbus or another saved company; creating a plan inside a saved company also persists it.
+
+Completed companies use versioned localStorage data. They are not shared between browsers/devices and unfinished onboarding or plan drafts are not saved. If storage is blocked, the interface keeps working in memory and displays a warning. **Reset demo**, below dashboard content, removes created companies after confirmation without changing Nimbus or the theme.
+
+Verification:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```

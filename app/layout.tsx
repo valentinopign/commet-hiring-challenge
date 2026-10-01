@@ -16,6 +16,9 @@ import { getNavigationPlans, getOrganizations } from "@/lib/derive/navigation";
 import { getPlanNames } from "@/lib/derive/plans";
 import { currentUser } from "@/lib/session";
 import { themeInitScript } from "@/lib/theme";
+import { OrganizationProvider } from "@/components/organizations/organization-provider";
+import { ResetDemo } from "@/components/organizations/reset-demo";
+import { StorageNotice } from "@/components/organizations/storage-notice";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -46,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <OrganizationProvider builtInOrganizationId={catalog.organization.id}>
         <RouteShell dashboard={<AppShell
           sidebar={sidebar}
           topBar={
@@ -59,10 +63,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             />
           }
         >
+          <StorageNotice />
           {children}
+          <ResetDemo />
         </AppShell>}>
           {children}
         </RouteShell>
+        </OrganizationProvider>
       </body>
     </html>
   );

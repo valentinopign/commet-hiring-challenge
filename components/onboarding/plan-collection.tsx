@@ -26,7 +26,7 @@ export function PlanCollection({ catalog, onAdd, onFinish, onBack }: {
           </ul>
           <div className="mt-8">
             <button type="button" onClick={onFinish} disabled={!plans.length} aria-describedby="finish-setup-hint" className="min-h-11 rounded-control bg-onboarding-ink px-5 py-3 text-sm font-medium text-onboarding-canvas disabled:cursor-not-allowed disabled:opacity-40">Finish setup <span aria-hidden="true">→</span></button>
-            <p id="finish-setup-hint" className="mt-3 text-xs text-onboarding-muted">{plans.length ? "Local preview only. Reloading clears this setup." : "Add at least one plan to finish setup."}</p>
+            <p id="finish-setup-hint" className="mt-3 text-xs text-onboarding-muted">{plans.length ? "Open your dashboard with these plans and features." : "Add at least one plan to finish setup."}</p>
           </div>
         </div>
         <DashboardPreview catalog={catalog} showPlans={false} />

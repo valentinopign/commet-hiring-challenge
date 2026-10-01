@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getPageTitle } from "@/lib/page-titles";
+import { parseOrganizationPath } from "@/lib/organization-routes";
 
 const MILLISECONDS_PER_CHARACTER = 35;
 
@@ -45,7 +46,8 @@ type PageTitleProps = { planNames: Record<string, string> };
  * and client markup identical; only a navigation types it out.
  */
 export function PageTitle({ planNames }: PageTitleProps) {
-  const title = getPageTitle(usePathname(), planNames);
+  const pathname = usePathname();
+  const title = getPageTitle(parseOrganizationPath(pathname)?.pathname ?? pathname, planNames);
   const [previousTitle, setPreviousTitle] = useState(title);
   const [hasNavigated, setHasNavigated] = useState(false);
   // Adjusting state while rendering, React's pattern for reacting to a changed value without an effect.

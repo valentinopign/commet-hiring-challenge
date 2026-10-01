@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { parseOrganizationPath } from "@/lib/organization-routes";
 
 type SidebarNavLinkProps = {
   href: string;
@@ -14,7 +15,8 @@ type SidebarNavLinkProps = {
 
 /** Client only because the active state depends on the current path. */
 export function SidebarNavLink({ href, icon, trailing, children }: SidebarNavLinkProps) {
-  const isActive = usePathname() === href;
+  const pathname = usePathname();
+  const isActive = (parseOrganizationPath(pathname)?.pathname ?? pathname) === href;
   return (
     <Link
       href={href}

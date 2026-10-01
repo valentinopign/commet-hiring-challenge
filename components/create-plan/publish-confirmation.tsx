@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { LadderList } from "@/components/create-plan/ladder-list";
 import { emphasizedEasing, prefersReducedMotion } from "@/components/ui/motion";

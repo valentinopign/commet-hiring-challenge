@@ -10,6 +10,9 @@ import { SuggestedMeasurementInput } from "@/components/onboarding/suggested-mea
 import { addOnboardingPlan } from "@/lib/onboarding/add-plan";
 import type { DraftPlan } from "@/lib/derive/types";
 import { PlanCollection } from "@/components/onboarding/plan-collection";
+import { useRouter } from "next/navigation";
+import { useOrganizations } from "@/components/organizations/organization-provider";
+import { organizationPath } from "@/lib/organization-routes";
 
 const FEATURE_TYPES = [
   { type: "credit", title: "An action", example: "Generations, API calls, renders", description: "Uses credits each time a customer does something." },
@@ -20,7 +23,10 @@ const FEATURE_TYPES = [
 export function DashboardBuilder({ companyName, ready = true }: { companyName: string; ready?: boolean }) {
   const [features, setFeatures] = useState<CatalogFeature[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [finished, setFinished] = useState(false);
+  const router = useRouter();
+  const { store } = useOrganizations();
+  const organizationId = useRef<string | null>(null);
+  const [finishError, setFinishError] = useState("");
   const [type, setType] = useState<CatalogFeature["type"]>("credit");
   const [name, setName] = useState("");
   const [unit, setUnit] = useState<string | null>(null);
@@ -31,7 +37,7 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
   const nameRef = useRef<HTMLInputElement>(null);
   const nextFeatureId = useRef(1);
   const resolvedUnit = unit ?? suggestFeatureUnit(name, type);
-  const stage = creatingPlan ? "plan" : finished ? "dashboard" : showPlanCollection ? "collection" : "product";
+  const stage = creatingPlan ? "plan" : showPlanCollection ? "collection" : "product";
 
   useEffect(() => { if (ready) headingRef.current?.focus({ preventScroll: true }); }, [stage, ready]);
 
@@ -74,7 +80,6 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
 
   function startPlan() {
     leavePlan();
-    setFinished(false);
     setCreatingPlan(true);
   }
 
@@ -83,17 +88,26 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
     leavePlan();
   }
 
-  if (stage === "collection" || stage === "dashboard") {
+  function finishSetup() {
+    if (!plans.length) return;
+    organizationId.current ??= `org_${crypto.randomUUID()}`;
+    const result = store.saveCatalog({ ...catalog, organization: { ...catalog.organization, id: organizationId.current } });
+    if (!result.ok) {
+      setFinishError("Your company could not be saved. Check your plans and try again.");
+      return;
+    }
+    setFinishError("");
+    router.push(organizationPath(organizationId.current));
+  }
+
+  if (stage === "collection") {
     return (
       <div className="onboarding-builder mx-auto w-full max-w-6xl py-8 sm:py-12">
-        <p className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / {finished ? "Dashboard" : "Your plans"}</p>
-        <h1 ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">{finished ? "Your dashboard is ready." : "Your plans."}</h1>
+        <p className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / Your plans</p>
+        <h1 ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">Your plans.</h1>
         <StepTransition key={stage} direction="forward">
-          {finished ? <>
-            <p role="status" className="mb-8 text-onboarding-muted">Setup complete. This is a local demo: reloading clears your company setup.</p>
-            <DashboardPreview catalog={catalog} completed />
-            <button type="button" onClick={() => setFinished(false)} className="onboarding-glass-button mt-8 min-h-11 px-5 py-3 text-sm font-medium">Back to your plans</button>
-          </> : <PlanCollection catalog={catalog} onAdd={startPlan} onFinish={() => setFinished(true)} onBack={plans.length ? undefined : () => setShowPlanCollection(false)} />}
+          {finishError && <p role="alert" className="mb-4 text-critical">{finishError}</p>}
+          <PlanCollection catalog={catalog} onAdd={startPlan} onFinish={finishSetup} onBack={plans.length ? undefined : () => setShowPlanCollection(false)} />
         </StepTransition>
       </div>
     );

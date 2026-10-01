@@ -1,0 +1,40 @@
+import type { Catalog } from "@/lib/catalog";
+import { PageSection } from "@/components/page-section";
+import { getAlertSection } from "@/components/plan-detail/alert-placement";
+import { FeatureConfiguration } from "@/components/plan-detail/feature-configuration";
+import { PlanAlerts } from "@/components/plan-detail/plan-alerts";
+import { PlanHeader } from "@/components/plan-detail/plan-header";
+import { PlanPricingSummary } from "@/components/plan-detail/plan-pricing-summary";
+import { PricingScopeNote } from "@/components/plan-detail/pricing-scope-note";
+import { VersionChanges } from "@/components/plan-detail/version-changes";
+import { VersionSwitcher } from "@/components/plan-detail/version-switcher";
+import { VersionTimeline } from "@/components/plan-detail/version-timeline";
+import { getFeatureRows, resolveViewedVersion } from "@/lib/derive/plan-detail";
+import type { PlanDetail } from "@/lib/derive/types";
+import { getPlanNames } from "@/lib/derive/plans";
+
+export function CatalogPlanDetail({ catalog, detail, version }: {
+  catalog: Catalog;
+  detail: PlanDetail;
+  version: string | string[] | undefined;
+}) {
+  const { plan, timeline, alerts, packComparison } = detail;
+  const currency = catalog.organization.currency;
+  const viewedVersion = resolveViewedVersion(timeline, version, plan.currentReleaseVersion);
+  const viewed = timeline.find((entry) => entry.version === viewedVersion);
+  const current = timeline.find((entry) => entry.isCurrent);
+  const planNames = getPlanNames(catalog);
+  return <>
+    <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} />
+    <PageSection id="pricing" title="Pricing" description={<PricingScopeNote totalCustomers={plan.totalSubscriptions} />}>
+      <PlanPricingSummary plan={plan} packComparison={packComparison} exhaustionAlerts={alerts.filter((alert) => getAlertSection(alert) === "pricing")} planNames={planNames} currency={currency} />
+    </PageSection>
+    <PageSection id="versions" title="Versions">
+      <PlanAlerts alerts={alerts.filter((alert) => getAlertSection(alert) === "versions")} planName={plan.name} planNames={planNames} />
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"><VersionTimeline timeline={timeline} /><VersionChanges timeline={timeline} currency={currency} /></div>
+    </PageSection>
+    <PageSection id="features" title="Features" actions={<VersionSwitcher planCode={plan.code} timeline={timeline} viewedVersion={viewedVersion} />}>
+      {viewed ? <FeatureConfiguration viewed={viewed} currentVersion={plan.currentReleaseVersion} rows={getFeatureRows(viewed, current)} currency={currency} /> : <p className="text-ink-muted">This plan has no versions to show.</p>}
+    </PageSection>
+  </>;
+}

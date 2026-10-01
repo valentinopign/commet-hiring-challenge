@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
-import { CreditPackCardGrid } from "@/components/credit-packs/credit-pack-card-grid";
-import { PageHeading } from "@/components/page-heading";
+import { CatalogCreditPacks } from "@/components/credit-packs/catalog-credit-packs";
 import { catalog } from "@/data/catalog";
-import { getCreditPackRows } from "@/lib/derive/credit-packs";
 
 export const metadata: Metadata = { title: `Credit packs · ${catalog.organization.name} pricing` };
 
 export default function CreditPacksPage() {
-  return (
-    <>
-      <PageHeading title="Credit packs" />
-      <div className="mt-4">
-        <CreditPackCardGrid rows={getCreditPackRows(catalog)} currency={catalog.organization.currency} />
-      </div>
-    </>
-  );
+  return <CatalogCreditPacks catalog={catalog} />;
 }

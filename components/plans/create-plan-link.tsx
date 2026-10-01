@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { outlineIconControlClass } from "@/components/ui/control-styles";
 

@@ -8,6 +8,8 @@ import { OrganizationMark } from "@/components/shell/organization-mark";
 import { touchTargetClass } from "@/components/ui/control-styles";
 import { prefersReducedMotion } from "@/components/ui/motion";
 import type { OrganizationOption } from "@/lib/derive/navigation";
+import { useOrganizations } from "@/components/organizations/organization-provider";
+import { organizationPath } from "@/lib/organization-routes";
 
 const POPOVER_ID = "organization-switcher";
 /** Space between the glass edge and the name it wraps. */
@@ -46,10 +48,11 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
   const headerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  // Choosing another organisation only changes the name shown: there is no other catalog to load.
-  const [selectedId, setSelectedId] = useState(currentId);
-  const selected = organizations.find((organization) => organization.id === selectedId);
-  const others = organizations.filter((organization) => organization.id !== selectedId);
+  const { store, snapshot } = useOrganizations();
+  const options = [...organizations, ...snapshot.organizations.map(({ organization }) => ({ id: organization.id, name: organization.name }))]
+    .filter((organization, index, all) => all.findIndex((candidate) => candidate.id === organization.id) === index);
+  const selected = options.find((organization) => organization.id === currentId);
+  const others = options.filter((organization) => organization.id !== currentId);
   const rowCount = others.length + 1;
 
   useEffect(() => {
@@ -79,8 +82,10 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
   }, []);
 
   function choose(organizationId: string) {
-    setSelectedId(organizationId);
+    const result = store.selectOrganization(organizationId);
+    if (!result.ok) return;
     popoverRef.current?.hidePopover();
+    router.push(snapshot.organizations.some((entry) => entry.organization.id === organizationId) ? organizationPath(organizationId) : "/");
   }
 
   const name = (

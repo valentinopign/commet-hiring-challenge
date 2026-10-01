@@ -42,6 +42,7 @@ type CreatePlanFlowProps = {
   initialBaseCode: string | null;
   onPublish?: (draft: DraftPlan) => void;
   onCancel?: () => void;
+  publicationNote?: string;
 };
 
 function deriveData(catalog: Catalog): CreatePlanData {
@@ -76,7 +77,7 @@ function writeSearchParam(name: string, value: string | null, mode: "push" | "re
  * state lives here. The step comes from the URL and is clamped to the furthest step the draft
  * allows, which also covers a reload (the draft is not persisted, so it starts over).
  */
-export function CreatePlanFlow({ catalog, initialBaseCode, onPublish, onCancel }: CreatePlanFlowProps) {
+export function CreatePlanFlow({ catalog, initialBaseCode, onPublish, onCancel, publicationNote }: CreatePlanFlowProps) {
   const data = useMemo(() => deriveData(catalog), [catalog]);
   const { bases, existingPlans, currency, ladder } = data;
   const [state, dispatch] = useReducer(
@@ -232,7 +233,7 @@ export function CreatePlanFlow({ catalog, initialBaseCode, onPublish, onCancel }
                 isReview
                   ? blockingCount > 0
                     ? "Fix what is marked Must fix to publish."
-                    : onPublish ? "Local preview only. Reloading clears this setup." : "Simulated: nothing is saved."
+                    : onPublish ? publicationNote ?? "Saved when you finish company setup. Reloading now clears this draft." : "Simulated: nothing is saved."
                   : undefined
               }
             />

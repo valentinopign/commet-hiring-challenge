@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import type { ReactNode } from "react";
 import type { AlertCopy } from "@/components/alerts/alert-copy";
 import { CriticalIcon } from "@/components/icons/critical-icon";

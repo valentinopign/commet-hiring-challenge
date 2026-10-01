@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 
 type PlanNameLinkProps = { code: string; name: string };
 

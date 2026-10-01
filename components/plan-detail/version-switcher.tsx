@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/organizations/catalog-link";
 import type { TimelineEntry } from "@/lib/derive/types";
 
 type VersionSwitcherProps = {
