@@ -32,13 +32,18 @@ export function comparePeriodPricing(left: PeriodPricing | null, right: PeriodPr
   };
 }
 
-export function comparePlanContext(left: PlanDetail, right: PlanDetail) {
+function availablePackCodes(catalog: Catalog, planCode: string): string {
+  return catalog.creditPacks.filter((pack) => pack.planCodes.includes(planCode)).map((pack) => pack.code).sort().join(",");
+}
+
+/** Packs differ when the available set differs, even if both plans share the same cheapest pack. */
+export function comparePlanContext(catalog: Catalog, left: PlanDetail, right: PlanDetail) {
   const policyImpact = compareExhaustionPolicies(left.plan.exhaustionPolicy, right.plan.exhaustionPolicy);
   return {
     customerDelta: right.plan.totalSubscriptions - left.plan.totalSubscriptions,
     policyDiffers: policyImpact !== null,
     policyImpact,
-    packDiffers: left.packComparison?.cheapestPack.code !== right.packComparison?.cheapestPack.code,
+    packDiffers: availablePackCodes(catalog, left.plan.code) !== availablePackCodes(catalog, right.plan.code),
   };
 }
 

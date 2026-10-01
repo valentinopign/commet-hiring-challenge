@@ -129,13 +129,15 @@ describe("comparison pricing and URL transitions", () => {
     expect(comparePeriodPricing(detail("free").plan.monthly, growth.plan.monthly).priceDelta).toBe(9900);
   });
   it("derives policy, pack and customer differences without assigning customer impact to totals", () => {
-    expect(comparePlanContext(detail("growth"), detail("growth"))).toEqual({ customerDelta: 0, policyDiffers: false, policyImpact: null, packDiffers: false });
-    expect(comparePlanContext(detail("free"), detail("growth"))).toMatchObject({ policyDiffers: true, packDiffers: true });
-    expect(comparePlanContext(detail("growth"), detail("starter")).policyImpact).toBe("worse");
-    expect(comparePlanContext(detail("starter"), detail("growth")).policyImpact).toBe("better");
+    expect(comparePlanContext(catalog, detail("growth"), detail("growth"))).toEqual({ customerDelta: 0, policyDiffers: false, policyImpact: null, packDiffers: false });
+    expect(comparePlanContext(catalog, detail("free"), detail("growth"))).toMatchObject({ policyDiffers: true, packDiffers: true });
+    // Scale and Enterprise share the cheapest pack but not the rest of their packs.
+    expect(comparePlanContext(catalog, detail("scale"), detail("enterprise")).packDiffers).toBe(true);
+    expect(comparePlanContext(catalog, detail("growth"), detail("starter")).policyImpact).toBe("worse");
+    expect(comparePlanContext(catalog, detail("starter"), detail("growth")).policyImpact).toBe("better");
     // Blocking versus billing overage is a trade-off, not a loss for customers.
-    expect(comparePlanContext(detail("growth"), detail("free")).policyImpact).toBe("neutral");
-    expect(comparePlanContext(detail("free"), detail("growth")).policyImpact).toBe("neutral");
+    expect(comparePlanContext(catalog, detail("growth"), detail("free")).policyImpact).toBe("neutral");
+    expect(comparePlanContext(catalog, detail("free"), detail("growth")).policyImpact).toBe("neutral");
   });
   it("classifies lower prices and higher allowances individually, leaving missing/equal amounts neutral", () => {
     expect(numericComparisonImpact(-7000, "lower")).toBe("better");

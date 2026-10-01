@@ -1,3 +1,4 @@
+import type { Catalog } from "@/lib/catalog";
 import { CoinsIcon } from "@/components/icons/coins-icon";
 import { GaugeIcon } from "@/components/icons/gauge-icon";
 import { UsersIcon } from "@/components/icons/users-icon";
@@ -8,11 +9,11 @@ import { ComparisonPeriodValue } from "@/components/plan-detail/comparison-perio
 import type { PlanDetail } from "@/lib/derive/types";
 import { comparePlanContext } from "@/lib/derive/compare-plans";
 
-type Props = { left: PlanDetail; right: PlanDetail; leftLabel: string; rightLabel: string; currency: string; planNames: Map<string, string> };
+type Props = { catalog: Catalog; left: PlanDetail; right: PlanDetail; leftLabel: string; rightLabel: string; currency: string; planNames: Map<string, string> };
 
-export function ComparisonPricing({ left, right, leftLabel, rightLabel, currency, planNames }: Props) {
+export function ComparisonPricing({ catalog, left, right, leftLabel, rightLabel, currency, planNames }: Props) {
   const labels = { leftLabel, rightLabel };
-  const differences = comparePlanContext(left, right);
+  const differences = comparePlanContext(catalog, left, right);
   return <dl className="grid grid-cols-1 gap-3 lg:grid-cols-2">
     <ComparisonCard {...labels} title="Customers" icon={<UsersIcon />}
       left={<ComparisonCustomersValue detail={left} />}
