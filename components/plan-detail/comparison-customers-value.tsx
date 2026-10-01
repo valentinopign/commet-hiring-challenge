@@ -11,7 +11,7 @@ export function ComparisonCustomersValue({ detail, customerDelta = 0 }: Props) {
     <p className="text-caption text-ink-muted">{detail.plan.totalSubscriptions ? "Across all versions" : "No customers yet"}</p>
     <div className="mt-3"><VersionSplitBar versions={detail.plan.versionSplit} /></div>
     {customerDelta !== 0 && <p className="mt-2">
-      <ComparisonDifference>{formatNumber(Math.abs(customerDelta))} {customerDelta > 0 ? "more" : "fewer"} customers</ComparisonDifference>
+      <ComparisonDifference>{formatNumber(Math.abs(customerDelta))} {customerDelta > 0 ? "more" : "fewer"} {Math.abs(customerDelta) === 1 ? "customer" : "customers"}</ComparisonDifference>
     </p>}
   </>;
 }

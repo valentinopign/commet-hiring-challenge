@@ -99,6 +99,7 @@ describe("edit publication and scheduled migrations", () => {
     expect(publication).toMatchObject({ createsVersion: false, version: 3, migrationTargetVersion: 3, movedCustomers: 352, affectedCustomers: 0 });
     expect(publication.schedules.map((item) => item.toVersion)).toEqual([3, 3]);
     expect(describePublication(publication, true)).toBe("Moves 352 customers from v1 and v2 to v3 at their next renewal; no new version");
+    expect(describePublication({ ...publication, movedCustomers: 1, fromVersions: [1] }, true)).toBe("Moves 1 customer from v1 to v3 at their next renewal; no new version");
   });
   it("allows an intermediate destination without changing the current release", () => {
     const publication = success({ ...request(), state: createEditState(catalog, plan), targetVersion: 2, selectedVersions: [1] });

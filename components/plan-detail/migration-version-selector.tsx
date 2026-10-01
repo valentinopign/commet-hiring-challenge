@@ -2,7 +2,7 @@
 
 import type { Catalog, Plan, ReleaseFeature } from "@/lib/catalog";
 import { getMigrationOptions, type ScheduledMigration } from "@/lib/edit-plan/publication";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 import { FeatureChangeRow } from "./feature-change-row";
 
 /** Source selection + source-to-target impact can also serve a standalone migration review. */
@@ -21,7 +21,7 @@ export function MigrationVersionSelector({ catalog, plan, targetVersion, targetF
       return <div key={option.version} className={`rounded-control border p-3 ${checked ? "border-live bg-live-soft" : "border-line"}`}>
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
           <input type="checkbox" className="size-4 accent-live" checked={checked} disabled={option.disabled} onChange={(event) => onChange(event.target.checked ? [...selectedVersions, option.version] : selectedVersions.filter((version) => version !== option.version))} />
-          <span className="font-medium">v{option.version}{option.current ? " · Current today" : " · Retired"} <span className="text-caption text-ink-muted">— {formatNumber(option.customers)} customers</span></span>
+          <span className="font-medium">v{option.version}{option.current ? " · Current today" : " · Retired"} <span className="text-caption text-ink-muted">— {formatCount(option.customers, "customer")}</span></span>
         </label>
         {option.scheduled.length > 0 && <p className="text-caption text-info">Already scheduled to move to {option.scheduled.map((item) => `v${item.toVersion}`).join(", ")} at renewal.</p>}
         {checked && <div className="mt-2 border-t border-line pt-3">

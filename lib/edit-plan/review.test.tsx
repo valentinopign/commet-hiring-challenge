@@ -54,7 +54,7 @@ describe("review and scheduled migration visibility", () => {
     const changes = derivePlanChanges(catalog, plan, state.draft);
     const html = renderToStaticMarkup(<PlanEditBar changes={changes} migrationCount={2} migrationCustomers={352} targetVersion={3} onDiscard={vi.fn()} onReview={vi.fn()} invalid={false} onHeightChange={vi.fn()} />);
     expect(html).toContain("2 changes");
-    expect(html).toContain("352 customers scheduled to move to v3 at renewal");
+    expect(html).toContain("352 customers will be scheduled to move to v3 at renewal");
     expect(html).not.toContain('disabled=""');
     expect(renderToStaticMarkup(<PlanEditBar changes={changes} onDiscard={vi.fn()} onReview={vi.fn()} invalid={false} onHeightChange={vi.fn()} />)).toContain('disabled=""');
   });

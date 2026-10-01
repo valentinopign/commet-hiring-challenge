@@ -3,7 +3,7 @@ import type { DraftFlowState } from "@/lib/create-plan/draft-reducer";
 import { createEditState, deriveEditChecks, derivePlanChanges, validatePlanEdit } from "@/lib/edit-plan/changes";
 import { diffFeatureSets, getCurrentRelease, resolveReleaseFeatures } from "@/lib/derive/releases";
 import { isCatalog } from "@/lib/validate-catalog";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 
 /** Scheduling is operational state; subscriptions do not move until their renewal. */
 export type ScheduledMigration = {
@@ -98,8 +98,8 @@ export function describePublication(publication: Pick<EditPublication, "createsV
   const versions = publication.fromVersions.map((version) => `v${version}`);
   const sources = versions.length > 1 ? `${versions.slice(0, -1).join(", ")} and ${versions.at(-1)}` : versions[0];
   if (!publication.createsVersion) return publication.movedCustomers > 0
-    ? `Moves ${formatNumber(publication.movedCustomers)} customers from ${sources} to v${publication.migrationTargetVersion ?? publication.version} at their next renewal; no new version`
+    ? `Moves ${formatCount(publication.movedCustomers, "customer")} from ${sources} to v${publication.migrationTargetVersion ?? publication.version} at their next renewal; no new version`
     : "Plan updated; no new version";
   return `${published ? "Published" : "Publishes"} ${publication.name} v${publication.version}${publication.movedCustomers > 0
-    ? ` and ${published ? "scheduled" : "schedules"} ${formatNumber(publication.movedCustomers)} customers from ${sources} to move at their next renewal` : " for new customers only"}`;
+    ? ` and ${published ? "scheduled" : "schedules"} ${formatCount(publication.movedCustomers, "customer")} from ${sources} to move at their next renewal` : " for new customers only"}`;
 }

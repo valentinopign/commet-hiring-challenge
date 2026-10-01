@@ -28,7 +28,7 @@ import { PlanDetailReading } from "./plan-detail-reading";
 import { PlanDetailHistory } from "./plan-detail-history";
 import { PlanEditReview } from "./plan-edit-review";
 import { ReviewDialog } from "./review-dialog";
-import { formatNumber } from "@/lib/format";
+import { formatCount } from "@/lib/format";
 
 type Props = { catalog: Catalog; detail: PlanDetail; viewedVersion: number; editRequested: boolean; compare?: string | string[]; diff?: string | string[]; animateEditEntry?: boolean; readOnly: ReactNode; history: ReactNode;
   schedules?: readonly ScheduledMigration[]; onPublish?: (request: EditPublicationRequest, animate?: boolean) => PublicationResult; migrationEntry?: string | null };
@@ -75,7 +75,7 @@ export function PlanDetailEditor(props: Props) {
       history={updated ? <PlanDetailHistory catalog={catalog} detail={detail} schedules={schedules} /> : props.history} />
     {confirmation && <ReviewDialog open animate={confirmation.animate} title={confirmation.publication.createsVersion ? `${confirmation.publication.name} v${confirmation.publication.version}` : confirmation.publication.movedCustomers > 0 ? "Customer moves scheduled; no new version" : "Plan updated; no new version"} onClose={() => { setConfirmation(null); requestAnimationFrame(() => document.getElementById("edit-plan-action")?.focus({ preventScroll: true })); }}>
       <p className="font-medium">{describePublication(confirmation.publication, true)}.</p>
-      {confirmation.publication.affectedCustomers > 0 && <p className="text-caption">Price, credits or exhaustion-policy changes apply to all {formatNumber(confirmation.publication.affectedCustomers)} customers at their next renewal.</p>}
+      {confirmation.publication.affectedCustomers > 0 && <p className="text-caption">Price, credits or exhaustion-policy changes apply to all {formatCount(confirmation.publication.affectedCustomers, "customer")} at their next renewal.</p>}
       {confirmation.publication.createsVersion && <p className="text-caption text-ink-muted">New customers receive v{confirmation.publication.version}. Existing customers keep their features until a scheduled move takes effect at renewal.</p>}
       <p className="rounded-control border border-line bg-surface-raised p-3 text-caption text-ink-muted">{props.onPublish
         ? confirmation.persistence === "memory" ? "Browser storage is unavailable. These changes and scheduled moves last only for this browser session." : "Changes and scheduled moves are saved in this browser. Moves are pending; current customer counts have not changed."
@@ -231,7 +231,7 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, 
         {migrationNotice && <p role="status" className="text-caption text-warning">{migrationNotice}</p>}
         <MigrationVersionSelector catalog={catalog} plan={original} targetVersion={migration.targetVersion} targetFeatures={migration.targetFeatures} schedules={schedules} selectedVersions={migration.selectedVersions} onChange={(versions) => { setSelectedVersions([...versions].sort((a, b) => a - b)); setMigrationNotice(""); }} />
       <div className="border-t border-line pt-4">
-        <p className="text-caption text-ink-muted">{migration.operationCount > 0 ? `${formatNumber(migration.customers)} customers selected · v${migration.targetVersion} · next renewal` : "No customers selected."} Nothing is scheduled until you publish in Review.</p>
+        <p className="text-caption text-ink-muted">{migration.operationCount > 0 ? `${formatCount(migration.customers, "customer")} selected · v${migration.targetVersion} · next renewal` : "No customers selected."} Nothing is scheduled until you publish in Review.</p>
         <button type="button" data-dialog-close className={`${primaryControlClass} mt-3 min-h-11`}>Done</button>
       </div>
     </ReviewDialog>}

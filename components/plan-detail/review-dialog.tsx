@@ -16,7 +16,6 @@ export function ReviewDialog({ open, title, onClose, children, animate = true }:
     if (closeTimer.current !== null) clearTimeout(closeTimer.current);
     closeTimer.current = null;
     closing.current = false;
-    closing.current = false;
     close.current();
   }
   function requestClose(pointer: boolean) {
@@ -39,7 +38,6 @@ export function ReviewDialog({ open, title, onClose, children, animate = true }:
       if (closeTimer.current !== null) clearTimeout(closeTimer.current);
       closeTimer.current = null;
       closing.current = false;
-      element.removeAttribute("data-closing");
       element.removeAttribute("data-closing");
       element.close();
       document.body.style.overflow = previousOverflow;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAmountForInput, getCurrencySymbol, parseAmount, parseWholeNumber } from "@/lib/format";
+import { formatAmountForInput, formatCount, getCurrencySymbol, parseAmount, parseWholeNumber } from "@/lib/format";
 
 describe("amount inputs", () => {
   it("round-trips cents through editable text", () => {
@@ -30,5 +30,14 @@ describe("amount inputs", () => {
 
   it("finds the currency symbol", () => {
     expect(getCurrencySymbol("USD")).toBe("$");
+  });
+});
+
+describe("formatCount", () => {
+  it("uses the singular only for exactly one", () => {
+    expect(formatCount(1, "customer")).toBe("1 customer");
+    expect(formatCount(0, "customer")).toBe("0 customers");
+    expect(formatCount(12500, "customer")).toBe("12,500 customers");
+    expect(formatCount(2, "person", "people")).toBe("2 people");
   });
 });

@@ -29,6 +29,11 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(LOCALE).format(value);
 }
 
+/** A formatted count with its noun, so a single customer never reads "1 customers". */
+export function formatCount(count: number, singular: string, plural = `${singular}s`): string {
+  return `${formatNumber(count)} ${count === 1 ? singular : plural}`;
+}
+
 /** Short form for tight spaces: 9000 → "9k", 27500 → "27.5k", 3600000 → "3.6M". */
 export function formatCompactNumber(value: number): string {
   const absolute = Math.abs(value);

@@ -2,7 +2,7 @@ import { describeCatalogAlert } from "@/components/alerts/alert-copy";
 import { InlineAlert } from "@/components/plan-detail/inline-alert";
 import type { CatalogAlert } from "@/lib/derive/types";
 import type { ScheduledMigration } from "@/lib/edit-plan/publication";
-import { formatNumber } from "@/lib/format";
+import { formatCount, formatNumber } from "@/lib/format";
 import { MigrationEntryLink } from "./migration-entry-link";
 
 type PlanAlertsProps = {
@@ -28,7 +28,7 @@ export function PlanAlerts({ alerts, planName, planNames, schedules = [] }: Plan
             const destinations = [...new Set(relevant.map((item) => `v${item.toVersion}`))].join(", ");
             return { title: `${formatNumber(count)} of ${formatNumber(alert.totalSubscriptions)} are scheduled to move to ${destinations} at renewal`,
               short: `${formatNumber(count)} scheduled to move`,
-              detail: `${formatNumber(alert.retiredSubscriptions - count)} customers on retired versions are staying on their version.`,
+              detail: `${formatCount(alert.retiredSubscriptions - count, "customer")} on retired versions are staying on their version.`,
               context: "These moves are scheduled, not completed. Customer counts and version bars continue to show current subscriptions until renewal." };
           })() : describeCatalogAlert(alert, planNames)}
         />

@@ -16,7 +16,7 @@ import type { StepIssue } from "@/lib/create-plan/steps";
 import type { PlanSummary } from "@/lib/derive/types";
 import type { PlanChanges, PlanChangeField } from "@/lib/edit-plan/changes";
 import type { EditPricingContext as PricingContextData } from "@/lib/edit-plan/pricing-context";
-import { formatMoney, formatNumber, getCurrencySymbol } from "@/lib/format";
+import { formatMoney, formatCount, formatNumber, getCurrencySymbol } from "@/lib/format";
 
 type Props = { state: DraftFlowState; dispatch: Dispatch<DraftFlowAction>; changes: PlanChanges; plan: PlanSummary; currency: string; issues: StepIssue[]; pricingContext: PricingContextData; migration?: { operationCount: number; customers: number; targetVersion: number } };
 
@@ -71,7 +71,7 @@ export function EditablePricing({ state, dispatch, changes, plan, currency, issu
   };
   return <section id="pricing" aria-labelledby="pricing-heading" className="mt-4">
     <h2 id="pricing-heading" className="sr-only">Pricing</h2>
-    <p className="mb-3 text-caption text-ink-muted">Price, credits and exhaustion policy apply to all {formatNumber(changes.totalCustomers)} customers across all versions, at their next renewal.</p>
+    <p className="mb-3 text-caption text-ink-muted">Price, credits and exhaustion policy apply to all {formatCount(changes.totalCustomers, "customer")} across all versions, at their next renewal.</p>
     <dl className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <div className="flex flex-col overflow-hidden rounded-card border border-line">
         <dt className="flex items-center gap-2 border-b border-line bg-surface-raised px-3.5 py-2 text-caption text-ink-muted"><UsersIcon className="size-4 shrink-0" />Customers</dt>

@@ -7,7 +7,7 @@ import { deriveEditChecks, type PlanChange, type PlanChanges } from "@/lib/edit-
 import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
 import { getPlanNames } from "@/lib/derive/plans";
 import { describePublication, deriveMigrationSelection, type EditPublicationRequest, type PublicationResult, type ScheduledMigration } from "@/lib/edit-plan/publication";
-import { formatMoney, formatNumber } from "@/lib/format";
+import { formatMoney, formatCount, formatNumber } from "@/lib/format";
 import { primaryControlClass } from "@/components/ui/control-styles";
 import { EditChangeMark } from "./edit-change-mark";
 import { FeatureChangeRow } from "./feature-change-row";
@@ -46,7 +46,7 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
     }
   }
   return <ReviewDialog open title="Review & publish" onClose={onClose} animate={animateDialog}>
-    <p className="text-caption text-ink-muted">{changeCount} effective changes against current v{plan.currentReleaseVersion}, including {migration.operationCount} selected migration {migration.operationCount === 1 ? "source" : "sources"}.</p>
+    <p className="text-caption text-ink-muted">{formatCount(changeCount, "effective change")} against current v{plan.currentReleaseVersion}{migration.operationCount > 0 ? `, including ${formatCount(migration.operationCount, "selected migration source")}` : ""}.</p>
     <section className="rounded-card border border-line p-4">
       <h3 className="font-semibold">Feature version · new customers</h3>
       <p className="mt-1 text-caption text-ink-muted">{changes.createsVersion ? `Publishes ${state.draft.name.trim()} v${changes.nextVersion}. Existing customers keep their version unless selected below.` : "No feature changes. No new version."}</p>
@@ -54,7 +54,7 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
     </section>
     <section className="rounded-card border border-line p-4">
       <h3 className="font-semibold">Plan properties · all existing customers</h3>
-      <p className="mt-1 text-caption text-ink-muted">{changes.affectsAllCustomers ? `Applies to all ${formatNumber(changes.affectedCustomers)} customers across all versions at their next renewal.` : "Price, credits and exhaustion policy stay unchanged."}</p>
+      <p className="mt-1 text-caption text-ink-muted">{changes.affectsAllCustomers ? `Applies to all ${formatCount(changes.affectedCustomers, "customer")} across all versions at their next renewal.` : "Price, credits and exhaustion policy stay unchanged."}</p>
       {rows(changes.renewalChanges)}
     </section>
     {changes.planChanges.some((change) => change.scope === "identity") && <section><h3 className="font-semibold">Plan identity · all versions</h3><p className="mt-1 text-caption text-ink-muted">Name and visibility update the plan listing; subscriptions stay active. No new version.</p>{rows(changes.planChanges.filter((change) => change.scope === "identity"))}</section>}
@@ -62,7 +62,7 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
     {warnings.length > 0 && <section><h3 className="mb-2 font-semibold">Plan checks</h3><DraftWarningList warnings={warnings} planNames={getPlanNames(catalog)} currency={catalog.organization.currency} label="Review checks" /></section>}
     <section className="border-t border-line pt-4" aria-label="Publication summary">
       <p className="font-medium" role="status" aria-live="polite">{summary}.</p>
-      {changes.affectsAllCustomers && <p className="mt-2 text-caption text-ink-muted">Plan property changes also reach all {formatNumber(changes.affectedCustomers)} customers at renewal, including customers keeping older features.</p>}
+      {changes.affectsAllCustomers && <p className="mt-2 text-caption text-ink-muted">Plan property changes also reach all {formatCount(changes.affectedCustomers, "customer")} at renewal, including customers keeping older features.</p>}
       {error && <p role="alert" className="mt-3 text-caption text-critical">{error}</p>}
       <button type="button" className={`${primaryControlClass} mt-4 min-h-11 disabled:opacity-40`} disabled={changeCount === 0 || !migration.validTarget} onClick={publish}>{changes.changeCount === 0 ? "Schedule moves" : movedCustomers > 0 ? "Publish changes & schedule moves" : "Publish changes"}</button>
     </section>
