@@ -8,7 +8,7 @@ import { EditCustomerContext } from "@/components/plan-detail/edit-customer-cont
 import { getPlanDetail } from "@/lib/derive/plan-detail";
 import { createEditState, deriveEditChecks, derivePlanChanges, editPlanReducer } from "./changes";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), useSearchParams: () => ({ get: () => null }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), useSearchParams: () => new URLSearchParams("edit=1") }));
 vi.mock("@/components/organizations/catalog-link", () => ({ default: ({ children }: { children: ReactNode }) => createElement("a", {}, children) }));
 
 function renderDetail(code: string, version?: string) {
