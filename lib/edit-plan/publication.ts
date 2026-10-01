@@ -45,6 +45,12 @@ export function deriveMigrationSelection(catalog: Catalog, plan: Plan, state: Dr
     customers: selected.reduce((total, option) => total + option.customers, 0) };
 }
 
+/** Publishing a feature version retires the current release, including where earlier moves are headed. */
+export function getSchedulesRetiredByPublication(catalog: Catalog, plan: Plan, schedules: readonly ScheduledMigration[], createsVersion: boolean): ScheduledMigration[] {
+  if (!createsVersion) return [];
+  return schedules.filter((item) => item.organizationId === catalog.organization.id && item.planCode === plan.code && item.toVersion === plan.currentReleaseVersion);
+}
+
 export function isScheduledMigration(value: unknown, catalogs: readonly Catalog[]): value is ScheduledMigration {
   if (typeof value !== "object" || value === null) return false;
   if (!("organizationId" in value) || typeof value.organizationId !== "string" || !("planCode" in value) || typeof value.planCode !== "string"

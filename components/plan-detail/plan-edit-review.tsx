@@ -6,7 +6,7 @@ import type { DraftFlowState } from "@/lib/create-plan/draft-reducer";
 import { deriveEditChecks, type PlanChange, type PlanChanges } from "@/lib/edit-plan/changes";
 import { DraftWarningList } from "@/components/create-plan/draft-warning-list";
 import { getPlanNames } from "@/lib/derive/plans";
-import { describePublication, deriveMigrationSelection, type EditPublicationRequest, type PublicationResult, type ScheduledMigration } from "@/lib/edit-plan/publication";
+import { describePublication, deriveMigrationSelection, getSchedulesRetiredByPublication, type EditPublicationRequest, type PublicationResult, type ScheduledMigration } from "@/lib/edit-plan/publication";
 import { formatMoney, formatCount, formatNumber } from "@/lib/format";
 import { primaryControlClass } from "@/components/ui/control-styles";
 import { EditChangeMark } from "./edit-change-mark";
@@ -27,6 +27,8 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
   const migration = deriveMigrationSelection(catalog, plan, state, schedules, targetVersion, selectedVersions);
   const { warnings } = deriveEditChecks(catalog, plan, state);
   const movedCustomers = migration.customers;
+  const retiredTargets = getSchedulesRetiredByPublication(catalog, plan, schedules, changes.createsVersion);
+  const retiredCustomers = retiredTargets.reduce((total, item) => total + item.customers, 0);
   const changeCount = changes.changeCount + migration.operationCount;
   const summary = describePublication({ createsVersion: changes.createsVersion, name: state.draft.name.trim(), version: changes.nextVersion, movedCustomers, fromVersions: migration.selectedVersions, migrationTargetVersion: migration.targetVersion });
   const describeValue = (change: PlanChange, value: PlanChange["before"]): string => {
@@ -58,6 +60,10 @@ export function PlanEditReview({ catalog, plan, state, changes, schedules, selec
       {rows(changes.renewalChanges)}
     </section>
     {changes.planChanges.some((change) => change.scope === "identity") && <section><h3 className="font-semibold">Plan identity · all versions</h3><p className="mt-1 text-caption text-ink-muted">Name and visibility update the plan listing; subscriptions stay active. No new version.</p>{rows(changes.planChanges.filter((change) => change.scope === "identity"))}</section>}
+    {retiredTargets.length > 0 && <p role="note" className="rounded-control border border-warning/40 bg-warning-soft p-3 text-caption">
+      <span className="font-medium text-warning">Earlier moves will land on a retired version. </span>
+      {formatCount(retiredCustomers, "customer")} from {retiredTargets.map((item) => `v${item.fromVersion}`).join(", ")} {retiredCustomers === 1 ? "is" : "are"} scheduled to move to v{plan.currentReleaseVersion}, which becomes retired when v{changes.nextVersion} is published. Those moves stay as scheduled; this prototype cannot change them.
+    </p>}
     {migration.options.length > 0 && <MigrationVersionSelector catalog={catalog} plan={plan} targetVersion={migration.targetVersion} targetFeatures={migration.targetFeatures} schedules={schedules} selectedVersions={migration.selectedVersions} onChange={onSelectionChange ?? (() => undefined)} />}
     {warnings.length > 0 && <section><h3 className="mb-2 font-semibold">Plan checks</h3><DraftWarningList warnings={warnings} planNames={getPlanNames(catalog)} currency={catalog.organization.currency} label="Review checks" /></section>}
     <section className="border-t border-line pt-4" aria-label="Publication summary">

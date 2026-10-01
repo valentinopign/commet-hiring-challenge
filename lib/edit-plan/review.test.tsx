@@ -9,7 +9,7 @@ import { PlanEditBar } from "@/components/plan-detail/plan-edit-bar";
 import { MigrationEntryLink } from "@/components/plan-detail/migration-entry-link";
 import { getPlanDetail } from "@/lib/derive/plan-detail";
 import { createEditState, derivePlanChanges, editPlanReducer } from "./changes";
-import { publishPlanEdit } from "./publication";
+import { publishPlanEdit, type ScheduledMigration } from "./publication";
 
 vi.mock("@/components/organizations/catalog-link", () => ({ default: ({ children, scroll: _scroll, ...props }: { children: ReactNode; scroll?: boolean }) => createElement("a", props, children) }));
 
@@ -69,6 +69,15 @@ describe("review and scheduled migration visibility", () => {
     expect(html).toContain('aria-label="Migrate customers from v1"');
     const entry = renderToStaticMarkup(<MigrationEntryLink planCode="growth" currentVersion={3} sourceVersion={2} />);
     expect(entry).toContain('/plans/growth?version=3&amp;edit=instant&amp;migrate=2#customer-migration');
+  });
+  it("warns when a new feature version retires the destination of earlier scheduled moves", () => {
+    const earlier: ScheduledMigration = { organizationId: catalog.organization.id, planCode: plan.code, fromVersion: 1, toVersion: 3, customers: 12, scheduledAt: "2026-10-01T16:00:00Z" };
+    const withFeatures = renderToStaticMarkup(<PlanEditReview catalog={catalog} plan={plan} state={featureState} changes={derivePlanChanges(catalog, plan, featureState.draft)} schedules={[earlier]} onClose={vi.fn()} onPublish={vi.fn()} />);
+    expect(withFeatures).toContain("Earlier moves will land on a retired version.");
+    expect(withFeatures).toContain("12 customers from v1 are scheduled to move to v3");
+    const state = editPlanReducer(createEditState(catalog, plan), { type: "set_price", interval: "monthly", price: 10000 });
+    const pricingOnly = renderToStaticMarkup(<PlanEditReview catalog={catalog} plan={plan} state={state} changes={derivePlanChanges(catalog, plan, state.draft)} schedules={[earlier]} onClose={vi.fn()} onPublish={vi.fn()} />);
+    expect(pricingOnly).not.toContain("Earlier moves will land on a retired version.");
   });
   it("drops the alert's migration link once every retired customer has a scheduled move", () => {
     const result = publishPlanEdit(catalog, [], { original: plan, state: createEditState(catalog, plan), selectedVersions: [1, 2], targetVersion: 3, scheduledAt: "2026-10-01T16:00:00Z" });
