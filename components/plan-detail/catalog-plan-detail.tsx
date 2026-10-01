@@ -26,15 +26,18 @@ export function CatalogPlanDetail({ catalog, detail, version }: {
   const planNames = getPlanNames(catalog);
   return <>
     <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} />
-    <PageSection id="pricing" title="Pricing" description={<PricingScopeNote totalCustomers={plan.totalSubscriptions} />}>
+    <section id="pricing" aria-labelledby="pricing-heading" className="mt-4">
+      <h2 id="pricing-heading" className="sr-only">Pricing</h2>
+      <div className="sr-only"><PricingScopeNote totalCustomers={plan.totalSubscriptions} /></div>
       <PlanPricingSummary plan={plan} packComparison={packComparison} exhaustionAlerts={alerts.filter((alert) => getAlertSection(alert) === "pricing")} planNames={planNames} currency={currency} />
+    </section>
+    <PageSection id="features" title="Features">
+      <VersionSwitcher planCode={plan.code} timeline={timeline} viewedVersion={viewedVersion} />
+      {viewed ? <FeatureConfiguration viewed={viewed} currentVersion={plan.currentReleaseVersion} rows={getFeatureRows(viewed, current)} currency={currency} /> : <p className="text-ink-muted">This plan has no versions to show.</p>}
     </PageSection>
     <PageSection id="versions" title="Versions">
       <PlanAlerts alerts={alerts.filter((alert) => getAlertSection(alert) === "versions")} planName={plan.name} planNames={planNames} />
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"><VersionTimeline timeline={timeline} /><VersionChanges timeline={timeline} currency={currency} /></div>
-    </PageSection>
-    <PageSection id="features" title="Features" actions={<VersionSwitcher planCode={plan.code} timeline={timeline} viewedVersion={viewedVersion} />}>
-      {viewed ? <FeatureConfiguration viewed={viewed} currentVersion={plan.currentReleaseVersion} rows={getFeatureRows(viewed, current)} currency={currency} /> : <p className="text-ink-muted">This plan has no versions to show.</p>}
     </PageSection>
   </>;
 }

@@ -11,6 +11,7 @@ import {
   formatPerThousand,
 } from "@/components/plans/describe-pack-option";
 import { NotApplicable } from "@/components/ui/not-applicable";
+import { VersionSplitBar } from "@/components/plans/version-split-bar";
 import type { CatalogAlert, PackComparison, PeriodPricing, PlanSummary } from "@/lib/derive/types";
 import { formatMoney, formatNumber } from "@/lib/format";
 
@@ -62,6 +63,7 @@ export function PlanPricingSummary({ plan, packComparison, exhaustionAlerts, pla
         label="Customers"
         value={formatNumber(plan.totalSubscriptions)}
         detail={describeCustomers(plan)}
+        note={<div className="mt-3"><VersionSplitBar versions={plan.versionSplit} /></div>}
       />
       <StatCard
         icon={<CoinsIcon />}

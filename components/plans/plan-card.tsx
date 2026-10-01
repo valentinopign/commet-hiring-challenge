@@ -24,19 +24,19 @@ const SECTION = `${BODY} border-t border-line`;
 const TERM = "text-caption text-ink-muted";
 
 /**
- * One rung of the ladder. The card spans six rows of its parent grid through `subgrid` (header,
- * description, price and three sections), so each part lines up with the same part in the
+ * One rung of the ladder. The card spans five rows of its parent grid through `subgrid` (header,
+ * price and three sections), so each part lines up with the same part in the
  * neighbouring cards. The price has its own row so every price starts at the same height,
  * whether or not a plan has a step line under it.
  */
-export function PlanCard({ row: { plan, step, packComparison }, alerts, currency }: PlanCardProps) {
+export function PlanCard({ row: { plan, step }, alerts, currency }: PlanCardProps) {
   // The whole card carries the warning so it stands out in the row; the icon and text line at
   // the bottom still say why, so the colour is never the only signal.
   const hasAlert = alerts.length > 0;
   const border = hasAlert ? "border-warning" : "border-line hover:border-line-strong";
 
   return (
-    <li className={`group relative row-span-6 grid grid-rows-subgrid gap-0 overflow-hidden rounded-card border ${border} transition-colors has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live`}>
+    <li className={`group relative row-span-5 grid grid-rows-subgrid gap-0 overflow-hidden rounded-card border ${border} transition-colors has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live`}>
       <WidgetHeader
         tone={hasAlert ? "bg-warning-soft" : undefined}
         title={
@@ -48,9 +48,8 @@ export function PlanCard({ row: { plan, step, packComparison }, alerts, currency
         trailing={<ArrowUpRightIcon className="size-4 shrink-0 text-ink-muted transition-colors group-hover:text-ink" />}
       />
 
-      {/* The header draws its own bottom border, so description and price need no top border. */}
-      <p className={`${BODY} pb-0 text-caption text-ink-muted`}>{plan.description}</p>
-      <div className={`${BODY} pt-2.5`}>
+      {/* The header draws its own bottom border. */}
+      <div className={BODY}>
         <PlanMonthlyPrice monthly={plan.monthly} step={step} currency={currency} />
       </div>
 
@@ -68,11 +67,10 @@ export function PlanCard({ row: { plan, step, packComparison }, alerts, currency
       </dl>
 
       <dl className={SECTION}>
-        <dt className={TERM}>When credits run out</dt>
+        <dt className="sr-only">When credits run out</dt>
         <dd>
           <ExhaustionPolicyLabel
             policy={plan.exhaustionPolicy}
-            packComparison={packComparison}
             currency={currency}
           />
         </dd>

@@ -6,7 +6,7 @@ type StatCardProps = {
   value: ReactNode;
   /** Real context for the number, never a trend: there is no historical data. */
   detail: ReactNode;
-  /** An alert about this very number, kept inside the card instead of above the page. */
+  /** Context for this number, such as its distribution chart or an inline alert. */
   note?: ReactNode;
   /** Grid placement, e.g. a wider card that also holds a chart. */
   className?: string;

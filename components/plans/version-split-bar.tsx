@@ -9,13 +9,8 @@ function swatchClass(version: VersionShare): string {
   return "bg-retired-stripes";
 }
 
-const describeShares = (versions: VersionShare[]) =>
-  versions.map((version) => `v${version.version} ${version.percent}%`).join(", ");
-
 /**
- * How a plan's customers are spread across versions. The bar is decorative; the legend
- * underneath says the same in text, so the bar is hidden from assistive technology.
- * The legend groups versions by status so it stays at two lines however many versions exist.
+ * Compact bar and per-version percentages, with a complete screen-reader summary.
  */
 export function VersionSplitBar({ versions }: VersionSplitBarProps) {
   const total = versions.reduce((sum, version) => sum + version.subscriptions, 0);
@@ -24,30 +19,10 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
     return (
       <div>
         <div className="h-1.5 rounded-mark bg-line" aria-hidden="true" />
-        <p className="mt-1 text-caption text-ink-muted">No customers</p>
+        <p className="sr-only">No customers</p>
       </div>
     );
   }
-
-  if (versions.length === 1) {
-    return (
-      <div>
-        <div className={`h-1.5 rounded-mark ${swatchClass(versions[0])}`} aria-hidden="true" />
-        <p className="mt-1 text-caption text-ink-muted">All on v{versions[0].version}, the only version</p>
-      </div>
-    );
-  }
-
-  const current = versions.filter((version) => version.isCurrent);
-  // Newest first: the most recent retired version is usually where the customers are.
-  const retired = versions.filter((version) => version.status === "retired" && !version.isCurrent).reverse();
-  const other = versions.filter((version) => version.status !== "retired" && !version.isCurrent);
-
-  const groups = [
-    { key: "current", label: "current", swatch: "bg-live", shares: current },
-    { key: "retired", label: "retired", swatch: "bg-retired-stripes", shares: retired },
-    { key: "other", label: "not current", swatch: "border border-dashed border-line-strong bg-surface", shares: other },
-  ].filter((group) => group.shares.length > 0);
 
   return (
     <div>
@@ -62,16 +37,13 @@ export function VersionSplitBar({ versions }: VersionSplitBarProps) {
             />
           ))}
       </div>
-      <ul className="mt-1 text-caption text-ink-muted">
-        {groups.map((group) => (
-          <li key={group.key} className="flex items-center gap-1.5">
-            <span className={`size-2 shrink-0 rounded-mark ${group.swatch}`} aria-hidden="true" />
-            <span className={group.key === "current" ? "text-ink" : undefined}>
-              {group.label}: {describeShares(group.shares)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <p aria-hidden="true" className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-caption text-ink-muted tabular-nums">
+        {versions.map((version, index) => <span key={version.version} className="whitespace-nowrap">
+          {index > 0 && <span className="me-2">·</span>}
+          <span className={version.isCurrent ? "text-ink" : undefined}>v{version.version} {version.subscriptions > 0 && version.percent === 0 ? "<1%" : `${version.percent}%`}</span>
+        </span>)}
+      </p>
+      <p className="sr-only">Customers by version: {versions.map((version) => `v${version.version}, ${version.isCurrent ? "current" : version.status}, ${version.subscriptions} customers (${version.percent}%)`).join("; ")}.</p>
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function describeExhaustionPolicy(policy: ExhaustionPolicy, currency: str
 
 /**
  * The cheapest credit pack next to the overage, so it shows when a pack beats paying overage.
- * Shared by the overview card and the plan page so both word it the same way.
+ * Kept in the plan detail rather than repeated inside compact overview cards.
  */
 export function describePackOption(packComparison: PackComparison | null, currency: string): string {
   if (!packComparison) return "No credit packs";

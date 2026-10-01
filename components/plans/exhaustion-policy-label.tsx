@@ -1,24 +1,14 @@
-import { describeExhaustionPolicy, describePackOption } from "@/components/plans/describe-pack-option";
 import type { ExhaustionPolicy } from "@/lib/catalog";
-import type { PackComparison } from "@/lib/derive/types";
+import { formatMoney } from "@/lib/format";
 
 type ExhaustionPolicyLabelProps = {
   policy: ExhaustionPolicy;
-  packComparison: PackComparison | null;
   currency: string;
 };
 
-/**
- * What happens when a customer runs out, next to the cheapest credit pack they could buy
- * instead, so it is visible when a pack beats paying overage.
- */
-export function ExhaustionPolicyLabel({ policy, packComparison, currency }: ExhaustionPolicyLabelProps) {
+/** Compact overview policy; pack comparisons remain on the detail page. */
+export function ExhaustionPolicyLabel({ policy, currency }: ExhaustionPolicyLabelProps) {
   return (
-    <div>
-      <span className="tabular-nums">{describeExhaustionPolicy(policy, currency)}</span>
-      <p className="text-caption text-ink-muted tabular-nums">
-        {describePackOption(packComparison, currency)}
-      </p>
-    </div>
+    <span className="tabular-nums">{policy.type === "block" ? "Service stops" : <>Overage {formatMoney(policy.pricePer1000Credits, currency)} / <abbr title="1,000 credits" className="no-underline">1k</abbr></>}</span>
   );
 }

@@ -15,8 +15,9 @@ export function VersionSwitcher({ planCode, timeline, viewedVersion }: VersionSw
   if (timeline.length < 2) return null;
 
   return (
-    <nav aria-label="Feature version">
-      <ul className="inline-flex rounded-control border border-line bg-surface-card p-0.5">
+    <nav aria-label="Feature version" className="mb-4 flex flex-wrap items-center gap-3">
+      <span className="text-sm font-medium text-ink">View version</span>
+      <ul className="flex flex-wrap gap-2">
         {[...timeline].reverse().map((entry) => {
           const isViewed = entry.version === viewedVersion;
           return (
@@ -25,12 +26,12 @@ export function VersionSwitcher({ planCode, timeline, viewedVersion }: VersionSw
                 href={{ pathname: `/plans/${planCode}`, query: { version: entry.version } }}
                 scroll={false}
                 aria-current={isViewed ? "page" : undefined}
-                className={`inline-flex items-center gap-1 rounded-[calc(var(--radius-control)-2px)] px-2.5 py-1 text-caption tabular-nums transition-colors ${
-                  isViewed ? "bg-surface-raised font-medium text-ink" : "text-ink-muted hover:text-ink"
+                className={`inline-flex min-h-11 items-center gap-2 rounded-control border px-4 py-2 text-sm tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                  isViewed ? "border-live bg-live-soft font-semibold text-ink" : "border-line bg-surface-raised text-ink-muted hover:border-line-strong hover:text-ink"
                 }`}
               >
                 v{entry.version}
-                {entry.isCurrent && <span className="text-ink-muted">· current</span>}
+                {entry.isCurrent && <span className="text-caption font-normal">Current</span>}
               </Link>
             </li>
           );
