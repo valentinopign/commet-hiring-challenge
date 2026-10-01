@@ -28,6 +28,10 @@ describe("amount inputs", () => {
     expect(parseWholeNumber("")).toBeNull();
   });
 
+  it.each(["12,50", "1,,000", "1234,567", "1,", "1,23", "9007199254740992"])("rejects incomplete, malformed or unsafe amounts: %s", (text) => {
+    expect(parseAmount(text)).toBeNull();
+    expect(parseWholeNumber(text)).toBeNull();
+  });
   it("finds the currency symbol", () => {
     expect(getCurrencySymbol("USD")).toBe("$");
   });

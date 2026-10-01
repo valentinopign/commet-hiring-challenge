@@ -151,15 +151,18 @@ export function formatAmountForInput(amountInCents: number): string {
 
 /** What a person types in a money field ("49", "49.5", "1,299.00") in cents; `null` when it is not an amount. */
 export function parseAmount(text: string): number | null {
-  const normalized = text.trim().replaceAll(",", "");
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  const trimmed = text.trim();
+  if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(\.\d{1,2})?$/.test(trimmed)) return null;
+  const normalized = trimmed.replaceAll(",", "");
   // Rounding absorbs float noise such as 0.29 × 100 = 28.999999999999996.
-  return Math.round(Number(normalized) * 100);
+  const cents = Math.round(Number(normalized) * 100);
+  return Number.isSafeInteger(cents) ? cents : null;
 }
 
 /** A count typed by a person ("12,500"); `null` when it is not a whole number. */
 export function parseWholeNumber(text: string): number | null {
-  const normalized = text.trim().replaceAll(",", "");
-  if (!/^\d+$/.test(normalized)) return null;
-  return Number(normalized);
+  const trimmed = text.trim();
+  if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)$/.test(trimmed)) return null;
+  const value = Number(trimmed.replaceAll(",", ""));
+  return Number.isSafeInteger(value) ? value : null;
 }
