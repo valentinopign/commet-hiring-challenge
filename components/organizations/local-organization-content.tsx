@@ -46,7 +46,7 @@ export function LocalOrganizationContent({ catalog, path }: { catalog: Catalog; 
   }
   if (path.length === 2 && path[0] === "plans") {
     const detail = getPlanDetail(catalog, path[1]);
-    if (detail) return <CatalogPlanDetail catalog={catalog} detail={detail} version={params.get("version") ?? undefined} editRequested={params.get("edit") === "1" || params.get("edit") === "instant"} animateEditEntry={params.get("edit") !== "instant"}
+    if (detail) return <CatalogPlanDetail catalog={catalog} detail={detail} version={params.get("version") ?? undefined} compare={params.get("compare") ?? undefined} diff={params.get("diff") ?? undefined} editRequested={params.get("edit") === "1" || params.get("edit") === "instant"} animateEditEntry={params.get("edit") !== "instant"}
       schedules={snapshot.scheduledMigrations} onPublish={(request) => store.publishEdit(catalog.organization.id, request)} />;
   }
   return <div className="space-y-4">

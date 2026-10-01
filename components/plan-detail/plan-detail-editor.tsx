@@ -9,6 +9,10 @@ import { EditablePricing } from "@/components/plan-detail/editable-pricing";
 import { EditChangeMark } from "@/components/plan-detail/edit-change-mark";
 import { PlanEditBar } from "@/components/plan-detail/plan-edit-bar";
 import { PlanHeader } from "@/components/plan-detail/plan-header";
+import { ComparePlanSelector } from "./compare-plan-selector";
+import { PlanComparison } from "./plan-comparison";
+import { getComparisonOptions, resolveComparisonTarget } from "@/lib/derive/compare-plans";
+import { planEditHref } from "@/lib/edit-plan/navigation";
 import { inputClass, outlineControlClass, primaryControlClass } from "@/components/ui/control-styles";
 import type { Catalog, Plan } from "@/lib/catalog";
 import { createEditState, deriveEditChecks, derivePlanChanges, editPlanReducer, validatePlanEdit } from "@/lib/edit-plan/changes";
@@ -26,7 +30,7 @@ import { PlanEditReview } from "./plan-edit-review";
 import { ReviewDialog } from "./review-dialog";
 import { formatNumber } from "@/lib/format";
 
-type Props = { catalog: Catalog; detail: PlanDetail; viewedVersion: number; editRequested: boolean; animateEditEntry?: boolean; readOnly: ReactNode; history: ReactNode;
+type Props = { catalog: Catalog; detail: PlanDetail; viewedVersion: number; editRequested: boolean; compare?: string | string[]; diff?: string | string[]; animateEditEntry?: boolean; readOnly: ReactNode; history: ReactNode;
   schedules?: readonly ScheduledMigration[]; onPublish?: (request: EditPublicationRequest, animate?: boolean) => PublicationResult; migrationEntry?: string | null };
 
 /** Server-rendered reading/history stay in slots; only draft controls and actions own browser state. */
@@ -39,7 +43,12 @@ export function PlanDetailEditor(props: Props) {
   const detail = getPlanDetail(catalog, props.detail.plan.code) ?? props.detail;
   const plan = findPlanByCode(catalog, detail.plan.code);
   const schedules = props.onPublish ? props.schedules ?? [] : simulation?.schedules ?? props.schedules ?? [];
-  const viewedVersion = resolveViewedVersion(detail.timeline, params.get("version") ?? String(props.viewedVersion), detail.plan.currentReleaseVersion);
+  // Server slots use route props; in the browser the live URL also reflects history.replaceState.
+  const routeFallback = typeof window === "undefined";
+  const editRequested = params.get("edit") === "1" || params.get("edit") === "instant" || (routeFallback && revision === 0 && props.editRequested);
+  const viewedVersion = editRequested ? detail.plan.currentReleaseVersion : resolveViewedVersion(detail.timeline, params.get("version") ?? String(props.viewedVersion), detail.plan.currentReleaseVersion);
+  const compare = params.get("compare") ?? (routeFallback ? props.compare : undefined);
+  const comparisonKey = Array.isArray(compare) ? compare[0] : compare;
   function publish(request: EditPublicationRequest, animate = false): PublicationResult {
     const result = props.onPublish ? props.onPublish(request) : publishPlanEdit(catalog, schedules, request);
     if (!result.ok) return result;
@@ -49,6 +58,8 @@ export function PlanDetailEditor(props: Props) {
     const url = new URL(window.location.href);
     url.searchParams.delete("edit");
     url.searchParams.delete("migrate");
+    url.searchParams.delete("compare");
+    url.searchParams.delete("diff");
     url.hash = "";
     url.searchParams.set("version", String(result.publication.version));
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
@@ -57,9 +68,9 @@ export function PlanDetailEditor(props: Props) {
   if (!plan) return <>{props.readOnly}{props.history}</>;
   const updated = simulation !== null || revision > 0 || viewedVersion !== props.viewedVersion;
   return <>
-    <PlanEditorSession key={`${plan.id}:${viewedVersion}:${revision}`} {...props} catalog={catalog} detail={detail} viewedVersion={viewedVersion} original={plan} schedules={schedules}
+    <PlanEditorSession key={`${plan.id}:${viewedVersion}:${revision}:${comparisonKey ?? ""}`} {...props} compare={compare} diff={params.get("diff") ?? (routeFallback ? props.diff : undefined)} animateEditEntry={params.get("edit") === "instant" ? false : props.animateEditEntry} catalog={catalog} detail={detail} viewedVersion={viewedVersion} original={plan} schedules={schedules}
       migrationEntry={params.get("migrate")}
-      editRequested={params.get("edit") === "1" || params.get("edit") === "instant" || (revision === 0 && props.editRequested)} onPublish={publish}
+      editRequested={editRequested} onPublish={publish}
       readOnly={updated ? <PlanDetailReading catalog={catalog} detail={detail} viewedVersion={viewedVersion} /> : props.readOnly}
       history={updated ? <PlanDetailHistory catalog={catalog} detail={detail} schedules={schedules} /> : props.history} />
     {confirmation && <ReviewDialog open animate={confirmation.animate} title={confirmation.publication.createsVersion ? `${confirmation.publication.name} v${confirmation.publication.version}` : confirmation.publication.movedCustomers > 0 ? "Customer moves scheduled; no new version" : "Plan updated; no new version"} onClose={() => { setConfirmation(null); requestAnimationFrame(() => document.getElementById("edit-plan-action")?.focus({ preventScroll: true })); }}>
@@ -73,7 +84,7 @@ export function PlanDetailEditor(props: Props) {
   </>;
 }
 
-function PlanEditorSession({ catalog, detail, original, viewedVersion, editRequested, animateEditEntry = true, readOnly, history, schedules = [], onPublish, migrationEntry }: Props & { original: Plan }) {
+function PlanEditorSession({ catalog, detail, original, viewedVersion, compare, diff, editRequested, animateEditEntry = true, readOnly, history, schedules = [], onPublish, migrationEntry }: Props & { original: Plan }) {
   const router = useRouter();
   const [editing, setEditing] = useState(editRequested && viewedVersion === original.currentReleaseVersion);
   const [animateEntry, setAnimateEntry] = useState(animateEditEntry);
@@ -99,6 +110,8 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, editReque
   const { comparisons, warnings } = deriveEditChecks(catalog, original, state);
   const pricingContext = deriveEditPricingContext(catalog, original, state);
   const currency = catalog.organization.currency;
+  const target = resolveComparisonTarget(catalog, original.code, compare, editing || editRequested);
+  const viewed = detail.timeline.find((entry) => entry.version === viewedVersion);
 
   useEffect(() => {
     if (editing && !migrationEntry) nameInput.current?.focus({ preventScroll: true });
@@ -132,14 +145,13 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, editReque
     // Keyboard activation stays instant; pointer entry briefly bridges the mode change.
     const animate = event.detail > 0;
     setAnimateEntry(animate);
+    const href = planEditHref(window.location.href, original.currentReleaseVersion, animate);
     if (viewedVersion !== original.currentReleaseVersion) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("version", String(original.currentReleaseVersion));
-      url.searchParams.set("edit", animate ? "1" : "instant");
-      router.push(`${url.pathname}${url.search}`, { scroll: false });
+      router.push(href, { scroll: false });
       return;
     }
     setEditing(true);
+    window.history.replaceState(null, "", href);
   }
 
   function discard(event: MouseEvent<HTMLButtonElement>) {
@@ -155,6 +167,8 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, editReque
     const url = new URL(window.location.href);
     url.searchParams.delete("edit");
     url.searchParams.delete("migrate");
+    url.searchParams.delete("compare");
+    url.searchParams.delete("diff");
     url.hash = "";
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     requestAnimationFrame(() => editButton.current?.focus({ preventScroll: true }));
@@ -167,9 +181,13 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, editReque
     return <EditChangeMark before={describe(change.before)} after={describe(change.after)} impact={null} />;
   };
 
+  const editAction = <button id="edit-plan-action" ref={editButton} type="button" disabled={!canEdit} onClick={beginEditing} className={`${primaryControlClass} min-h-11 disabled:opacity-40`}>Edit plan</button>;
+
   return <div data-edit-animate={animateEntry} style={editing ? { paddingBottom: barHeight + 24 } : undefined}>
+    {!editing && target && viewed ? <PlanComparison catalog={catalog} detail={detail} viewed={viewed} target={target} onlyDifferences={(Array.isArray(diff) ? diff[0] : diff) === "1"} actions={editAction} /> : <>
     {!editing ? <div className={animateRead ? "plan-read-enter" : undefined}>
-      <PlanHeader code={original.code} name={original.name} isPublic={original.isPublic} actions={<button id="edit-plan-action" ref={editButton} type="button" disabled={!canEdit} onClick={beginEditing} className={`${outlineControlClass} min-h-11 disabled:opacity-40`}>Edit plan</button>} />
+      <PlanHeader code={original.code} name={original.name} isPublic={original.isPublic} beforeActions={<ComparePlanSelector planCode={original.code} viewedVersion={viewedVersion} options={getComparisonOptions(catalog, original.code, viewedVersion)} />} actions={editAction} />
+      {compare && !editRequested && <p role="status" className="mt-3 text-caption text-warning">Comparison unavailable. Choose another plan or version with Compare.</p>}
       {!canEdit && <p className="mt-2 text-caption text-critical">Editing requires a published current version.</p>}
       {readOnly}
     </div> : <>
@@ -207,6 +225,7 @@ function PlanEditorSession({ catalog, detail, original, viewedVersion, editReque
       {reviewOpen && onPublish && <PlanEditReview catalog={catalog} plan={original} state={state} changes={changes} schedules={schedules} animateDialog={animateDialog} selectedVersions={migration.selectedVersions} targetVersion={migration.targetVersion} onSelectionChange={setSelectedVersions} onClose={() => setReviewOpen(false)} onPublish={onPublish} />}
     </>}
     {history}
+    </>}
     {editing && migrationOpen && migration.options.length > 0 && <ReviewDialog open animate={animateDialog} title="Customer migration" onClose={() => { setMigrationOpen(false); requestAnimationFrame(() => migrationButton.current?.focus({ preventScroll: true })); }}>
         {changes.createsVersion ? <p className="text-caption text-ink-muted">Destination: v{migration.targetVersion}, the new feature version.</p> : <MigrationDestinationSelect destinations={migration.destinations} currentVersion={original.currentReleaseVersion} value={migration.targetVersion} onChange={setTargetVersion} />}
         {migrationNotice && <p role="status" className="text-caption text-warning">{migrationNotice}</p>}

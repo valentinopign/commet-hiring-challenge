@@ -1,0 +1,41 @@
+.drawer {
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity 180ms var(--ease-emphasized),
+    transform 180ms var(--ease-emphasized),
+    display 180ms allow-discrete,
+    overlay 180ms allow-discrete;
+}
+
+.drawer:popover-open {
+  opacity: 1;
+  transform: translateX(0);
+  transition-duration: 180ms, 220ms, 220ms, 220ms;
+}
+
+.drawer::backdrop {
+  background: var(--color-scrim);
+}
+
+@starting-style {
+  .drawer:popover-open {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .drawer:popover-open {
+    transform: none;
+    transition: opacity 150ms, display 150ms allow-discrete, overlay 150ms allow-discrete;
+  }
+
+  @starting-style {
+    .drawer:popover-open {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}

@@ -6,13 +6,13 @@ import { PlanDetailEditor } from "./plan-detail-editor";
 import { PlanDetailReading } from "./plan-detail-reading";
 import { PlanDetailHistory } from "./plan-detail-history";
 
-export function CatalogPlanDetail({ catalog, detail, version, editRequested = false, animateEditEntry = true, schedules = [], onPublish }: {
+export function CatalogPlanDetail({ catalog, detail, version, compare, diff, editRequested = false, animateEditEntry = true, schedules = [], onPublish }: {
   catalog: Catalog; detail: PlanDetail; version: string | string[] | undefined;
-  editRequested?: boolean; animateEditEntry?: boolean; schedules?: readonly ScheduledMigration[];
+  compare?: string | string[]; diff?: string | string[]; editRequested?: boolean; animateEditEntry?: boolean; schedules?: readonly ScheduledMigration[];
   onPublish?: (request: EditPublicationRequest) => PublicationResult;
 }) {
   const viewedVersion = resolveViewedVersion(detail.timeline, version, detail.plan.currentReleaseVersion);
-  return <PlanDetailEditor catalog={catalog} detail={detail} viewedVersion={viewedVersion} editRequested={editRequested} animateEditEntry={animateEditEntry} schedules={schedules} onPublish={onPublish}
+  return <PlanDetailEditor catalog={catalog} detail={detail} viewedVersion={viewedVersion} compare={compare} diff={diff} editRequested={editRequested} animateEditEntry={animateEditEntry} schedules={schedules} onPublish={onPublish}
     readOnly={<PlanDetailReading catalog={catalog} detail={detail} viewedVersion={viewedVersion} />}
     history={<PlanDetailHistory catalog={catalog} detail={detail} schedules={schedules} />} />;
 }

@@ -47,12 +47,12 @@ describe("inline plan editing markup", () => {
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
     expect(new Set(ids).size).toBe(ids.length);
   });
-  it("does not permit editing the selected retired release", () => {
+  it("opens current editing when an edit URL names a retired release", () => {
     const html = renderDetail("growth", "2");
-    expect(html).toContain("Edit plan");
-    expect(html).toContain("View version");
-    expect(html).not.toContain('id="monthly-price"');
-    expect(html).not.toContain("Discard");
+    expect(html).toContain("Editing current v3");
+    expect(html).not.toContain("View version");
+    expect(html).toContain('id="monthly-price"');
+    expect(html).toContain("Discard");
   });
   it("lets Free change monthly credits without adding a paid price or yearly billing", () => {
     const html = renderDetail("free");

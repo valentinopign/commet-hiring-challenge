@@ -1,17 +1,19 @@
 import Link from "@/components/organizations/catalog-link";
 import type { TimelineEntry } from "@/lib/derive/types";
+import { planComparisonHref } from "@/lib/derive/compare-plans";
 
 type VersionSwitcherProps = {
   planCode: string;
   timeline: TimelineEntry[];
   viewedVersion: number;
+  comparisonQuery?: { compare: string; onlyDifferences: boolean };
 };
 
 /**
  * Plain links to `?version=N`, so the page stays a Server Component and a version can be shared
  * by URL. `scroll={false}` keeps the reader at the features instead of jumping to the top.
  */
-export function VersionSwitcher({ planCode, timeline, viewedVersion }: VersionSwitcherProps) {
+export function VersionSwitcher({ planCode, timeline, viewedVersion, comparisonQuery }: VersionSwitcherProps) {
   if (timeline.length < 2) return null;
 
   return (
@@ -23,7 +25,7 @@ export function VersionSwitcher({ planCode, timeline, viewedVersion }: VersionSw
           return (
             <li key={entry.version}>
               <Link
-                href={{ pathname: `/plans/${planCode}`, query: { version: entry.version } }}
+                href={comparisonQuery ? planComparisonHref(planCode, { version: entry.version, ...comparisonQuery }) : { pathname: `/plans/${planCode}`, query: { version: entry.version } }}
                 scroll={false}
                 aria-current={isViewed ? "page" : undefined}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-control border px-4 py-2 text-sm tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
