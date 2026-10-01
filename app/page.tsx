@@ -5,6 +5,7 @@ import { CreatePlanLink } from "@/components/plans/create-plan-link";
 import { PlanCardGrid } from "@/components/plans/plan-card-grid";
 import { catalog } from "@/data/catalog";
 import { getCatalogAlerts, needsAttention } from "@/lib/derive/alerts";
+import { getCustomerDistribution } from "@/lib/derive/customer-distribution";
 import { getLadderRows } from "@/lib/derive/ladder";
 import { getPlanNames } from "@/lib/derive/plans";
 import { getCatalogTotals } from "@/lib/derive/subscriptions";
@@ -18,7 +19,7 @@ export default function OverviewPage() {
     <>
       <PageHeading title="Overview" />
       <div className="mt-4">
-        <CatalogSummary totals={totals} />
+        <CatalogSummary totals={totals} distribution={getCustomerDistribution(catalog)} />
       </div>
 
       <PageSection

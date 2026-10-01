@@ -53,6 +53,18 @@
   --color-on-status: #0a0a0b;
 
   /*
+   * Customers by plan: free against paid, with no hue, because plans carry no meaning of their own.
+   * Free is a plain grey and paid plans a ramp that gains contrast with price (brighter in dark,
+   * darker in light). Neighbours are at least 15 OKLab ΔE apart in both themes. Free is 1.8:1
+   * against the dark card, so the bar is never read alone: a text legend always sits under it.
+   */
+  --color-segment-free: #414144;
+  --color-segment-paid-1: #6c6c6f;
+  --color-segment-paid-2: #9a9a9d;
+  --color-segment-paid-3: #cacacd;
+  --color-segment-paid-4: #fdfdff;
+
+  /*
    * Glass for the organisation switcher: barely any fill, so the page shows through (blurred),
    * a visible edge that draws the box, and a faint highlight along the top and across the corner.
    */
@@ -130,6 +142,12 @@
     --color-impact-better: #35711a;
     --color-impact-worse: #b3261e;
     --color-on-status: #ffffff;
+
+    --color-segment-free: #b6b6bc;
+    --color-segment-paid-1: #86868c;
+    --color-segment-paid-2: #5a5a60;
+    --color-segment-paid-3: #313137;
+    --color-segment-paid-4: #0d0d13;
 
     --shadow-popover: 0 8px 24px rgb(22 24 29 / 0.12), 0 1px 2px rgb(22 24 29 / 0.08);
   }

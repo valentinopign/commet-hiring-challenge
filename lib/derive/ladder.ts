@@ -11,7 +11,17 @@ export function getLadderStep(previous: PlanSummary | undefined, plan: PlanSumma
     fromPlanName: previous.name,
     priceDifference: plan.monthly.price - previous.monthly.price,
     creditsDifference: plan.monthly.includedCredits - previous.monthly.includedCredits,
+    pricePerCreditSavings: getPricePerCreditSavings(
+      previous.monthly.pricePerThousandCredits,
+      plan.monthly.pricePerThousandCredits,
+    ),
   };
+}
+
+/** Both prices are per 1,000 included credits, so the ratio is the same per credit. */
+export function getPricePerCreditSavings(previous: number | null, current: number | null): number | null {
+  if (previous === null || current === null || previous <= 0) return null;
+  return 1 - current / previous;
 }
 
 /** Everything the overview ladder shows, cheapest plan first. */

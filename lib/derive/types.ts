@@ -84,8 +84,30 @@ export type PlanSummary = {
 export type CatalogTotals = {
   totalCustomers: number;
   customersOnRetiredVersions: number;
-  planCount: number;
-  publicPlanCount: number;
+  /** Customers on any plan that is not free, Enterprise included. */
+  paidCustomers: number;
+};
+
+/** One plan's slice of the customer base, for the distribution bar on the overview. */
+export type CustomerSegment = {
+  planCode: string;
+  planName: string;
+  customers: number;
+  share: number;
+  /** Whole percentage; the segments of a distribution always add up to 100. */
+  percent: number;
+  isPaid: boolean;
+  /** Position among paid plans, cheapest first (0-based); `null` for a free plan. */
+  paidRank: number | null;
+};
+
+export type CustomerDistribution = {
+  totalCustomers: number;
+  /** Ladder order, cheapest first. */
+  segments: CustomerSegment[];
+  paidPlanCount: number;
+  /** The plan with the most customers; `null` when nobody is subscribed yet. */
+  largest: CustomerSegment | null;
 };
 
 export type NeighbourPlans = {
@@ -239,6 +261,12 @@ export type LadderStep = {
   fromPlanName: string;
   priceDifference: number;
   creditsDifference: number;
+  /**
+   * How much cheaper 1,000 included credits are than on the plan below, as a ratio (0.04 = 4%
+   * cheaper; negative when dearer). `null` when the plan below gives its credits for free, since
+   * nothing is cheaper than free.
+   */
+  pricePerCreditSavings: number | null;
 };
 
 export type CreditPackSummary = {

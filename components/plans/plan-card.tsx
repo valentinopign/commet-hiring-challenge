@@ -30,9 +30,15 @@ const TERM = "text-caption text-ink-muted";
  * whether or not a plan has a step line under it.
  */
 export function PlanCard({ row: { plan, step, packComparison }, alerts, currency }: PlanCardProps) {
+  // The whole card carries the warning so it stands out in the row; the icon and text line at
+  // the bottom still say why, so the colour is never the only signal.
+  const hasAlert = alerts.length > 0;
+  const border = hasAlert ? "border-warning" : "border-line hover:border-line-strong";
+
   return (
-    <li className="group relative row-span-6 grid grid-rows-subgrid gap-0 overflow-hidden rounded-card border border-line transition-colors hover:border-line-strong has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live">
+    <li className={`group relative row-span-6 grid grid-rows-subgrid gap-0 overflow-hidden rounded-card border ${border} transition-colors has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-live`}>
       <WidgetHeader
+        tone={hasAlert ? "bg-warning-soft" : undefined}
         title={
           <h3 className="flex min-w-0 items-center gap-2">
             <PlanNameLink code={plan.code} name={plan.name} />

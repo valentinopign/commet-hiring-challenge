@@ -1,5 +1,5 @@
 import type { LadderStep, PeriodPricing } from "@/lib/derive/types";
-import { formatCompactNumber, formatMoney } from "@/lib/format";
+import { formatCompactNumber, formatMoney, formatSavings } from "@/lib/format";
 
 type PlanMonthlyPriceProps = {
   monthly: PeriodPricing | null;
@@ -7,7 +7,7 @@ type PlanMonthlyPriceProps = {
   currency: string;
 };
 
-/** Price per month, plus what moving up from the plan below costs and gives. */
+/** Price per month, plus what moving up from the plan below costs, gives and saves per credit. */
 export function PlanMonthlyPrice({ monthly, step, currency }: PlanMonthlyPriceProps) {
   if (!monthly) return <span className="text-ink-muted">No monthly price</span>;
 
@@ -20,7 +20,10 @@ export function PlanMonthlyPrice({ monthly, step, currency }: PlanMonthlyPricePr
       {step && (
         <p className="mt-0.5 text-caption text-ink-muted tabular-nums">
           +{formatMoney(step.priceDifference, currency)} · {step.creditsDifference >= 0 ? "+" : ""}
-          {formatCompactNumber(step.creditsDifference)} credits vs {step.fromPlanName}
+          {formatCompactNumber(step.creditsDifference)} credits
+          {/* Left out against a free plan: its credits have no price to be cheaper than. */}
+          {step.pricePerCreditSavings !== null && ` · ${formatSavings(step.pricePerCreditSavings)} per credit`}
+          {" "}vs {step.fromPlanName}
         </p>
       )}
     </div>

@@ -9,13 +9,19 @@ import {
 import { cloneCatalog, getPlan } from "@/lib/derive/test-helpers";
 
 describe("getCatalogTotals", () => {
-  it("sums customers and those on retired versions", () => {
+  it("sums customers, those on retired versions and those on paid plans", () => {
     expect(getCatalogTotals(catalog)).toEqual({
       totalCustomers: 2345,
       customersOnRetiredVersions: 456,
-      planCount: 5,
-      publicPlanCount: 4,
+      // Everyone but Free's 1,240; Enterprise's 7 count as paid.
+      paidCustomers: 1105,
     });
+  });
+
+  it("returns zero paid customers when nobody is subscribed", () => {
+    const edited = cloneCatalog();
+    edited.subscriptionsByRelease = [];
+    expect(getCatalogTotals(edited)).toMatchObject({ totalCustomers: 0, paidCustomers: 0 });
   });
 
   it("ignores subscription rows that point to a missing release", () => {

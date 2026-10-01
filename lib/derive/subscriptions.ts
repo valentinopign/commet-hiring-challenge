@@ -43,21 +43,23 @@ export function getPlanSubscriptions(catalog: Catalog, plan: Plan): number {
 export function getCatalogTotals(catalog: Catalog): CatalogTotals {
   let totalCustomers = 0;
   let customersOnRetiredVersions = 0;
+  let paidCustomers = 0;
 
   for (const plan of catalog.plans) {
     for (const release of plan.releases) {
       const subscriptions = getReleaseSubscriptions(catalog, plan.code, release.version);
       totalCustomers += subscriptions;
       if (release.status === "retired") customersOnRetiredVersions += subscriptions;
+      if (isPaidPlan(plan)) paidCustomers += subscriptions;
     }
   }
 
-  return {
-    totalCustomers,
-    customersOnRetiredVersions,
-    planCount: catalog.plans.length,
-    publicPlanCount: catalog.plans.filter((plan) => plan.isPublic).length,
-  };
+  return { totalCustomers, customersOnRetiredVersions, paidCustomers };
+}
+
+/** A plan is paid by its pricing type, not its price, so a paid plan without a monthly price still counts. */
+export function isPaidPlan(plan: Plan): boolean {
+  return plan.pricing.type !== "free";
 }
 
 /**

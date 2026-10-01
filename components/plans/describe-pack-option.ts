@@ -27,6 +27,8 @@ export function describePackOption(packComparison: PackComparison | null, curren
   const price = formatPerThousand(packPrice, currency);
   const savings = packComparison.savingsVersusOverage;
   if (savings === null) return `Packs from ${price}`;
-  // The overage price sits right above, so "27% less" needs no reference to be understood.
-  return `Packs from ${price} (${formatSavings(savings)})`;
+  // Named even though the overage sits right above: "27% less" alone left the reader to guess.
+  // Non-breaking spaces keep the comparison on one line instead of stranding "(3%" at a line end.
+  const comparison = formatSavings(savings, "overage").replaceAll(" ", " ");
+  return `Packs from ${price} (${comparison})`;
 }
