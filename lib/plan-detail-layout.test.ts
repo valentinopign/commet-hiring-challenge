@@ -6,6 +6,8 @@ import { getPlanDetail } from "@/lib/derive/plan-detail";
 import { CatalogPlanDetail } from "@/components/plan-detail/catalog-plan-detail";
 import { VersionSwitcher } from "@/components/plan-detail/version-switcher";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 vi.mock("@/components/organizations/catalog-link", () => ({
   default: ({ href, children, scroll: _scroll, ...props }: { href: string | { pathname: string; query: Record<string, string | number> }; children: ReactNode; scroll?: boolean }) => {
     const target = typeof href === "string" ? href : `${href.pathname}?${new URLSearchParams(Object.entries(href.query).map(([key, value]) => [key, String(value)]))}`;

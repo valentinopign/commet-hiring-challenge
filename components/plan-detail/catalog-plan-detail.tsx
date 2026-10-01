@@ -12,11 +12,19 @@ import { VersionTimeline } from "@/components/plan-detail/version-timeline";
 import { getFeatureRows, resolveViewedVersion } from "@/lib/derive/plan-detail";
 import type { PlanDetail } from "@/lib/derive/types";
 import { getPlanNames } from "@/lib/derive/plans";
+import type { ReactNode } from "react";
+import { getComparisonOptions, resolveComparisonTarget } from "@/lib/derive/compare-plans";
+import { ComparePlanSelector } from "@/components/plan-detail/compare-plan-selector";
+import { PlanComparison } from "@/components/plan-detail/plan-comparison";
 
-export function CatalogPlanDetail({ catalog, detail, version }: {
+export function CatalogPlanDetail({ catalog, detail, version, compare, diff, editRequested = false, actions }: {
   catalog: Catalog;
   detail: PlanDetail;
   version: string | string[] | undefined;
+  compare?: string | string[];
+  diff?: string | string[];
+  editRequested?: boolean;
+  actions?: ReactNode;
 }) {
   const { plan, timeline, alerts, packComparison } = detail;
   const currency = catalog.organization.currency;
@@ -24,8 +32,11 @@ export function CatalogPlanDetail({ catalog, detail, version }: {
   const viewed = timeline.find((entry) => entry.version === viewedVersion);
   const current = timeline.find((entry) => entry.isCurrent);
   const planNames = getPlanNames(catalog);
+  const target = resolveComparisonTarget(catalog, plan.code, compare, editRequested);
+  if (target && viewed) return <PlanComparison catalog={catalog} detail={detail} viewed={viewed} target={target} onlyDifferences={(Array.isArray(diff) ? diff[0] : diff) === "1"} actions={actions} />;
   return <>
-    <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} />
+    <PlanHeader code={plan.code} name={plan.name} isPublic={plan.isPublic} beforeActions={<ComparePlanSelector planCode={plan.code} viewedVersion={viewedVersion} options={getComparisonOptions(catalog, plan.code, viewedVersion)} />} actions={actions} />
+    {compare && !editRequested && <p role="status" className="mt-3 text-caption text-warning">Comparison unavailable. Choose another plan or version with Compare.</p>}
     <section id="pricing" aria-labelledby="pricing-heading" className="mt-4">
       <h2 id="pricing-heading" className="sr-only">Pricing</h2>
       <div className="sr-only"><PricingScopeNote totalCustomers={plan.totalSubscriptions} /></div>

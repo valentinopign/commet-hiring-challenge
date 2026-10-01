@@ -46,6 +46,7 @@
   --color-line-strong: #3a3a41;
   --color-ink: #ededef;
   --color-ink-muted: #a0a0a9;
+  --color-scrim: rgb(0 0 0 / 0.5);
 
   /* The only accent. It means "what a new customer gets today": the current version, and focus. */
   --color-live: #50765a;
