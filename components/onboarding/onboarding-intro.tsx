@@ -96,12 +96,12 @@ export function OnboardingIntro() {
       <div aria-hidden="true" className={`onboarding-glow pointer-events-none absolute inset-0 -z-10 ${builderVisible ? "is-builder" : ""}`} />
       <div aria-hidden="true" className={`onboarding-workspace-light pointer-events-none absolute inset-0 -z-10 ${builderVisible ? "is-visible" : ""}`} />
       {builderVisible && <DitherBackground paused={backgroundPaused} />}
-      <header className="flex items-center justify-between gap-6 py-7 sm:py-9">
+      <header data-setup-exit="0" className="flex items-center justify-between gap-6 py-7 sm:py-9">
         <Link href="/" className="onboarding-control text-base font-semibold tracking-tight" aria-label="Commet, back to Nimbus">
           <CommetLogo className="bg-onboarding-ink" />
           <span>Commet<span className="text-onboarding-dollar">.</span></span>
         </Link>
-        {!complete && <button type="button" onClick={skip} className="onboarding-control text-sm text-onboarding-muted">Skip intro <span aria-hidden="true">↗</span></button>}
+        {!complete && !builderVisible && <button type="button" onClick={skip} className="onboarding-control text-sm text-onboarding-muted">Skip intro <span aria-hidden="true">↗</span></button>}
         {builderVisible && <div className="flex min-w-0 items-center gap-4"><button type="button" onClick={() => setBackgroundPaused((paused) => !paused)} className="onboarding-control text-xs text-onboarding-muted motion-reduce:hidden">{backgroundPaused ? "Resume background" : "Pause background"}</button><span className="onboarding-company-badge max-w-40 truncate text-sm text-onboarding-muted">{companyName}</span></div>}
       </header>
 
@@ -143,7 +143,7 @@ export function OnboardingIntro() {
         )}
       </div>}
       </div>
-      <footer className="flex items-center justify-between gap-4 pb-7 text-xs text-onboarding-muted sm:pb-9">
+      <footer data-setup-exit="0" className="flex items-center justify-between gap-4 pb-7 text-xs text-onboarding-muted sm:pb-9">
         <span>Built around your product.</span>
         {!builderVisible && <span aria-hidden="true" className="flex gap-2">
           {PHRASES.map((_, index) => <span key={index} className={`size-1.5 rounded-full transition-opacity duration-200 ${index === phrase ? "bg-onboarding-ink" : "bg-onboarding-muted opacity-30"}`} />)}

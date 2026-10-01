@@ -106,8 +106,8 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
   if (stage === "collection") {
     return (
       <div className="onboarding-builder mx-auto w-full max-w-6xl py-8 sm:py-12">
-        <p className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / Your plans</p>
-        <h1 ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">Your plans.</h1>
+        <p data-setup-exit="1" className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / Your plans</p>
+        <h1 data-setup-exit="1" ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">Your plans.</h1>
         <StepTransition key={stage} direction="forward">
           {finishError && <p role="alert" className="mb-4 text-critical">{finishError}</p>}
           <PlanCollection catalog={catalog} previewRef={previewRef} finishing={finishing} onAdd={startPlan} onFinish={finishSetup} onBack={plans.length ? undefined : () => setShowPlanCollection(false)} />
@@ -118,8 +118,8 @@ export function DashboardBuilder({ companyName, ready = true }: { companyName: s
 
   return (
     <div className="onboarding-builder mx-auto w-full max-w-6xl py-8 sm:py-12">
-      <p className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / {creatingPlan ? plans.length ? "Another plan" : "First plan" : "Your product"}</p>
-      <h1 ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">
+      <p data-setup-exit="1" className="mb-3 text-xs tracking-[0.2em] text-onboarding-muted uppercase">{companyName} / {creatingPlan ? plans.length ? "Another plan" : "First plan" : "Your product"}</p>
+      <h1 data-setup-exit="1" ref={headingRef} tabIndex={-1} className="mb-4 text-4xl font-medium tracking-tight outline-none sm:text-5xl">
         <span key={String(creatingPlan)} className="onboarding-builder-title inline-block">{creatingPlan ? "Create a plan." : "What does your product offer?"}</span>
       </h1>
       <StepTransition key={String(creatingPlan)} direction={creatingPlan ? "forward" : "back"}>

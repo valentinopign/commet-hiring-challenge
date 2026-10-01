@@ -508,31 +508,21 @@
   inset: 0;
   background: var(--color-onboarding-canvas);
 }
-.setup-handoff-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: top left;
-  border-radius: var(--radius-sheet);
-  border: 1px solid var(--color-line);
-  background: var(--color-surface);
-  overflow: hidden;
+.setup-handoff-backdrop * {
+  animation: none !important;
+  transition: none !important;
 }
-.setup-handoff-preview.onboarding-builder {
-  color: var(--color-onboarding-ink);
-  animation: none;
-  padding: 0;
-  height: 100%;
+.setup-handoff-backdrop [data-setup-exit],
+.setup-handoff-backdrop > .onboarding-stage {
+  mask-size: 4px 4px;
+  mask-repeat: repeat;
 }
-.setup-handoff-preview .onboarding-preview {
+.setup-handoff-backdrop .onboarding-preview {
   position: static;
   animation: none;
   transform: none;
   opacity: 1;
   height: 100%;
-}
-.setup-handoff-preview * {
-  animation: none !important;
 }
 
 .onboarding-preview {
