@@ -32,6 +32,7 @@ export function PositionStep({ state, dispatch, bases, currency, issues, showAll
   const { draft } = state;
   // `undefined`: no replacement waiting for confirmation; `null` stands for "start from scratch".
   const [replacement, setReplacement] = useState<string | null | undefined>(undefined);
+  const [customizingCode, setCustomizingCode] = useState(state.codeEditedByHand);
 
   const issueFor = (field: StepIssue["field"]) => issues.find((issue) => issue.field === field)?.message;
   const nameError = showAllIssues ? issueFor("plan-name") : undefined;
@@ -59,11 +60,10 @@ export function PositionStep({ state, dispatch, bases, currency, issues, showAll
   return (
     <div className="space-y-6">
       <p className="max-w-prose text-ink-muted">
-        Name the plan and decide who can see it. Starting from an existing plan copies its setup, so you only
-        change what is different.
+        Name the plan and decide who can see it.{bases.length > 0 && " Starting from an existing plan copies its setup, so you only change what is different."}
       </p>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="space-y-3">
         <FormField id="plan-name" label="Name" error={nameError}>
           {(control) => (
             <input
@@ -78,9 +78,12 @@ export function PositionStep({ state, dispatch, bases, currency, issues, showAll
           )}
         </FormField>
 
-        <FormField
+        <details open={customizingCode || !!codeError} onToggle={(event) => setCustomizingCode(event.currentTarget.open)}>
+          <summary className="w-fit cursor-pointer rounded-control py-2 text-caption text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-4">Customize API code</summary>
+          <div className="pt-2">
+          <FormField
           id="plan-code"
-          label="Code"
+          label="API code"
           error={codeError}
           hint={
             <>
@@ -102,7 +105,9 @@ export function PositionStep({ state, dispatch, bases, currency, issues, showAll
               className={`${inputClass} font-mono`}
             />
           )}
-        </FormField>
+          </FormField>
+          </div>
+        </details>
       </div>
 
       <fieldset>

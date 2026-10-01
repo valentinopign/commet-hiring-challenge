@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronRightIcon } from "@/components/icons/chevron-right-icon";
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { OrganizationMark } from "@/components/shell/organization-mark";
@@ -44,7 +45,7 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
   const popoverRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [addRequested, setAddRequested] = useState(false);
+  const router = useRouter();
   // Choosing another organisation only changes the name shown: there is no other catalog to load.
   const [selectedId, setSelectedId] = useState(currentId);
   const selected = organizations.find((organization) => organization.id === selectedId);
@@ -72,7 +73,6 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
         requestAnimationFrame(() => triggerRef.current?.focus({ preventScroll: true }));
       }
       setIsOpen(opening);
-      if (!opening) setAddRequested(false);
     }
     popover.addEventListener("toggle", handleToggle);
     return () => popover.removeEventListener("toggle", handleToggle);
@@ -148,7 +148,10 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
         <div className="drop-item mt-1 border-t border-glass-edge pt-1" style={dropIndex(others.length)}>
           <button
             type="button"
-            onClick={() => setAddRequested(true)}
+            onClick={() => {
+              popoverRef.current?.hidePopover();
+              router.push("/onboarding");
+            }}
             className="flex w-full items-center gap-2 rounded-control px-1.5 py-1.5 text-left text-xs font-medium whitespace-nowrap transition-colors hover:bg-glass-hover"
           >
             <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-glass-edge">
@@ -156,9 +159,6 @@ export function OrganizationSwitcher({ organizations, currentId }: OrganizationS
             </span>
             Add organization
           </button>
-          <p role="status" className="px-1.5 pb-1 text-caption text-ink-muted empty:hidden">
-            {addRequested ? "Not available in this prototype." : ""}
-          </p>
         </div>
       </div>
     </>

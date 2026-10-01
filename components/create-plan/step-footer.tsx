@@ -4,6 +4,7 @@ import { outlineControlClass, primaryControlClass, touchTargetClass } from "@/co
 
 type StepFooterProps = {
   onBack: (() => void) | null;
+  onCancel?: () => void;
   primaryLabel: string;
   /** Only the publish button is ever disabled, and `note` then says why next to it. */
   primaryDisabled?: boolean;
@@ -11,13 +12,15 @@ type StepFooterProps = {
 };
 
 /** The primary button submits the step's form, so Enter in any field moves on too. */
-export function StepFooter({ onBack, primaryLabel, primaryDisabled = false, note }: StepFooterProps) {
+export function StepFooter({ onBack, onCancel, primaryLabel, primaryDisabled = false, note }: StepFooterProps) {
   return (
     <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
       {onBack ? (
         <button type="button" onClick={onBack} className={`${outlineControlClass} ${touchTargetClass} relative`}>
           Back
         </button>
+      ) : onCancel ? (
+        <button type="button" onClick={onCancel} className={`${outlineControlClass} ${touchTargetClass} relative`}>Cancel</button>
       ) : (
         <Link href="/" className={`${outlineControlClass} ${touchTargetClass} relative`}>
           Cancel

@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/shell/page-title";
 import { SidebarContent } from "@/components/shell/sidebar-content";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { TopBar } from "@/components/shell/top-bar";
+import { RouteShell } from "@/components/shell/route-shell";
 import { catalog } from "@/data/catalog";
 import { getCatalogAlerts } from "@/lib/derive/alerts";
 import { getNavigationPlans, getOrganizations } from "@/lib/derive/navigation";
@@ -45,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <AppShell
+        <RouteShell dashboard={<AppShell
           sidebar={sidebar}
           topBar={
             <TopBar
@@ -59,7 +60,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }
         >
           {children}
-        </AppShell>
+        </AppShell>}>
+          {children}
+        </RouteShell>
       </body>
     </html>
   );

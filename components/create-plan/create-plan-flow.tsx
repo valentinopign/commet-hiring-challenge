@@ -35,10 +35,13 @@ import {
 } from "@/lib/derive/draft-flow";
 import { getPlanLadder, getPlanNames, summarizeDraft } from "@/lib/derive/plans";
 import { checkDraftPlan } from "@/lib/derive/sanity-checks";
+import type { DraftPlan } from "@/lib/derive/types";
 
 type CreatePlanFlowProps = {
   catalog: Catalog;
   initialBaseCode: string | null;
+  onPublish?: (draft: DraftPlan) => void;
+  onCancel?: () => void;
 };
 
 function deriveData(catalog: Catalog): CreatePlanData {
@@ -73,7 +76,7 @@ function writeSearchParam(name: string, value: string | null, mode: "push" | "re
  * state lives here. The step comes from the URL and is clamped to the furthest step the draft
  * allows, which also covers a reload (the draft is not persisted, so it starts over).
  */
-export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps) {
+export function CreatePlanFlow({ catalog, initialBaseCode, onPublish, onCancel }: CreatePlanFlowProps) {
   const data = useMemo(() => deriveData(catalog), [catalog]);
   const { bases, existingPlans, currency, ladder } = data;
   const [state, dispatch] = useReducer(
@@ -139,7 +142,10 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (step === "review") {
-      if (blockingCount === 0) setIsPublished(true);
+      if (blockingCount === 0) {
+        if (onPublish) onPublish(draft);
+        else setIsPublished(true);
+      }
       return;
     }
     const [firstIssue] = issues;
@@ -218,14 +224,15 @@ export function CreatePlanFlow({ catalog, initialBaseCode }: CreatePlanFlowProps
             </StepTransition>
 
             <StepFooter
+              onCancel={onCancel}
               onBack={previous ? () => goTo(previous.id) : null}
-              primaryLabel={isReview ? "Publish plan" : "Continue"}
+              primaryLabel={isReview ? onPublish ? "Add plan" : "Publish plan" : "Continue"}
               primaryDisabled={isReview && blockingCount > 0}
               note={
                 isReview
                   ? blockingCount > 0
                     ? "Fix what is marked Must fix to publish."
-                    : "Simulated: nothing is saved."
+                    : onPublish ? "Local preview only. Reloading clears this setup." : "Simulated: nothing is saved."
                   : undefined
               }
             />

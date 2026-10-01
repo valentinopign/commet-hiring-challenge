@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ControlProps } from "@/components/create-plan/form-field";
 import { inputClass } from "@/components/ui/control-styles";
 import { formatAmountForInput, parseAmount, parseWholeNumber } from "@/lib/format";
+import { isAllowedAmountInput } from "@/lib/create-plan/amount-input";
 
 type AmountInputProps = ControlProps & {
   /** `money` edits cents as dollars; `count` edits a whole number such as credits or seats. */
@@ -22,7 +23,7 @@ function toText(kind: AmountInputProps["kind"], value: number | null): string {
 }
 
 /**
- * Keeps what the person types ("49.", "12,5") while the draft only ever receives a parsed number
+ * Keeps unfinished numeric edits ("49.") while the draft only ever receives a parsed number
  * or `null`. When the value changes from outside (a suggestion applied), the text follows.
  */
 export function AmountInput({ kind, value, onValueChange, prefix, suffix, placeholder, ...control }: AmountInputProps) {
@@ -52,6 +53,7 @@ export function AmountInput({ kind, value, onValueChange, prefix, suffix, placeh
           value={text}
           onChange={(event) => {
             const nextText = event.target.value;
+            if (!isAllowedAmountInput(nextText, kind)) return;
             const parsed = parse(nextText);
             setText(nextText);
             setSyncedValue(parsed);

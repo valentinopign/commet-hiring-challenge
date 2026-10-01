@@ -12,6 +12,27 @@
   --color-*: initial;
   --radius-*: initial;
 
+  /* The welcome sequence is intentionally dark in both dashboard themes. */
+  --color-onboarding-canvas: #060807;
+  --color-onboarding-ink: #f3f5f3;
+  --color-onboarding-muted: #99a59d;
+  --color-onboarding-dollar: #50765a;
+  --color-onboarding-glow: rgb(39 76 49 / 0.24);
+  --color-onboarding-workspace-light: rgb(132 147 139 / 0.045);
+  --color-onboarding-dither: #284734;
+  --color-onboarding-glass: rgb(206 224 213 / 0.035);
+  --color-onboarding-glass-edge: rgb(206 224 213 / 0.2);
+  --color-onboarding-glass-shine: rgb(230 241 234 / 0.09);
+  --color-onboarding-solid: #101813;
+  --color-onboarding-raised: #18211b;
+  --color-onboarding-line: #2a372e;
+  --color-onboarding-line-strong: #526659;
+  --color-onboarding-focus: #8fb29b;
+  --color-liquid-tint: rgb(217 231 223 / 0.018);
+  --color-liquid-highlight: rgb(223 238 229 / 0.32);
+  --color-liquid-edge: rgb(205 225 214 / 0.19);
+  --color-liquid-ambient-soft: rgb(173 189 178 / 0.055);
+
   /*
    * Surfaces, from deepest to highest in dark: the sheet that holds the content, the body of a card,
    * then the header layer of a card (also hover and active fills). Each step is lighter, so elevation
@@ -103,6 +124,365 @@
 
   /* Only what floats (the alerts popover) casts a shadow. In dark it is barely visible, so the border does the work. */
   --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.5);
+}
+
+.onboarding-stage {
+  background: var(--color-onboarding-canvas);
+  color-scheme: dark;
+}
+
+.onboarding-glow {
+  background: radial-gradient(ellipse at 50% 50%, var(--color-onboarding-glow), transparent 65%);
+  opacity: 1;
+  transition: opacity 900ms var(--ease-emphasized);
+}
+
+.onboarding-glow.is-builder { opacity: 0; }
+
+.onboarding-workspace-light {
+  background: linear-gradient(135deg, transparent 25%, var(--color-onboarding-workspace-light) 65%, transparent 95%);
+  opacity: 0;
+  transition: opacity 900ms var(--ease-emphasized);
+}
+
+.onboarding-workspace-light.is-visible { opacity: 1; }
+
+.onboarding-dither-edge {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.onboarding-dither-left { left: 0; }
+.onboarding-dither-right { right: 0; }
+.onboarding-dither.is-ready .onboarding-dither-left {
+  animation: onboarding-dither-enter-left 1600ms var(--ease-emphasized) both;
+}
+.onboarding-dither.is-ready .onboarding-dither-right {
+  animation: onboarding-dither-enter-right 1600ms var(--ease-emphasized) 120ms both;
+}
+
+.onboarding-dither-layer {
+  position: absolute;
+  top: -5%;
+  left: -10%;
+  width: 220%;
+  height: 110%;
+  image-rendering: pixelated;
+}
+
+.onboarding-dither-right .onboarding-dither-layer { left: -110%; }
+
+.onboarding-dither-first {
+  opacity: 0.5;
+  animation: onboarding-dither-drift 28s linear infinite alternate;
+}
+
+.onboarding-dither-second {
+  opacity: 0.28;
+  animation: onboarding-dither-drift 36s linear -18s infinite alternate-reverse;
+}
+
+.onboarding-dither.is-paused .onboarding-dither-layer,
+.onboarding-dither.is-paused .onboarding-dither-edge { animation-play-state: paused; }
+
+@keyframes onboarding-dither-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes onboarding-dither-enter-left {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes onboarding-dither-enter-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes onboarding-dither-drift {
+  from { transform: translate(-1.5%, -1%) rotate(-1deg); }
+  to { transform: translate(1.5%, 1%) rotate(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-dither.is-ready .onboarding-dither-edge { animation: onboarding-dither-reveal 200ms var(--ease-emphasized) both; }
+  .onboarding-dither-layer { animation: none; }
+}
+
+@media (prefers-contrast: more) { .onboarding-dither { display: none; } }
+
+.onboarding-company-badge {
+  animation: onboarding-welcome-fade 400ms ease both;
+}
+
+.onboarding-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-control);
+  padding: 0.5rem;
+  transition: opacity 150ms var(--ease-emphasized);
+}
+
+.onboarding-control:focus-visible {
+  outline-color: var(--color-onboarding-dollar);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-control:hover { opacity: 0.7; }
+}
+
+.onboarding-character {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.onboarding-letter {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  animation: onboarding-letter-in 600ms var(--ease-emphasized) var(--letter-enter) both;
+}
+
+.onboarding-dollar {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  color: var(--color-onboarding-dollar);
+  font-weight: 400;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* A fixed blurred echo gives the dollars a soft trail without animating a paint property. */
+.onboarding-dollar::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: "$";
+  filter: blur(7px);
+  opacity: 0.5;
+}
+
+.is-leaving .onboarding-letter {
+  mask-size: 4px 4px;
+  mask-repeat: repeat;
+  /* Discrete mask changes are intentional: a fade alone cannot dissolve the glyph into pixels. */
+  animation: onboarding-letter-dither 340ms linear var(--letter-exit) both;
+}
+
+.is-leaving .onboarding-dollar {
+  mask-size: 4px 4px;
+  mask-repeat: repeat;
+  animation:
+    onboarding-dollar-out 400ms var(--ease-emphasized) calc(var(--letter-exit) + 45ms) both,
+    onboarding-dollar-dither 400ms linear calc(var(--letter-exit) + 45ms) both;
+}
+
+.onboarding-heading {
+  transform: translateY(0);
+  transition: transform 700ms var(--ease-emphasized);
+}
+
+.onboarding-heading.is-setting-up {
+  transform: translateY(clamp(-10rem, -18vh, -6rem));
+}
+
+.onboarding-company-field {
+  animation: onboarding-ending-in 250ms var(--ease-emphasized) 250ms both;
+  transition: opacity 200ms var(--ease-emphasized);
+}
+
+.onboarding-company-field.is-submitted {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-glass-input,
+.onboarding-glass-button {
+  border: 1px solid var(--color-onboarding-glass-edge);
+  background: linear-gradient(135deg, var(--color-onboarding-glass-shine), transparent 55%), var(--color-onboarding-glass);
+  backdrop-filter: blur(18px) saturate(125%);
+  box-shadow: inset 0 1px 0 var(--color-onboarding-glass-shine), 0 8px 32px rgb(0 0 0 / 0.16);
+}
+
+.liquid-glass-scene {
+  position: relative;
+}
+
+.liquid-glass-surface {
+  position: relative;
+  border-radius: 28px;
+  background: var(--color-liquid-tint);
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.25), inset 0 0 0 1px var(--color-liquid-edge);
+  transition: box-shadow 200ms ease;
+}
+
+.liquid-glass-lens,
+.liquid-glass-reflection {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.liquid-glass-lens {
+  overflow: hidden;
+  -webkit-backdrop-filter: var(--liquid-filter);
+  backdrop-filter: var(--liquid-filter);
+  background: var(--color-liquid-tint);
+}
+
+.liquid-glass-reflection {
+  background: var(--liquid-reflection) center / 100% 100% no-repeat;
+  box-shadow:
+    inset 0 1px 1px var(--color-liquid-highlight),
+    inset 0 -1px 1px var(--color-liquid-edge),
+    inset 2px 0 5px var(--color-liquid-ambient-soft),
+    inset -2px 0 5px var(--color-liquid-ambient-soft);
+}
+
+.liquid-glass-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 12px;
+}
+
+.liquid-glass-surface:focus-within {
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.25), 0 0 0 2px var(--color-onboarding-muted);
+}
+
+.liquid-glass-submit {
+  border: 1px solid var(--color-liquid-edge);
+  background: var(--color-liquid-tint);
+  box-shadow: inset 0 1px 2px var(--color-liquid-highlight), inset 0 -1px 2px var(--color-liquid-edge);
+}
+
+.onboarding-glass-input,
+.onboarding-glass-button {
+  border-radius: var(--radius-control);
+  color: var(--color-onboarding-ink);
+}
+
+.onboarding-glass-input::placeholder { color: var(--color-onboarding-muted); }
+
+.onboarding-builder {
+  /* The existing plan flow shares this dark material without changing the dashboard theme. */
+  --color-ink: var(--color-onboarding-ink);
+  --color-ink-muted: var(--color-onboarding-muted);
+  --color-surface: var(--color-onboarding-canvas);
+  --color-surface-card: var(--color-onboarding-solid);
+  --color-surface-raised: var(--color-onboarding-raised);
+  --color-line: var(--color-onboarding-line);
+  --color-line-strong: var(--color-onboarding-line-strong);
+  --color-live: var(--color-onboarding-focus);
+  --color-warning: #f2b155;
+  --color-critical: #f47a72;
+  --color-info: #7ea6f5;
+  --color-impact-better: #8fd46a;
+  --color-impact-worse: #f28b82;
+  animation: onboarding-workspace-in 700ms var(--ease-emphasized) 950ms both;
+}
+
+.onboarding-preview {
+  background: linear-gradient(145deg, var(--color-onboarding-workspace-light), transparent 45%), var(--color-onboarding-solid);
+  box-shadow: inset 0 1px 0 var(--color-onboarding-glass-shine), 0 20px 60px rgb(0 0 0 / 0.18);
+  animation: onboarding-preview-in 700ms var(--ease-emphasized) 340ms both;
+}
+
+.onboarding-preview-number,
+.onboarding-builder-title {
+  animation: onboarding-welcome-fade 200ms ease both;
+}
+
+@keyframes onboarding-workspace-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes onboarding-preview-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.onboarding-field-reveal,
+.onboarding-preview-item {
+  transition: opacity 200ms ease;
+  @starting-style { opacity: 0; }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .liquid-glass-surface,
+  .onboarding-glass-input,
+  .onboarding-glass-button {
+    background: var(--color-onboarding-solid);
+    backdrop-filter: none;
+    border-color: var(--color-onboarding-muted);
+  }
+  .liquid-glass-lens { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .liquid-glass-reflection { display: none; }
+}
+
+@keyframes onboarding-letter-in {
+  from { opacity: 0; transform: translateY(12%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes onboarding-letter-dither {
+  0%, 15% { opacity: 1; mask-image: none; }
+  16%, 35% { opacity: 1; mask-image: var(--dither-1); }
+  36%, 55% { opacity: 1; mask-image: var(--dither-2); }
+  56%, 75% { opacity: 1; mask-image: var(--dither-3); }
+  76%, 92% { opacity: 0.8; mask-image: var(--dither-4); }
+  100% { opacity: 0; mask-image: var(--dither-4); }
+}
+
+@keyframes onboarding-dollar-out {
+  0% { opacity: 0; }
+  25% { opacity: 0.38; }
+  100% { opacity: 0; }
+}
+
+@keyframes onboarding-dollar-dither {
+  0%, 25% { mask-image: none; }
+  26%, 45% { mask-image: var(--dither-1); }
+  46%, 65% { mask-image: var(--dither-2); }
+  66%, 85% { mask-image: var(--dither-3); }
+  86%, 100% { mask-image: var(--dither-4); }
+}
+
+@keyframes onboarding-ending-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-letter,
+  .is-leaving .onboarding-letter,
+  .onboarding-company-field,
+  .onboarding-builder,
+  .onboarding-preview {
+    animation: onboarding-welcome-fade 200ms ease both;
+  }
+  .onboarding-dollar { display: none; }
+  .is-leaving .onboarding-letter { mask-image: none; }
+  .onboarding-heading { transition: none; }
+  .onboarding-glow,
+  .onboarding-workspace-light { transition-duration: 200ms; }
+}
+
+@keyframes onboarding-welcome-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @layer base {
